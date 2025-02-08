@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# mac stuff
+.DS_Store
+
+# dirs
+.cache/
+
+compile_commands.json
+ircserv
