@@ -14,6 +14,8 @@ class Server {
     Server &operator=(Server &&rhs) noexcept;
 
     ~Server();
+  public:
+    void initServer();
 
   private:
     int _port;
