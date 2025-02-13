@@ -1,7 +1,11 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <netinet/in.h>
 #include <string>
+
+#define LOWEST_PORT 1024
+#define HIGHEST_PORT 65535
 
 class Server {
   public:
@@ -15,11 +19,14 @@ class Server {
 
     ~Server();
   public:
-    void initServer();
+    bool startServer();
 
   private:
     int _port;
-    std::string _password;  // maybe make it a hash
+    std::string _password;
+    int _socket;
+    struct sockaddr_in _sockaddr;
+    socklen_t _addrlen;
 };
 
 #endif // !SERVER_HPP
