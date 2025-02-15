@@ -1,19 +1,22 @@
 #include <cerrno>
 #include <cstring>
-#include <fcntl.h>
 #include <iostream>
 #include <stdexcept>
+#include <system_error>
+
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <system_error>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
 
 Server::Server(const char *port, const char *password)
-    : _port(toUint16(port)), _password(password), _server_fd(-1), _epoll_fd(-1),
-      _events({}) {
+    : _port(toUint16(port)), _password(password), _server_fd(-1),
+      _epoll_fd(-1) {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -34,7 +37,7 @@ Server::Server(const char *port, const char *password)
 
 Server::Server(const Server &rhs)
     : _port(rhs._port), _password(rhs._password), _server_fd(rhs._server_fd),
-      _epoll_fd(rhs._epoll_fd), _events(rhs._events) {
+      _epoll_fd(rhs._epoll_fd) {
 }
 
 Server &Server::operator=(const Server &rhs) {
@@ -43,7 +46,6 @@ Server &Server::operator=(const Server &rhs) {
         _password = rhs._password;
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
-        _events = rhs._events;
     }
 
     return *this;
@@ -51,8 +53,7 @@ Server &Server::operator=(const Server &rhs) {
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd),
-      _events(rhs._events) {
+      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -61,7 +62,6 @@ Server &Server::operator=(Server &&rhs) noexcept {
         _password = std::move(rhs._password);
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
-        _events = rhs._events;
     }
 
     return *this;
@@ -91,10 +91,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    if (0 > fcntl(_server_fd, // NOLINT(cppcoreguidelines-pro-type-vararg)
-                  F_SETFL, O_NONBLOCK)) {
-        std::cerr << "Failed to set to non-blocking mode: " << strerror(errno)
-                  << '\n';
+    if (0 > _setNonBlocking(_server_fd)) {
         return false;
     }
 
@@ -130,8 +127,76 @@ bool Server::_init() noexcept {
         return false;
     }
 
+    std::cout << "Server is running on: " << _port << '\n';
     return true;
 }
 
 void Server::_run() {
+    while (true) {
+        int events = epoll_wait(_epoll_fd, static_cast<epoll_event *>(_events),
+                                MAX_CLIENTS, -1);
+        if (0 > events) {
+            std::cerr << "Epoll failed to wait: " << strerror(errno) << '\n';
+            throw std::system_error();
+        }
+
+        for (int index = 0; index < events; ++index) {
+            if (_events[index].data.fd == _server_fd) {
+                struct sockaddr_in clientAddr{};
+                socklen_t clientLen = sizeof(clientAddr);
+                int clientFD = accept(
+                    _server_fd,
+                    (struct // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+                     sockaddr *)&clientAddr,
+                    &clientLen);
+                if (0 > clientFD) {
+                    std::cerr << "Failed to accept client: " << strerror(errno)
+                              << '\n';
+                    throw std::system_error();
+                }
+
+                if (0 > _setNonBlocking(clientFD)) {
+                    close(clientFD);
+                    continue;
+                }
+
+                struct epoll_event ev{};
+                ev.events = EPOLLIN | EPOLLET;
+                ev.data.fd = clientFD;
+                if (0 > epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &ev)) {
+                    std::cerr << "Epoll add failed: " << strerror(errno)
+                              << '\n';
+                    close(clientFD);
+                    continue;
+                }
+
+                std::cout << "New client with fd: " << clientFD << '\n';
+            } else {
+                // a message
+                char buffer[1024];
+                ssize_t readBytes = read(_events[index].data.fd, buffer, sizeof(buffer));
+
+                if (readBytes <= 0) {
+                    std::cout << "fd: " << _events[index].data.fd << " Disconnected" << '\n';
+                    close(_events[index].data.fd);
+                    continue;
+                }
+
+                buffer[readBytes] = '\0';
+                std::cout << "Recieved from fd: " << _events[index].data.fd << ": " << buffer << '\n';
+            }
+        }
+    }
+}
+
+int Server::_setNonBlocking(int fd) {
+    int returnCode = fcntl(fd, // NOLINT(cppcoreguidelines-pro-type-vararg)
+                           F_SETFL, O_NONBLOCK);
+    if (0 > returnCode) {
+        std::cerr << "Failed to set to non-blocking mode: " << strerror(errno)
+                  << '\n';
+        return false;
+    }
+
+    return returnCode;
 }

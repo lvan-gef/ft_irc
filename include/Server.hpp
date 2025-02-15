@@ -7,6 +7,7 @@
 
 #define LOWEST_PORT 1024
 #define HIGHEST_PORT 65535
+#define MAX_CLIENTS 1024
 
 class Server {
   public:
@@ -23,14 +24,16 @@ class Server {
   private:
     bool _init() noexcept;
     void _run();
+    int _setNonBlocking(int fd);
 
   private:
     uint16_t _port;
     std::string _password;
 
+  private:
     int _server_fd;
     int _epoll_fd;
-    struct epoll_event _events;
+    struct epoll_event _events[MAX_CLIENTS];
 };
 
 #endif // !SERVER_HPP
