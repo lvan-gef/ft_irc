@@ -3,6 +3,7 @@
 
 #include <netinet/in.h>
 #include <string>
+#include <sys/epoll.h>
 
 #define LOWEST_PORT 1024
 #define HIGHEST_PORT 65535
@@ -18,15 +19,18 @@ class Server {
     Server &operator=(Server &&rhs) noexcept;
 
     ~Server();
-  public:
-    bool startServer();
 
   private:
-    int _port;
+    bool _init() noexcept;
+    void _run();
+
+  private:
+    u_int16_t _port;
     std::string _password;
-    int _socket;
-    struct sockaddr_in _sockaddr;
-    socklen_t _addrlen;
+
+    int _server_fd;
+    int _epoll_fd;
+    struct epoll_event _events;
 };
 
 #endif // !SERVER_HPP
