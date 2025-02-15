@@ -1,4 +1,3 @@
-#include <asm-generic/socket.h>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
