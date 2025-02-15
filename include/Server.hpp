@@ -25,7 +25,7 @@ class Server {
     void _run();
 
   private:
-    u_int16_t _port;
+    uint16_t _port;
     std::string _password;
 
     int _server_fd;
