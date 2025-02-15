@@ -172,7 +172,6 @@ void Server::_run() {
 
                 std::cout << "New client with fd: " << clientFD << '\n';
             } else {
-                // a message
                 char buffer[1024];
                 ssize_t readBytes = read(_events[index].data.fd, buffer, sizeof(buffer));
 
