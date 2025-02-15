@@ -57,7 +57,6 @@ clean:  ## Clean object files
 .PHONY: fclean
 fclean: clean  ## Clean all side effects
 	rm -rf $(NAME) $(NAME_DEBUG) $(NAME_TEST)
-	rm -rf $(TESTDIR)__pycache__
 
 .PHONY: re  ## Clean all and recompile
 re: fclean all
