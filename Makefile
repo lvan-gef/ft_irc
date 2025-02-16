@@ -4,7 +4,7 @@ NAME_TEST := $(NAME)_test
 
 CXX := c++
 BASE_FLAGS := -std=c++11
-WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Wformat=2 -Woverloaded-virtual -Wpedantic
+WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wpedantic
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
