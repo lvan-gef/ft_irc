@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "../include/Server.hpp"
 
@@ -10,7 +11,10 @@ int main(int argc, char **argv) {
     }
 
     try {
-        Server server(argv[1], argv[2]);
+        std::string arg1 = argv[1];
+        std::string arg2 = argv[2];
+
+        Server server(arg1, arg2);
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
         return 2;
