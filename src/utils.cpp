@@ -1,29 +1,12 @@
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
-#include <cerrno>
 
 #include "../include/utils.hpp"
 
-int toInt(const char *str) {
+std::uint16_t toUint16(const std::string &str) {
     char *endptr = nullptr;
-    long int value = strtol(str, &endptr, BASE);
-
-    if (endptr == str || *endptr != '\0') {
-        errno = EINVAL;
-        return 0;
-    } else {
-        if (value > INT_MAX || value < 0) {
-            errno = ERANGE;
-            return 0;
-        }
-    }
-
-    return static_cast<int>(value);
-}
-
-uint16_t toUint16(const char *str) {
-    char *endptr = nullptr;
-    unsigned long int value = strtoul(str, &endptr, BASE);
+    unsigned long int value = strtoul(str.c_str(), &endptr, BASE);
 
     if (endptr == str || *endptr != '\0') {
         errno = EINVAL;

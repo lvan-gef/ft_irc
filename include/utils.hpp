@@ -2,10 +2,10 @@
 #define UTILS_HPP
 
 #include <cstdint>
+#include <string>
 
 #define BASE 10
 
-int toInt(const char *str);
-uint16_t toUint16(const char *str);
+std::uint16_t toUint16(const std::string &str);
 
 #endif // UTILS_HPP
