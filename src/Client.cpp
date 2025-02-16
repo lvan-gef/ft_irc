@@ -1,9 +1,12 @@
 #include <ctime>
-#include <iostream>
+
+#include <unistd.h>
 
 #include "../include/Client.hpp"
 
 Client::Client(int fd) : _fd(fd), _event(), _last_seen(0), _registered(false) {
+    _event.data.fd = fd;
+    _event.events = EPOLLIN | EPOLLET;  // Edge-triggered monitoring
 }
 
 Client::Client(const Client &rhs)
@@ -39,7 +42,9 @@ Client &Client::operator=(Client &&rhs) noexcept {
 }
 
 Client::~Client() {
-    std::cout << "Default destructor for Client is called" << '\n';
+    if (_fd >= 0) {
+        close(_fd);
+    }
 }
 
 int Client::getFD() const noexcept {
