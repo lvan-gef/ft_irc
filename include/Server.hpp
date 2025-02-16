@@ -5,8 +5,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <netinet/in.h>
-#include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "./Client.hpp"

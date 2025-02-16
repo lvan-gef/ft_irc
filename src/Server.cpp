@@ -1,19 +1,11 @@
 #include <atomic>
-#include <cerrno>
 #include <csignal>
 #include <cstring>
 #include <iostream>
-#include <new>
-#include <stdexcept>
-#include <system_error>
 #include <vector>
 
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include "../include/Client.hpp"
 #include "../include/Server.hpp"

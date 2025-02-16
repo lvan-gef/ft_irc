@@ -1,5 +1,3 @@
-#include <ctime>
-
 #include <unistd.h>
 
 #include "../include/Client.hpp"
