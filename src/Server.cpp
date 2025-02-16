@@ -1,4 +1,6 @@
+#include <atomic>
 #include <cerrno>
+#include <csignal>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +17,15 @@
 #include "../include/Client.hpp"
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
+
+static std::atomic<bool> g_running{true};
+
+// Signal handler function
+static void signalHandler(int signum) {
+    if (signum == SIGINT || signum == SIGTERM) {
+        g_running = false;
+    }
+}
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
@@ -71,22 +82,7 @@ Server &Server::operator=(Server &&rhs) noexcept {
 }
 
 Server::~Server() {
-    for (const auto &pair : _fd_to_client) {
-        delete pair.second;
-    }
-
-    _fd_to_client.clear();
-    _nick_to_client.clear();
-
-    if (_epoll_fd >= 0) {
-        close(_epoll_fd);
-        _epoll_fd = -1;
-    }
-
-    if (_server_fd >= 0) {
-        close(_server_fd);
-        _server_fd = -1;
-    }
+    _shutdown();
 }
 
 bool Server::init() noexcept {
@@ -98,58 +94,40 @@ bool Server::init() noexcept {
     return _init();
 }
 
-void Server::run() noexcept {
+bool Server::run() noexcept {
     if (0 > _server_fd || 0 > _epoll_fd) {
         std::cerr << "Server is not initialized. Call init() first then run()"
                   << '\n';
-        return;
+        return false;
+    }
+
+    struct sigaction sa{};
+    sa.sa_handler = signalHandler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, nullptr) == -1) {
+        std::cerr << "Failed to set up SGINT handler" << '\n';
+        return false;
+    }
+    if (sigaction(SIGTERM, &sa, nullptr) == -1) {
+        std::cerr << "Failed to set up SIGTERM handler" << '\n';
+        return false;
     }
 
     try {
         _run();
     } catch (const ServerException &e) {
         std::cerr << e.what() << '\n';
-        return;
+        return false;
     }
+
+    return true;
+
 }
 
 const char *Server::ServerException::what() const noexcept {
     return "Internal server error";
-}
-
-void Server::_run() {
-    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
-
-    while (true) {
-        int nfds =
-            epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
-                       MAX_CONNECTIONS, -1);
-
-        if (0 > nfds) {
-            // maybe add check EINTR
-            std::cerr << "Epoll wait failed: " << strerror(errno) << '\n';
-            throw ServerException();
-        }
-
-        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
-            const auto &event = events[index];
-
-            if (event.data.fd == _server_fd) {
-                _newConnection();
-            } else {
-                if (event.events & EPOLLIN) {
-                    _clientMessage(event.data.fd);
-                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                    if (auto client = _fd_to_client[event.data.fd]) {
-                        _removeClient(client);
-                    }
-                } else {
-                    std::cout << "Unknow message from client: " << event.data.fd
-                              << '\n';
-                }
-            }
-        }
-    }
 }
 
 bool Server::_init() noexcept {
@@ -198,8 +176,69 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    std::cout << "Server is running on: " << _port << '\n';
+    std::cout << "Server is running on: " << _port << ". Press Ctrl+C to stop." << '\n';
     return true;
+}
+
+void Server::_run() {
+    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
+
+    while (g_running) {
+        int nfds =
+            epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
+                       (int)events.size(), 1000);
+
+        if (0 > nfds) {
+            // maybe add check EINTR
+            if (errno == EINTR) {
+                continue;
+            }
+
+            std::cerr << "Epoll wait failed: " << strerror(errno) << '\n';
+            throw ServerException();
+        }
+
+        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
+            const auto &event = events[index];
+
+            if (event.data.fd == _server_fd) {
+                _newConnection();
+            } else {
+                if (event.events & EPOLLIN) {
+                    _clientMessage(event.data.fd);
+                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
+                    if (auto client = _fd_to_client[event.data.fd]) {
+                        _removeClient(client);
+                    }
+                } else {
+                    std::cout << "Unknow message from client: " << event.data.fd
+                              << '\n';
+                }
+            }
+        }
+    }
+
+    _shutdown();
+}
+
+void Server::_shutdown() noexcept {
+    std::cout << '\n' << "Shutting down server..." << '\n';
+    for (const auto &pair : _fd_to_client) {
+        delete pair.second;
+    }
+
+    _fd_to_client.clear();
+    _nick_to_client.clear();
+
+    if (_epoll_fd >= 0) {
+        close(_epoll_fd);
+        _epoll_fd = -1;
+    }
+
+    if (_server_fd >= 0) {
+        close(_server_fd);
+        _server_fd = -1;
+    }
 }
 
 int Server::_setNonBlocking(int fd) noexcept {

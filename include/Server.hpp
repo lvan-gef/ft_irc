@@ -33,7 +33,7 @@ class Server {
 
   public:
     bool init() noexcept;
-    void run() noexcept;
+    bool run() noexcept;
 
   public:
     class ServerException : public std::exception {
@@ -44,6 +44,7 @@ class Server {
   private:
     bool _init() noexcept;
     void _run();
+    void _shutdown() noexcept;
     int _setNonBlocking(int fd) noexcept;
 
   private:
