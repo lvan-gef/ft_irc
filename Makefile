@@ -18,7 +18,7 @@ OBJDIR := obj/
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Server.cpp main.cpp utils.cpp
+SRCFILES := Client.cpp main.cpp Server.cpp utils.cpp
 TESTFILES := $(NAME)Tester.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 TESTSRCS := $(addprefix $(TESTDIR)/, $(TESTFILES))
