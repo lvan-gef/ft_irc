@@ -6,7 +6,7 @@
 
 Client::Client(int fd) : _fd(fd), _event(), _last_seen(0), _registered(false) {
     _event.data.fd = fd;
-    _event.events = EPOLLIN | EPOLLET;  // Edge-triggered monitoring
+    _event.events = EPOLLIN | EPOLLET;
 }
 
 Client::Client(const Client &rhs)
