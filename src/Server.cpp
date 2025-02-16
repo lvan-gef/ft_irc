@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <system_error>
+#include <vector>
 
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -13,6 +14,7 @@
 
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
+#include "Client.hpp"
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
@@ -32,6 +34,7 @@ Server::Server(const std::string &port, std::string &password)
     if (_init() != true) {
         throw std::system_error();
     }
+
     _run();
 }
 
@@ -68,6 +71,10 @@ Server &Server::operator=(Server &&rhs) noexcept {
 }
 
 Server::~Server() {
+    for (const auto &pair : _fd_to_client) {
+        delete pair.second;
+    }
+
     if (_epoll_fd >= 0) {
         close(_epoll_fd);
     }
@@ -75,6 +82,10 @@ Server::~Server() {
     if (_server_fd >= 0) {
         close(_server_fd);
     }
+}
+
+const char *Server::ServerException::what() const noexcept {
+    return "Internal server error";
 }
 
 bool Server::_init() noexcept {
@@ -99,11 +110,7 @@ bool Server::_init() noexcept {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
-    if (0 >
-        bind(_server_fd,
-             (struct sockaddr // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-                  *)&address,
-             sizeof(address))) {
+    if (0 > bind(_server_fd, (struct sockaddr *)&address, sizeof(address))) {
         std::cerr << "Bind failed: " << strerror(errno) << '\n';
         return false;
     }
@@ -132,73 +139,127 @@ bool Server::_init() noexcept {
 }
 
 void Server::_run() {
+    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
+
     while (true) {
-        int events = epoll_wait(_epoll_fd, static_cast<epoll_event *>(_events),
-                                MAX_CLIENTS, -1);
-        if (0 > events) {
-            std::cerr << "Epoll failed to wait: " << strerror(errno) << '\n';
-            throw std::system_error();
+        int nfds =
+            epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
+                       MAX_CONNECTIONS, -1);
+
+        if (0 > nfds) {
+            // maybe add check EINTR
+            std::cerr << "Epoll wait failed: " << strerror(errno) << '\n';
+            throw ServerException();
         }
 
-        for (int index = 0; index < events; ++index) {
-            if (_events[index].data.fd == _server_fd) {
-                struct sockaddr_in clientAddr{};
-                socklen_t clientLen = sizeof(clientAddr);
-                int clientFD = accept(
-                    _server_fd,
-                    (struct // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-                     sockaddr *)&clientAddr,
-                    &clientLen);
-                if (0 > clientFD) {
-                    std::cerr << "Failed to accept client: " << strerror(errno)
-                              << '\n';
-                    throw std::system_error();
-                }
+        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
+            const auto &event = events[index];
 
-                if (0 > _setNonBlocking(clientFD)) {
-                    close(clientFD);
-                    continue;
-                }
-
-                struct epoll_event ev{};
-                ev.events = EPOLLIN | EPOLLET;
-                ev.data.fd = clientFD;
-                if (0 > epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &ev)) {
-                    std::cerr << "Epoll add failed: " << strerror(errno)
-                              << '\n';
-                    close(clientFD);
-                    continue;
-                }
-
-                std::cout << "New client with fd: " << clientFD << '\n';
+            if (event.data.fd == _server_fd) {
+                _newConnection();
             } else {
-                char buffer[1024];
-                ssize_t readBytes =
-                    read(_events[index].data.fd, buffer, sizeof(buffer));
-
-                if (readBytes <= 0) {
-                    std::cout << "fd: " << _events[index].data.fd
-                              << " Disconnected" << '\n';
-                    close(_events[index].data.fd);
-                    continue;
+                if (event.events & EPOLLIN) {
+                    _clientMessage(event.data.fd);
+                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
+                    if (auto client = _fd_to_client[event.data.fd]) {
+                        _removeClient(client);
+                    }
+                } else {
+                    std::cout << "Iets anders" << '\n';
                 }
-
-                buffer[readBytes] = '\0';
-                std::cout << "Recieved from fd: " << _events[index].data.fd
-                          << ": " << buffer << '\n';
             }
         }
     }
 }
 
-int Server::_setNonBlocking(int fd) {
-    int returnCode = fcntl(fd, // NOLINT(cppcoreguidelines-pro-type-vararg)
-                           F_SETFL, O_NONBLOCK);
+int Server::_setNonBlocking(int fd) noexcept {
+    int returnCode = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (0 > returnCode) {
         std::cerr << "Failed to set to non-blocking mode: " << strerror(errno)
                   << '\n';
-        return false;
     }
 
     return returnCode;
+}
+
+void Server::_newConnection() noexcept {
+    sockaddr_in clientAddr{};
+    socklen_t clientLen = sizeof(clientAddr);
+
+    int clientFD = accept(_server_fd, reinterpret_cast<sockaddr *>(&clientAddr),
+                          &clientLen);
+
+    if (0 > clientFD) {
+        std::cerr << "Accept failed: " << strerror(errno) << '\n';
+        return;
+    }
+
+    if (0 > _setNonBlocking(clientFD)) {
+        close(clientFD);
+        return;
+    }
+
+    auto *client = new Client(clientFD);
+
+    if (0 >
+        epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &client->getEvent())) {
+        std::cerr << "Failed to add client to epoll" << '\n';
+        delete client;
+        return;
+    }
+
+    _fd_to_client[clientFD] = client;
+
+    std::cout << "New client connected on fd " << clientFD << '\n';
+}
+
+void Server::_clientMessage(int fd) noexcept {
+    auto client = _fd_to_client[fd];
+    if (!client) {
+        return;
+    }
+
+    char buffer[READ_SIZE];
+    ssize_t bytes_read = read(fd, buffer, READ_SIZE);
+    if (0 > bytes_read) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return;
+        }
+    }
+
+    if (bytes_read == 0) {
+        _removeClient(client);
+        return;
+    }
+
+    client->updatedLastSeen();
+    client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
+
+    if (client->hasCompleteMessage()) {
+        _processMessage(client);
+    }
+}
+
+void Server::_removeClient(Client *client) noexcept {
+    if (!client) {
+        return;
+    }
+
+    int fd = client->getFD();
+    std::cout << "Client disconnected on fd: " << fd << '\n';
+
+    _fd_to_client.erase(fd);
+    if (!client->getNickname().empty()) {
+        _nick_to_client.erase(client->getNickname());
+    }
+
+    epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+    close(fd);
+    delete client;
+}
+
+void Server::_processMessage(Client *client) noexcept {
+    std::string msg = client->getAndClearBuffer();
+
+    std::cout << "Parse the message: " << msg << '\n';
 }

@@ -3,21 +3,25 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include <netinet/in.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 
 #include "Client.hpp"
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
     HIGHEST_PORT = 65535,
-    MAX_CLIENTS = 1024
+    INIT_EVENTS_SIZE = 10,
+    MAX_CONNECTIONS = SOMAXCONN,
+    READ_SIZE = 1024
 };
 
 class Server {
   public:
-    Server(const std::string &port, std::string &password);
+    explicit Server(const std::string &port, std::string &password);
 
     Server(const Server &rhs);
     Server &operator=(const Server &rhs);
@@ -27,10 +31,22 @@ class Server {
 
     ~Server();
 
+  public:
+    class ServerException : public std::exception {
+      public:
+        const char *what() const noexcept override;
+    };
+
   private:
     bool _init() noexcept;
     void _run();
-    int _setNonBlocking(int fd);
+    int _setNonBlocking(int fd) noexcept;
+
+  private:
+    void _newConnection() noexcept;
+    void _clientMessage(int fd) noexcept;
+    void _removeClient(Client *client) noexcept;
+    void _processMessage(Client *client) noexcept;
 
   private:
     std::uint16_t _port;
@@ -39,8 +55,8 @@ class Server {
   private:
     int _server_fd;
     int _epoll_fd;
-    struct epoll_event _events[MAX_CLIENTS];
-    /*std::array<struct epoll_event, MAX_CLIENTS> _events;*/
+    std::unordered_map<int, Client *> _fd_to_client;
+    std::unordered_map<std::string, Client *> _nick_to_client;
 };
 
 #endif // !SERVER_HPP
