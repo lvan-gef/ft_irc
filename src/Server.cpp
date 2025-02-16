@@ -12,9 +12,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "../include/Client.hpp"
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
-#include "../include/Client.hpp"
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
@@ -100,7 +100,8 @@ bool Server::init() noexcept {
 
 void Server::run() noexcept {
     if (0 > _server_fd || 0 > _epoll_fd) {
-        std::cerr << "Server is not initialized. Call init() first then run()" << '\n';
+        std::cerr << "Server is not initialized. Call init() first then run()"
+                  << '\n';
         return;
     }
 
@@ -143,7 +144,8 @@ void Server::_run() {
                         _removeClient(client);
                     }
                 } else {
-                    std::cout << "Unknow message from client: " << event.data.fd << '\n';
+                    std::cout << "Unknow message from client: " << event.data.fd
+                              << '\n';
                 }
             }
         }
