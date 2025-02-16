@@ -36,6 +36,7 @@
 
 # dirs
 .cache/
+infer-out/
 
 compile_commands.json
 ircserv
