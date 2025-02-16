@@ -40,3 +40,4 @@ infer-out/
 
 compile_commands.json
 ircserv
+ircserv_debug
