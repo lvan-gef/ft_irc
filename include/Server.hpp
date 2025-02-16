@@ -9,7 +9,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
-#include "Client.hpp"
+#include "./Client.hpp"
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
@@ -30,6 +30,10 @@ class Server {
     Server &operator=(Server &&rhs) noexcept;
 
     ~Server();
+
+  public:
+    bool init() noexcept;
+    void run() noexcept;
 
   public:
     class ServerException : public std::exception {

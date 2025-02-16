@@ -14,7 +14,7 @@
 
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
-#include "Client.hpp"
+#include "../include/Client.hpp"
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
@@ -31,11 +31,11 @@ Server::Server(const std::string &port, std::string &password)
         throw std::invalid_argument("password can not be empty");
     }
 
-    if (_init() != true) {
+    if (init() != true) {
         throw std::system_error();
     }
 
-    _run();
+    run();
 }
 
 Server::Server(const Server &rhs)
@@ -75,17 +75,79 @@ Server::~Server() {
         delete pair.second;
     }
 
+    _fd_to_client.clear();
+    _nick_to_client.clear();
+
     if (_epoll_fd >= 0) {
         close(_epoll_fd);
+        _epoll_fd = -1;
     }
 
     if (_server_fd >= 0) {
         close(_server_fd);
+        _server_fd = -1;
+    }
+}
+
+bool Server::init() noexcept {
+    if (_server_fd >= 0 || _epoll_fd >= 0) {
+        std::cerr << "Server already initialized" << '\n';
+        return false;
+    }
+
+    return _init();
+}
+
+void Server::run() noexcept {
+    if (0 > _server_fd || 0 > _epoll_fd) {
+        std::cerr << "Server is not initialized. Call init() first then run()" << '\n';
+        return;
+    }
+
+    try {
+        _run();
+    } catch (const ServerException &e) {
+        std::cerr << e.what() << '\n';
+        return;
     }
 }
 
 const char *Server::ServerException::what() const noexcept {
     return "Internal server error";
+}
+
+void Server::_run() {
+    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
+
+    while (true) {
+        int nfds =
+            epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
+                       MAX_CONNECTIONS, -1);
+
+        if (0 > nfds) {
+            // maybe add check EINTR
+            std::cerr << "Epoll wait failed: " << strerror(errno) << '\n';
+            throw ServerException();
+        }
+
+        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
+            const auto &event = events[index];
+
+            if (event.data.fd == _server_fd) {
+                _newConnection();
+            } else {
+                if (event.events & EPOLLIN) {
+                    _clientMessage(event.data.fd);
+                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
+                    if (auto client = _fd_to_client[event.data.fd]) {
+                        _removeClient(client);
+                    }
+                } else {
+                    std::cout << "Unknow message from client: " << event.data.fd << '\n';
+                }
+            }
+        }
+    }
 }
 
 bool Server::_init() noexcept {
@@ -136,40 +198,6 @@ bool Server::_init() noexcept {
 
     std::cout << "Server is running on: " << _port << '\n';
     return true;
-}
-
-void Server::_run() {
-    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
-
-    while (true) {
-        int nfds =
-            epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
-                       MAX_CONNECTIONS, -1);
-
-        if (0 > nfds) {
-            // maybe add check EINTR
-            std::cerr << "Epoll wait failed: " << strerror(errno) << '\n';
-            throw ServerException();
-        }
-
-        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
-            const auto &event = events[index];
-
-            if (event.data.fd == _server_fd) {
-                _newConnection();
-            } else {
-                if (event.events & EPOLLIN) {
-                    _clientMessage(event.data.fd);
-                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                    if (auto client = _fd_to_client[event.data.fd]) {
-                        _removeClient(client);
-                    }
-                } else {
-                    std::cout << "Iets anders" << '\n';
-                }
-            }
-        }
-    }
 }
 
 int Server::_setNonBlocking(int fd) noexcept {
