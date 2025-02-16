@@ -16,7 +16,8 @@ enum Ranges : std::uint16_t {
     HIGHEST_PORT = 65535,
     INIT_EVENTS_SIZE = 10,
     MAX_CONNECTIONS = SOMAXCONN,
-    READ_SIZE = 1024
+    READ_SIZE = 1024,
+    INTERVAL = 1000
 };
 
 class Server {

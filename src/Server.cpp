@@ -3,6 +3,7 @@
 #include <csignal>
 #include <cstring>
 #include <iostream>
+#include <new>
 #include <stdexcept>
 #include <system_error>
 #include <vector>
@@ -20,7 +21,6 @@
 
 static std::atomic<bool> g_running{true};
 
-// Signal handler function
 static void signalHandler(int signum) {
     if (signum == SIGINT || signum == SIGTERM) {
         g_running = false;
@@ -186,10 +186,9 @@ void Server::_run() {
     while (g_running) {
         int nfds =
             epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
-                       (int)events.size(), 1000);
+                       (int)events.size(), INTERVAL);
 
         if (0 > nfds) {
-            // maybe add check EINTR
             if (errno == EINTR) {
                 continue;
             }
@@ -268,7 +267,14 @@ void Server::_newConnection() noexcept {
         return;
     }
 
-    auto *client = new Client(clientFD);
+    Client *client = nullptr;
+    try {
+        client = new Client(clientFD);
+    } catch (std::bad_alloc &e) {
+        std::cerr << "Create new client failed: " << e.what() << '\n';
+        close(clientFD);
+        return;
+    }
 
     if (0 >
         epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &client->getEvent())) {
@@ -323,7 +329,6 @@ void Server::_removeClient(Client *client) noexcept {
     }
 
     epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
-    close(fd);
     delete client;
 }
 
