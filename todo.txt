@@ -1,0 +1,9 @@
+Impl signal for shutdown via ctrl+c
+Impl irc message parser
+impl send message back to client
+Impl channels
+Impl operators
+Check what happend when message is more then READ_SIZE
+Check if partial messages works
+Check for mem leaks
+Make epoll_events use MAX_CONNECTIONS now it is a vector that can grow bigger
