@@ -14,8 +14,8 @@
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
 
-Server::Server(const char *port, const char *password)
-    : _port(toUint16(port)), _password(password), _server_fd(-1),
+Server::Server(const std::string &port, std::string &password)
+    : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
       _epoll_fd(-1) {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
@@ -173,16 +173,19 @@ void Server::_run() {
                 std::cout << "New client with fd: " << clientFD << '\n';
             } else {
                 char buffer[1024];
-                ssize_t readBytes = read(_events[index].data.fd, buffer, sizeof(buffer));
+                ssize_t readBytes =
+                    read(_events[index].data.fd, buffer, sizeof(buffer));
 
                 if (readBytes <= 0) {
-                    std::cout << "fd: " << _events[index].data.fd << " Disconnected" << '\n';
+                    std::cout << "fd: " << _events[index].data.fd
+                              << " Disconnected" << '\n';
                     close(_events[index].data.fd);
                     continue;
                 }
 
                 buffer[readBytes] = '\0';
-                std::cout << "Recieved from fd: " << _events[index].data.fd << ": " << buffer << '\n';
+                std::cout << "Recieved from fd: " << _events[index].data.fd
+                          << ": " << buffer << '\n';
             }
         }
     }
