@@ -314,15 +314,26 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
     }
 
     int fd = client->getFD();
-    std::cout << "Client disconnected on fd: " << fd << '\n';
+    std::string nickname = client->getNickname();
 
-    _fd_to_client.erase(fd);
-    if (!client->getNickname().empty()) {
-        _nick_to_client.erase(client->getNickname());
+    try {
+        auto fd_it = _fd_to_client.find(fd);
+        auto nick_it = _nick_to_client.find(nickname);
+
+        if (fd_it != _fd_to_client.end() && fd_it->second == client) {
+            _fd_to_client.erase(fd_it);
+            epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+            _connections--;
+        }
+
+        if (nick_it != _nick_to_client.end() && nick_it->second == client) {
+            _nick_to_client.erase(nick_it);
+        }
+
+        std::cout << "Client disconnected on fd: " << fd << '\n';
+    } catch (const std::exception &e) {
+        std::cerr << "Error while removing client - FD: " << fd << " Nickname: '" << nickname << "' - " << e.what() << '\n';
     }
-
-    epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
-    _connections--;
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
