@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -49,8 +50,8 @@ class Server {
   private:
     void _newConnection() noexcept;
     void _clientMessage(int fd) noexcept;
-    void _removeClient(Client *client) noexcept;
-    void _processMessage(Client *client) noexcept;
+    void _removeClient(const std::shared_ptr<Client> &client) noexcept;
+    void _processMessage(const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::uint16_t _port;
@@ -60,8 +61,8 @@ class Server {
     int _server_fd;
     int _epoll_fd;
     size_t _connections;
-    std::unordered_map<int, Client *> _fd_to_client;
-    std::unordered_map<std::string, Client *> _nick_to_client;
+    std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
+    std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
 };
 
 #endif // !SERVER_HPP

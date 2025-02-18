@@ -2,6 +2,7 @@
 #include <csignal>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include <fcntl.h>
@@ -222,7 +223,7 @@ void Server::_run() {
 void Server::_shutdown() noexcept {
     std::cout << '\n' << "Shutting down server..." << '\n';
     for (const auto &pair : _fd_to_client) {
-        delete pair.second;
+        _removeClient(pair.second);
     }
 
     _fd_to_client.clear();
@@ -266,19 +267,11 @@ void Server::_newConnection() noexcept {
         return;
     }
 
-    Client *client = nullptr;
-    try {
-        client = new Client(clientFD);
-    } catch (std::bad_alloc &e) {
-        std::cerr << "Create new client failed: " << e.what() << '\n';
-        close(clientFD);
-        return;
-    }
+    auto client = std::make_shared<Client>(clientFD);
 
     if (0 >
         epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &client->getEvent())) {
         std::cerr << "Failed to add client to epoll" << '\n';
-        delete client;
         return;
     }
 
@@ -315,7 +308,7 @@ void Server::_clientMessage(int fd) noexcept {
     }
 }
 
-void Server::_removeClient(Client *client) noexcept {
+void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
     if (!client) {
         return;
     }
@@ -329,11 +322,10 @@ void Server::_removeClient(Client *client) noexcept {
     }
 
     epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
-    _connections++;
-    delete client;
+    _connections--;
 }
 
-void Server::_processMessage(Client *client) noexcept {
+void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     std::string msg = client->getAndClearBuffer();
 
     std::cout << "Parse the message: " << msg << '\n';
