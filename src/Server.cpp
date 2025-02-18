@@ -61,7 +61,8 @@ Server &Server::operator=(const Server &rhs) {
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd), _connections(rhs._connections) {
+      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd),
+      _connections(rhs._connections) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -332,7 +333,8 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 
         std::cout << "Client disconnected on fd: " << fd << '\n';
     } catch (const std::exception &e) {
-        std::cerr << "Error while removing client - FD: " << fd << " Nickname: '" << nickname << "' - " << e.what() << '\n';
+        std::cerr << "Error while removing client - FD: " << fd
+                  << " Nickname: '" << nickname << "' - " << e.what() << '\n';
     }
 }
 
