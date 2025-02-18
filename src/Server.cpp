@@ -115,7 +115,6 @@ bool Server::run() noexcept {
     }
 
     return true;
-
 }
 
 const char *Server::ServerException::what() const noexcept {
@@ -168,7 +167,8 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    std::cout << "Server is running on: " << _port << ". Press Ctrl+C to stop." << '\n';
+    std::cout << "Server is running on: " << _port << ". Press Ctrl+C to stop."
+              << '\n';
     return true;
 }
 
@@ -176,7 +176,8 @@ void Server::_run() {
     std::vector<epoll_event> events(INIT_EVENTS_SIZE);
 
     while (g_running) {
-        if (events.capacity() != _connections && _connections > INIT_EVENTS_SIZE) {
+        if (events.capacity() != _connections &&
+            _connections > INIT_EVENTS_SIZE) {
             events.resize(_connections);
         }
 
