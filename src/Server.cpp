@@ -21,7 +21,7 @@ static void signalHandler(int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
-      _epoll_fd(-1) {
+      _epoll_fd(-1), _connections(0) {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -43,7 +43,7 @@ Server::Server(const std::string &port, std::string &password)
 
 Server::Server(const Server &rhs)
     : _port(rhs._port), _password(rhs._password), _server_fd(rhs._server_fd),
-      _epoll_fd(rhs._epoll_fd) {
+      _epoll_fd(rhs._epoll_fd), _connections(rhs._connections) {
 }
 
 Server &Server::operator=(const Server &rhs) {
@@ -52,6 +52,7 @@ Server &Server::operator=(const Server &rhs) {
         _password = rhs._password;
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
+        _connections = rhs._connections;
     }
 
     return *this;
@@ -59,7 +60,7 @@ Server &Server::operator=(const Server &rhs) {
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd) {
+      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd), _connections(rhs._connections) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -68,6 +69,7 @@ Server &Server::operator=(Server &&rhs) noexcept {
         _password = std::move(rhs._password);
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
+        _connections = rhs._connections;
     }
 
     return *this;
