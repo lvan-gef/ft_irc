@@ -176,6 +176,10 @@ void Server::_run() {
     std::vector<epoll_event> events(INIT_EVENTS_SIZE);
 
     while (g_running) {
+        if (events.capacity() != _connections && _connections > INIT_EVENTS_SIZE) {
+            events.resize(_connections);
+        }
+
         int nfds =
             epoll_wait(_epoll_fd, static_cast<epoll_event *>(events.data()),
                        (int)events.size(), INTERVAL);
@@ -276,6 +280,7 @@ void Server::_newConnection() noexcept {
     }
 
     _fd_to_client[clientFD] = client;
+    _connections++;
 
     std::cout << "New client connected on fd " << clientFD << '\n';
 }
@@ -321,6 +326,7 @@ void Server::_removeClient(Client *client) noexcept {
     }
 
     epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+    _connections++;
     delete client;
 }
 
