@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
+/*   Updated: 2025/02/19 17:51:48 by lvan-gef      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <atomic>
 #include <csignal>
 #include <cstring>
@@ -8,7 +20,6 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 
-#include "../include/Client.hpp"
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
 
