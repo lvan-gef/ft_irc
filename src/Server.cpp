@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/19 17:51:48 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/19 19:33:51 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ static void signalHandler(int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
-      _epoll_fd(-1), _connections(0) {
+      _epoll_fd(-1), _connections(0), _pingClient() {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -56,7 +56,10 @@ Server::Server(const std::string &port, std::string &password)
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
       _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd),
-      _connections(rhs._connections), _fd_to_client(std::move(rhs._fd_to_client)), _nick_to_client(std::move(rhs._nick_to_client)) {
+      _connections(rhs._connections),
+      _fd_to_client(std::move(rhs._fd_to_client)),
+      _nick_to_client(std::move(rhs._nick_to_client)),
+      _pingClient(std::move(rhs._pingClient)) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -68,6 +71,7 @@ Server &Server::operator=(Server &&rhs) noexcept {
         _connections = rhs._connections;
         _fd_to_client = std::move(rhs._fd_to_client);
         _nick_to_client = std::move(rhs._nick_to_client);
+        _pingClient = std::move(rhs._pingClient);
     }
 
     return *this;
@@ -327,7 +331,8 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             _nick_to_client.erase(nick_it);
         }
 
-        std::cout << "Client disconnected - FD: " << fd << " Nickname: '" << nickname << "' - " << '\n';
+        std::cout << "Client disconnected - FD: " << fd << " Nickname: '"
+                  << nickname << "' - " << '\n';
     } catch (const std::exception &e) {
         std::cerr << "Error while removing client - FD: " << fd
                   << " Nickname: '" << nickname << "' - " << e.what() << '\n';
@@ -338,4 +343,18 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     std::string msg = client->getAndClearBuffer();
 
     std::cout << "Parse the message: " << msg << '\n';
+}
+
+void Server::_pingClients() noexcept {
+    for (const auto &client : _fd_to_client) {
+        client.second->getNickname();
+        _pingClient.emplace_back(client.second);
+
+        _sendMessage(client.second->getFD(), "PING :server.codam.nl");
+    }
+}
+
+void Server::_sendMessage(int fd, const std::string &msg) noexcept {
+    (void)fd;
+    std::cout << "Send message: '" << msg << "'" << '\n';
 }

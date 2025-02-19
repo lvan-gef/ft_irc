@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/19 17:48:57 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/19 19:30:27 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <sys/socket.h>
 
@@ -64,6 +65,8 @@ class Server {
     void _clientMessage(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
+    void _pingClients() noexcept;
+    void _sendMessage(int fd, const std::string &msg) noexcept;
 
   private:
     std::uint16_t _port;
@@ -75,6 +78,7 @@ class Server {
     size_t _connections;
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
+    std::vector<Client> _pingClient;
 };
 
 #endif // !SERVER_HPP
