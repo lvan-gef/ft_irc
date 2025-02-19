@@ -10,8 +10,8 @@ class Client {
   public:
     explicit Client(int fd);
 
-    Client(const Client &rhs);
-    Client &operator=(const Client &rhs);
+    Client(const Client &rhs) = delete;
+    Client &operator=(const Client &rhs) = delete;
 
     Client(Client &&rhs) noexcept;
     Client &operator=(Client &&rhs) noexcept;

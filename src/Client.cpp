@@ -2,35 +2,28 @@
 
 #include "../include/Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _event(), _last_seen(0), _registered(false) {
+Client::Client(int fd) : _fd(fd), _username("default"), _nickname("default"), _partial_buffer(""), _event(), _last_seen(0), _registered(false) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLET;
 }
 
-Client::Client(const Client &rhs)
-    : _fd(rhs._fd), _event(rhs._event), _last_seen(rhs._last_seen),
-      _registered(rhs._registered) {
-}
-
-Client &Client::operator=(const Client &rhs) {
-    if (this != &rhs) {
-        _fd = rhs._fd;
-        _event = rhs._event;
-        _last_seen = rhs._last_seen;
-        _registered = rhs._registered;
-    }
-
-    return *this;
-}
-
 Client::Client(Client &&rhs) noexcept
-    : _fd(rhs._fd), _event(rhs._event), _last_seen(rhs._last_seen),
+    : _fd(rhs._fd), _username(std::move(rhs._username)), _nickname(std::move(rhs._nickname)), _partial_buffer(std::move(rhs._partial_buffer)), _event(rhs._event), _last_seen(rhs._last_seen),
       _registered(rhs._registered) {
+          rhs._fd = -1;
 }
 
 Client &Client::operator=(Client &&rhs) noexcept {
     if (this != &rhs) {
+        if (_fd >= 0) {
+            close(_fd);
+        }
+
         _fd = rhs._fd;
+        rhs._fd = -1;
+        _username = std::move(rhs._username);
+        _nickname = std::move(rhs._nickname);
+        _partial_buffer = std::move(rhs._partial_buffer);
         _event = rhs._event;
         _last_seen = rhs._last_seen;
         _registered = rhs._registered;
@@ -42,6 +35,7 @@ Client &Client::operator=(Client &&rhs) noexcept {
 Client::~Client() {
     if (_fd >= 0) {
         close(_fd);
+        _fd = -1;
     }
 }
 
