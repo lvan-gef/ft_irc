@@ -23,8 +23,8 @@ class Server {
   public:
     explicit Server(const std::string &port, std::string &password);
 
-    Server(const Server &rhs);
-    Server &operator=(const Server &rhs);
+    Server(const Server &rhs) = delete;
+    Server &operator=(const Server &rhs) = delete;
 
     Server(Server &&rhs) noexcept;
     Server &operator=(Server &&rhs) noexcept;

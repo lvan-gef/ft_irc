@@ -42,27 +42,10 @@ Server::Server(const std::string &port, std::string &password)
     run();
 }
 
-Server::Server(const Server &rhs)
-    : _port(rhs._port), _password(rhs._password), _server_fd(rhs._server_fd),
-      _epoll_fd(rhs._epoll_fd), _connections(rhs._connections) {
-}
-
-Server &Server::operator=(const Server &rhs) {
-    if (this != &rhs) {
-        _port = rhs._port;
-        _password = rhs._password;
-        _server_fd = rhs._server_fd;
-        _epoll_fd = rhs._epoll_fd;
-        _connections = rhs._connections;
-    }
-
-    return *this;
-}
-
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
       _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd),
-      _connections(rhs._connections) {
+      _connections(rhs._connections), _fd_to_client(std::move(rhs._fd_to_client)), _nick_to_client(std::move(rhs._nick_to_client)) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -72,6 +55,8 @@ Server &Server::operator=(Server &&rhs) noexcept {
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
         _connections = rhs._connections;
+        _fd_to_client = std::move(rhs._fd_to_client);
+        _nick_to_client = std::move(rhs._nick_to_client);
     }
 
     return *this;
