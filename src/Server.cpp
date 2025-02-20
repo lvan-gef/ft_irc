@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/20 19:40:44 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/20 19:55:36 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,27 +307,18 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     /*if (client->isRegistered() != true) {*/
     /*    return;*/
     /*}*/
-    std::string nick = client->getNickname();
-    std::string user = client->getUsername();
-    std::string ip = "127.0.0.1"; // Replace with actual client IP
+    std::string nick = "lvan-gef";
+    std::string user = "lvan-gef";
+    std::string ip = "127.0.0.1";
 
     _sendMessage(client->getFD(), ":server.name 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + user + "@" + ip + "\r\n");
     _sendMessage(client->getFD(), ":server.name 002 " + nick + " :Your host is server.name, running version 1.0\r\n");
     _sendMessage(client->getFD(), ":server.name 003 " + nick + " :This server was created Mon Feb 19 2025 at 10:00:00 UTC\r\n");
     _sendMessage(client->getFD(), ":server.name 004 " + nick + " server.name 1.0 oOiws abiklmnopqrstv\r\n");
     _sendMessage(client->getFD(), ":server.name 005 " + nick + " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server\r\n");
-
-    // ✅ Send Message of the Day (MOTD)
     _sendMessage(client->getFD(), ":server.name 375 " + nick + " :- server.name Message of the Day -\r\n");
     _sendMessage(client->getFD(), ":server.name 372 " + nick + " :- Welcome to my IRC server!\r\n");
-    _sendMessage(client->getFD(), ":server.name 376 " + nick + " :End of /MOTD command.\r\n");    /*:server.name 001 lvan-gef :Welcome to the Internet Relay Network lvan-gef!lvan-gef@your-ip*/
-    /*:server.name 002 lvan-gef :Your host is server.name, running version 1.0*/
-    /*:server.name 003 lvan-gef :This server was created Mon Feb 19 2025 at 10:00:00 UTC*/
-    /*:server.name 004 lvan-gef server.name 1.0 oOiws abiklmnopqrstv*/
-    /*:server.name 005 lvan-gef CHANTYPES=# PREFIX=(ov)@+ :are supported by this server*/
-    /*:server.name 375 lvan-gef :- server.name Message of the Day -*/
-    /*:server.name 372 lvan-gef :- Welcome to my IRC server!*/
-    /*:server.name 376 lvan-gef :End of /MOTD command.*/
+    _sendMessage(client->getFD(), ":server.name 376 " + nick + " :End of /MOTD command.\r\n");
     (void)client;
 }
 
