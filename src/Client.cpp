@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/19 18:05:40 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/20 15:14:57 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 Client::Client(int fd) : _fd(fd), _username("default"), _nickname("default"), _partial_buffer(""), _event(), _last_seen(0), _registered(false) {
     _event.data.fd = fd;
-    _event.events = EPOLLIN | EPOLLET;
+    _event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 }
 
 Client::Client(Client &&rhs) noexcept

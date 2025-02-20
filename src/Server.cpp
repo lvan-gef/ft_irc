@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/19 19:33:51 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/20 19:40:44 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
@@ -32,7 +33,9 @@ static void signalHandler(int signum) {
 }
 
 Server::Server(const std::string &port, std::string &password)
-    : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
+    : _port(toUint16(port)), _password(std::move(password)),
+      _serverName("CodamIRC"), _serverVersion("0.1.0"),
+      _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
       _epoll_fd(-1), _connections(0), _pingClient() {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
@@ -55,8 +58,10 @@ Server::Server(const std::string &port, std::string &password)
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _server_fd(rhs._server_fd), _epoll_fd(rhs._epoll_fd),
-      _connections(rhs._connections),
+      _serverName(std::move(rhs._serverName)),
+      _serverVersion(std::move(rhs._serverVersion)),
+      _serverCreated(std::move(rhs._serverCreated)), _server_fd(rhs._server_fd),
+      _epoll_fd(rhs._epoll_fd), _connections(rhs._connections),
       _fd_to_client(std::move(rhs._fd_to_client)),
       _nick_to_client(std::move(rhs._nick_to_client)),
       _pingClient(std::move(rhs._pingClient)) {
@@ -66,6 +71,9 @@ Server &Server::operator=(Server &&rhs) noexcept {
     if (this != &rhs) {
         _port = rhs._port;
         _password = std::move(rhs._password);
+        _serverName = std::move(rhs._serverName);
+        _serverVersion = std::move(rhs._serverVersion);
+        _serverCreated = std::move(rhs._serverCreated);
         _server_fd = rhs._server_fd;
         _epoll_fd = rhs._epoll_fd;
         _connections = rhs._connections;
@@ -198,22 +206,35 @@ void Server::_run() {
             throw ServerException();
         }
 
+        /*if (nfds == 0 && _pingClient.size() == 0) {*/
+        /*    _pingClients();*/
+        /*    continue;*/
+        /*}*/
+        /**/
+        /*if (nfds == 0 && _pingClient.size() > 0) {*/
+        /*    // disconnected all cients that did not response in the TIMEOUT*/
+        /*    // interval*/
+        /*    continue;*/
+        /*}*/
+
         for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
             const auto &event = events[index];
 
             if (event.data.fd == _server_fd) {
                 _newConnection();
-            } else {
-                if (event.events & EPOLLIN) {
-                    _clientMessage(event.data.fd);
-                } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                    if (auto client = _fd_to_client[event.data.fd]) {
-                        _removeClient(client);
-                    }
-                } else {
-                    std::cout << "Unknow message from client: " << event.data.fd
-                              << '\n';
+            } else if (event.events & EPOLLIN) {
+                _clientMessage(event.data.fd);
+            } else if (event.events & EPOLLOUT) {
+                std::cout << "What we need to send back no idea how to get it";
+                /*_sendMessage(event.data.fd,*/
+                /*             "What we need to send back no idea how to get it");*/
+            } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
+                if (auto client = _fd_to_client[event.data.fd]) {
+                    _removeClient(client);
                 }
+            } else {
+                std::cout << "Unknow message from client: " << event.data.fd
+                          << '\n';
             }
         }
     }
@@ -268,7 +289,7 @@ void Server::_newConnection() noexcept {
         return;
     }
 
-    auto client = std::make_shared<Client>(clientFD);
+    std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
 
     if (0 >
         epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientFD, &client->getEvent())) {
@@ -282,14 +303,42 @@ void Server::_newConnection() noexcept {
     std::cout << "New client connected on fd " << clientFD << '\n';
 }
 
+void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
+    /*if (client->isRegistered() != true) {*/
+    /*    return;*/
+    /*}*/
+    std::string nick = client->getNickname();
+    std::string user = client->getUsername();
+    std::string ip = "127.0.0.1"; // Replace with actual client IP
+
+    _sendMessage(client->getFD(), ":server.name 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + user + "@" + ip + "\r\n");
+    _sendMessage(client->getFD(), ":server.name 002 " + nick + " :Your host is server.name, running version 1.0\r\n");
+    _sendMessage(client->getFD(), ":server.name 003 " + nick + " :This server was created Mon Feb 19 2025 at 10:00:00 UTC\r\n");
+    _sendMessage(client->getFD(), ":server.name 004 " + nick + " server.name 1.0 oOiws abiklmnopqrstv\r\n");
+    _sendMessage(client->getFD(), ":server.name 005 " + nick + " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server\r\n");
+
+    // ✅ Send Message of the Day (MOTD)
+    _sendMessage(client->getFD(), ":server.name 375 " + nick + " :- server.name Message of the Day -\r\n");
+    _sendMessage(client->getFD(), ":server.name 372 " + nick + " :- Welcome to my IRC server!\r\n");
+    _sendMessage(client->getFD(), ":server.name 376 " + nick + " :End of /MOTD command.\r\n");    /*:server.name 001 lvan-gef :Welcome to the Internet Relay Network lvan-gef!lvan-gef@your-ip*/
+    /*:server.name 002 lvan-gef :Your host is server.name, running version 1.0*/
+    /*:server.name 003 lvan-gef :This server was created Mon Feb 19 2025 at 10:00:00 UTC*/
+    /*:server.name 004 lvan-gef server.name 1.0 oOiws abiklmnopqrstv*/
+    /*:server.name 005 lvan-gef CHANTYPES=# PREFIX=(ov)@+ :are supported by this server*/
+    /*:server.name 375 lvan-gef :- server.name Message of the Day -*/
+    /*:server.name 372 lvan-gef :- Welcome to my IRC server!*/
+    /*:server.name 376 lvan-gef :End of /MOTD command.*/
+    (void)client;
+}
+
 void Server::_clientMessage(int fd) noexcept {
-    auto client = _fd_to_client[fd];
+    std::shared_ptr<Client> client = _fd_to_client[fd];
     if (!client) {
         return;
     }
 
-    char buffer[READ_SIZE];
-    ssize_t bytes_read = read(fd, buffer, READ_SIZE);
+    char buffer[READ_SIZE] = {0};
+    ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, 0);
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;
@@ -343,6 +392,10 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     std::string msg = client->getAndClearBuffer();
 
     std::cout << "Parse the message: " << msg << '\n';
+    std::cout << msg.compare(0, 4, "USER") << '\n';
+    if (msg.compare(0, 4, "USER") == -7) {
+        _clientAccepted(client);
+    }
 }
 
 void Server::_pingClients() noexcept {
@@ -355,6 +408,6 @@ void Server::_pingClients() noexcept {
 }
 
 void Server::_sendMessage(int fd, const std::string &msg) noexcept {
-    (void)fd;
     std::cout << "Send message: '" << msg << "'" << '\n';
+    send(fd, msg.c_str(), msg.length(), 0);
 }
