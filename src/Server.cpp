@@ -34,7 +34,7 @@ static void signalHandler(int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
-      _serverName("CodamIRC"), _serverVersion("0.1.0"),
+      _serverName("codamirc.local"), _serverVersion("0.1.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
       _epoll_fd(-1), _connections(0), _pingClient() {
     if (errno != 0) {
@@ -311,15 +311,14 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = "lvan-gef";
     std::string ip = "127.0.0.1";
 
-    _sendMessage(client->getFD(), ":server.name 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + user + "@" + ip + "\r\n");
-    _sendMessage(client->getFD(), ":server.name 002 " + nick + " :Your host is server.name, running version 1.0\r\n");
-    _sendMessage(client->getFD(), ":server.name 003 " + nick + " :This server was created Mon Feb 19 2025 at 10:00:00 UTC\r\n");
-    _sendMessage(client->getFD(), ":server.name 004 " + nick + " server.name 1.0 oOiws abiklmnopqrstv\r\n");
-    _sendMessage(client->getFD(), ":server.name 005 " + nick + " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server\r\n");
-    _sendMessage(client->getFD(), ":server.name 375 " + nick + " :- server.name Message of the Day -\r\n");
-    _sendMessage(client->getFD(), ":server.name 372 " + nick + " :- Welcome to my IRC server!\r\n");
-    _sendMessage(client->getFD(), ":server.name 376 " + nick + " :End of /MOTD command.\r\n");
-    (void)client;
+    _sendMessage(client->getFD(), ":" + _serverName + " 001" + nick + " :Welcome to the Internet Relay Network " + nick + "!" + user + "@" + ip + "\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 002 " + nick + " :Your host is " + _serverName + ", running version " + _serverVersion + "\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 003 " + nick + " :This server was created " + _serverCreated + "\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 004 " + nick + " " + _serverName + " " + _serverVersion + " oOiws abiklmnopqrstv\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 005 " + nick + " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 375 " + nick + " :- " + _serverName + " Message of the Day -\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 372 " + nick + " :- Welcome to my IRC server!\r\n");
+    _sendMessage(client->getFD(), ":" + _serverName + " 376 " + nick + " :End of /MOTD command.\r\n");
 }
 
 void Server::_clientMessage(int fd) noexcept {
