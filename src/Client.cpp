@@ -14,15 +14,19 @@
 
 #include "../include/Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _username("default"), _nickname("default"), _partial_buffer(""), _event(), _last_seen(0), _registered(false) {
+Client::Client(int fd)
+    : _fd(fd), _username("default"), _nickname("default"), _partial_buffer(""),
+      _event(), _last_seen(0), _registered(false) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 }
 
 Client::Client(Client &&rhs) noexcept
-    : _fd(rhs._fd), _username(std::move(rhs._username)), _nickname(std::move(rhs._nickname)), _partial_buffer(std::move(rhs._partial_buffer)), _event(rhs._event), _last_seen(rhs._last_seen),
-      _registered(rhs._registered) {
-          rhs._fd = -1;
+    : _fd(rhs._fd), _username(std::move(rhs._username)),
+      _nickname(std::move(rhs._nickname)),
+      _partial_buffer(std::move(rhs._partial_buffer)), _event(rhs._event),
+      _last_seen(rhs._last_seen), _registered(rhs._registered) {
+    rhs._fd = -1;
 }
 
 Client &Client::operator=(Client &&rhs) noexcept {
