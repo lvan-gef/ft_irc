@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/20 19:55:36 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/25 21:04:42 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include <fcntl.h>
@@ -226,7 +227,7 @@ void Server::_run() {
             } else if (event.events & EPOLLIN) {
                 _clientMessage(event.data.fd);
             } else if (event.events & EPOLLOUT) {
-                std::cout << "What we need to send back no idea how to get it";
+                std::cout << "What we need to send back no idea how to get it" << '\n';
                 /*_sendMessage(event.data.fd,*/
                 /*             "What we need to send back no idea how to get
                  * it");*/
@@ -362,9 +363,7 @@ void Server::_clientMessage(int fd) noexcept {
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
-    if (client->hasCompleteMessage()) {
-        _processMessage(client);
-    }
+    _processMessage(client);
 }
 
 void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
@@ -398,7 +397,17 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
-    std::string msg = client->getAndClearBuffer();
+    std::string msg = {};
+
+    if (client->hasCompleteMessage() != true) {
+        return;
+    }
+
+    try {
+        msg = client->getAndClearBuffer();
+    } catch (std::out_of_range &e) {
+        return;
+    }
 
     IRCMessage tokens = parseIRCMessage(msg);
     tokens.print();

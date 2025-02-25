@@ -19,10 +19,10 @@ IRCMessage parseIRCMessage(const std::string &msg) {
             if (word[0] == ':') {
                 std::string rest;
                 std::getline(stream, rest);
-                parsed.params.push_back(word.substr(1) + rest);
+                parsed.params.emplace_back(word.substr(1) + rest);
                 break;
             } else {
-                parsed.params.push_back(word);
+                parsed.params.emplace_back(word);
             }
         }
     }
@@ -49,4 +49,9 @@ IRCCommand getCommand(const std::string &command) {
 void IRCMessage::print() {
     std::cout << "prefix: '" << prefix << "'" << '\n';
     std::cout << "command: '" << command << "'" << '\n';
+    std::cout << "param: ";
+    for (const std::string &param : params) {
+        std::cout << param << ", ";
+    }
+    std::cout << '\n';
 }

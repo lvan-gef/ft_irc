@@ -6,10 +6,12 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/20 15:14:57 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/25 21:01:56 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 
 #include "../include/Client.hpp"
@@ -99,10 +101,28 @@ void Client::appendToBuffer(const std::string &data) noexcept {
     _partial_buffer += data;
 }
 
-std::string Client::getAndClearBuffer() noexcept {
-    std::string tmp = _partial_buffer;
-    _partial_buffer.clear();
-    return tmp;
+std::string Client::getAndClearBuffer() {
+    std::string result;
+    std::string delimeter = "\r\n";
+
+    std::cout << "<< before buffer: " << _partial_buffer << '\n';
+
+    size_t pos = _partial_buffer.find(delimeter);
+    if (pos == std::string::npos) {
+        result = _partial_buffer;
+        _partial_buffer.clear();
+    } else {
+        try {
+            result = _partial_buffer.substr(0, pos);
+            _partial_buffer.erase(0, pos + delimeter.length());
+        } catch (std::out_of_range &e) {
+            throw;
+        }
+    }
+
+    std::cout << "<< after buffer: " << _partial_buffer << '\n';
+    std::cout << "<< result: " << result << '\n';
+    return result;
 }
 
 bool Client::hasCompleteMessage() const noexcept {
