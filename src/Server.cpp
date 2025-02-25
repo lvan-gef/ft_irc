@@ -23,6 +23,7 @@
 
 #include "../include/Server.hpp"
 #include "../include/utils.hpp"
+#include "../include/Token.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -399,11 +400,8 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     std::string msg = client->getAndClearBuffer();
 
-    std::cout << "Parse the message: " << msg << '\n';
-    std::cout << msg.compare(0, 4, "USER") << '\n';
-    if (msg.compare(0, 4, "USER") == -7) {
-        _clientAccepted(client);
-    }
+    IRCMessage tokens = parseIRCMessage(msg);
+    tokens.print();
 }
 
 void Server::_pingClients() noexcept {
