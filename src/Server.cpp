@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/25 21:04:42 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/27 20:47:18 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <stdexcept>
 #include <vector>
 
@@ -23,8 +24,8 @@
 #include <sys/socket.h>
 
 #include "../include/Server.hpp"
-#include "../include/utils.hpp"
 #include "../include/Token.hpp"
+#include "../include/utils.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -208,17 +209,6 @@ void Server::_run() {
             throw ServerException();
         }
 
-        /*if (nfds == 0 && _pingClient.size() == 0) {*/
-        /*    _pingClients();*/
-        /*    continue;*/
-        /*}*/
-        /**/
-        /*if (nfds == 0 && _pingClient.size() > 0) {*/
-        /*    // disconnected all cients that did not response in the TIMEOUT*/
-        /*    // interval*/
-        /*    continue;*/
-        /*}*/
-
         for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
             const auto &event = events[index];
 
@@ -227,7 +217,8 @@ void Server::_run() {
             } else if (event.events & EPOLLIN) {
                 _clientMessage(event.data.fd);
             } else if (event.events & EPOLLOUT) {
-                std::cout << "What we need to send back no idea how to get it" << '\n';
+                /*std::cout << "What we need to send back no idea how to get it"
+                 * << '\n';*/
                 /*_sendMessage(event.data.fd,*/
                 /*             "What we need to send back no idea how to get
                  * it");*/
@@ -315,7 +306,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string ip = "127.0.0.1";
 
     _sendMessage(client->getFD(),
-                 ":" + _serverName + " 001" + nick +
+                 ":" + _serverName + " 001 " + nick +
                      " :Welcome to the Internet Relay Network " + nick + "!" +
                      user + "@" + ip + "\r\n");
     _sendMessage(client->getFD(), ":" + _serverName + " 002 " + nick +
@@ -360,6 +351,7 @@ void Server::_clientMessage(int fd) noexcept {
         return;
     }
 
+    std::cerr << buffer << '\n';
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
@@ -397,32 +389,70 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
-    std::string msg = {};
-
     if (client->hasCompleteMessage() != true) {
         return;
     }
 
-    try {
-        msg = client->getAndClearBuffer();
-    } catch (std::out_of_range &e) {
-        return;
-    }
+    std::string msg = client->getAndClearBuffer();
 
-    IRCMessage tokens = parseIRCMessage(msg);
-    tokens.print();
-}
-
-void Server::_pingClients() noexcept {
-    for (const auto &client : _fd_to_client) {
-        client.second->getNickname();
-        _pingClient.emplace_back(client.second);
-
-        _sendMessage(client.second->getFD(), "PING :server.codam.nl");
+    std::vector<IRCMessage> tokens = parseIRCMessage(msg);
+    for (const IRCMessage &token : tokens) {
+        switch (token.type) {
+            case IRCCommand::NICK:
+                switch (token.err) {
+                    case 433:
+                        // if the user have already a valid name then use that name instead of *
+                        _sendMessage(client->getFD(),
+                                     ":" + _serverName + " 433 * " +
+                                         token.params[0] +
+                                         " :Nickname is already in use\r\n");
+                        break;
+                    default:
+                        client->setNickname(token.params[0]);
+                        break;
+                }
+                break;
+            case IRCCommand::USER:
+                client->setUsername(token.params[0]);
+                break;
+            case IRCCommand::PASS:
+                if (token.params[0] != _password) {
+                    std::cerr << "send back that pass is incorrect" << '\n';
+                    break;
+                }
+                _clientAccepted(client);
+                break;
+            case IRCCommand::PRIVMSG:
+                std::cerr << "Not impl yet PRIV" << '\n';
+                break;
+            case IRCCommand::JOIN:
+                std::cerr << "Not impl yet JOIN" << '\n';
+                token.print();
+                break;
+            case IRCCommand::PART:
+                std::cerr << "Not impl yet PART" << '\n';
+                break;
+            case IRCCommand::QUIT:
+                std::cerr << "Not impl yet QUIT" << '\n';
+                break;
+            case IRCCommand::PING:
+                _sendMessage(client->getFD(), ":" + _serverName + " PONG " +
+                                                  _serverName + " :" +
+                                                  token.params[0] + "\r\n");
+                break;
+            case IRCCommand::UNKNOW:
+                std::cerr << "--------------------------------------" << '\n';
+                std::cerr << "Not impl yet UNKNOW" << '\n';
+                token.print();
+                std::cerr << "--------------------------------------" << '\n';
+                break;
+        }
+        std::flush(std::cerr);
+        std::flush(std::cout);
     }
 }
 
 void Server::_sendMessage(int fd, const std::string &msg) noexcept {
-    std::cout << "Send message: '" << msg << "'" << '\n';
+    /*std::cout << "Send message: '" << msg << "'" << '\n';*/
     send(fd, msg.c_str(), msg.length(), 0);
 }
