@@ -108,7 +108,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa{};
+    struct sigaction sa {};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -154,7 +154,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address{};
+    struct sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -174,7 +174,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd;
     if (0 > epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _server_fd, &ev)) {
@@ -400,11 +400,22 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         switch (token.type) {
             case IRCCommand::NICK:
                 switch (token.err) {
-                    case 433:
-                        // if the user have already a valid name then use that name instead of *
+                    case IRCCodes::NONICK:
                         _sendMessage(client->getFD(),
-                                     ":" + _serverName + " 433 * " +
-                                         token.params[0] +
+                                     ":" + _serverName + IRCCodes::NONICK +
+                                         " * " + token.params[0] +
+                                         " :No nickname given\r\n");
+                    case IRCCodes::ERRONUENICK:
+                        _sendMessage(client->getFD(),
+                                     ":" + _serverName + IRCCodes::ERRONUENICK +
+                                         " * " + token.params[0] +
+                                         " :No nickname given\r\n");
+                    case IRCCodes::NICKINUSE:
+                        // if the user have already a valid name then use that
+                        // name instead of *
+                        _sendMessage(client->getFD(),
+                                     ":" + _serverName + IRCCodes::NICKINUSE +
+                                         " * " + token.params[0] +
                                          " :Nickname is already in use\r\n");
                         break;
                     default:

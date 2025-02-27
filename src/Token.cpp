@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "../include/Token.hpp"
+#include "../include/Enums.hpp"
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     std::vector<IRCMessage> tokens;
@@ -43,7 +44,7 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
             }
         }
 
-        parsed.err = 433;
+        parsed.err = IRCCodes::NICKCOLLIS;
         parsed.type = getCommand(parsed.command);
         std::cerr << "type: " << parsed.command << '\n';
         if (parsed.command != "") {

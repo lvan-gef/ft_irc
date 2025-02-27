@@ -17,23 +17,13 @@
 #include <sys/types.h>
 #include <vector>
 
-enum class IRCCommand : std::uint8_t {
-    NICK,
-    USER,
-    PASS,
-    PRIVMSG,
-    JOIN,
-    PART,
-    QUIT,
-    PING,
-    UNKNOW
-};
+#include "./Enums.hpp"
 
 struct IRCMessage {
     std::string prefix;
     std::string command;
     std::vector<std::string> params;
-    ssize_t err;
+    IRCCodes err;
     IRCCommand type;
 
     void print() const;
