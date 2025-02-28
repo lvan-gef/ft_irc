@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/27 21:58:48 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/02/28 20:56:26 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,13 @@ enum class IRCCommand : std::uint8_t {
     PART,
     QUIT,
     PING,
+    KICK,
+    INVITE,
+    MODE_I,
+    MODE_T,
+    MODE_K,
+    MODE_O,
+    MODE_L,
     UNKNOW
 };
 
@@ -33,10 +40,94 @@ enum class IRCCodes : std::int16_t {
     CANNOTSENDTOCHAN = 404,
     TOMANYCHANNELS = 405,
     WASNOSUCHNICK = 406,
-    NOORIGIN = 409,  // not sure if we need to impl it
+    TOOMANYTARGETS = 407,
+    NOSUCHSERVICE = 408, // not sure if we need to impl it
+    NOORIGIN = 409,      // not sure if we need to impl it
+    NORECIPIENT = 411,
+    NOTEXTTOSEND = 412,
+    NOTOPLEVEL = 413,  // not sure if we need to impl it
+    WILDTOPLEVEL = 414, // not sure if we need to impl it
+    UNKNOWCOMMAND = 421,
+    NOADMININFO = 423,
+    FILEERROR = 424,
     NONICK = 431,
     ERRONUENICK = 432,
     NICKINUSE = 433,
+    NICKCOLLISION = 436,
+    UNAVAILRESOURCE = 437,
+    USERNOTINCHANNEL = 441,
+    NOTOCHANNEL = 442,
+    USERONCHANNEL = 443,
+    NOTREGISTERED = 451,
+    NEEDMOREPARAMS = 461,
+    ALREADYREGISTERED = 462,
+    NOPERMFORHOST = 463,
+    PASSWDMISMATCH = 464,
+    YOURBANNEDVREEP = 465,  // for channel or for server ban??
+    CHANNELISFULL = 471,
+    UNKNOWMODE = 472,
+    INVITEONLYCHAN = 473,
+    BANNEDFROMCHAN = 474,
+    BADCHANNELKEY = 475,
+    BADCHANMASK = 476,
+    CHANOPRIVSNEEDED = 482,
+    CANTKILLSERVER = 483,  // not sure if we need to impl it
+    NOOPERHOST = 491,  // not sure if we need to impl it
+    UMODEUNKNOWNFLAG = 501,
+    USERSDONTMATCH = 502,
+    SUCCES = 0
 };
+
+/*enum class IRCMessageCode : std::int16_t {*/
+/*    NOSUCHNICK = 401,*/
+/*    NOSUCHCHANNEL = 403,*/
+/*    CANNOTSENDTOCHAN = 404,*/
+/*    TOMANYCHANNELS = 405,*/
+/*    WASNOSUCHNICK = 406,*/
+/*    TOOMANYTARGETS = 407,*/
+/*    NOSUCHSERVICE = 408, // not sure if we need to impl it*/
+/*    NOORIGIN = 409,      // not sure if we need to impl it*/
+/*    NORECIPIENT = 411,*/
+/*    NOTEXTTOSEND = 412,*/
+/*    NOTOPLEVEL = 413,  // not sure if we need to impl it*/
+/*    WILDTOPLEVEL = 414 // not sure if we need to impl it*/
+/*};*/
+/**/
+/*enum class IRCCommandCode : std::int16_t {*/
+/*    UNKNOWCOMMAND = 421,*/
+/*    NOADMININFO = 423,*/
+/*    FILEERROR = 424*/
+/*};*/
+
+/*enum class IRCUserCode : std::int16_t {*/
+/*    NONICK = 431,*/
+/*    ERRONUENICK = 432,*/
+/*    NICKINUSE = 433,*/
+/*    NICKCOLLISION = 436,*/
+/*    UNAVAILRESOURCE = 437*/
+/*};*/
+
+/*enum class IRChannelCode : std::int16_t {*/
+/*    USERNOTINCHANNEL = 441,*/
+/*    NOTOCHANNEL = 442,*/
+/*    USERONCHANNEL = 443,*/
+/*    NOTREGISTERED = 451,*/
+/*    NEEDMOREPARAMS = 461,*/
+/*    ALREADYREGISTERED = 462,*/
+/*    NOPERMFORHOST = 463,*/
+/*    PASSWDMISMATCH = 464,*/
+/*    YOURBANNEDVREEP = 465,  // for channel or for server ban??*/
+/*    CHANNELISFULL = 471,*/
+/*    UNKNOWMODE = 472,*/
+/*    INVITEONLYCHAN = 473,*/
+/*    BANNEDFROMCHAN = 474,*/
+/*    BADCHANNELKEY = 475,*/
+/*    BADCHANMASK = 476,*/
+/*    CHANOPRIVSNEEDED = 482,*/
+/*    CANTKILLSERVER = 483,  // not sure if we need to impl it*/
+/*    NOOPERHOST = 491,  // not sure if we need to impl it*/
+/*    UMODEUNKNOWNFLAG = 501,*/
+/*    USERSDONTMATCH = 502*/
+/*};*/
 
 #endif // ENUMS_HPP
