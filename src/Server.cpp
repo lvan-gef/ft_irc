@@ -6,13 +6,12 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/28 20:56:26 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/03 21:07:54 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <atomic>
 #include <csignal>
-#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -41,7 +40,7 @@ Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
       _serverName("codamirc.local"), _serverVersion("0.1.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
-      _epoll_fd(-1), _connections(0), _pingClient() {
+      _epoll_fd(-1), _connections(0) {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -61,37 +60,34 @@ Server::Server(const std::string &port, std::string &password)
     run();
 }
 
-/*Server::Server(Server &&rhs) noexcept*/
-/*    : _port(rhs._port), _password(std::move(rhs._password)),*/
-/*      _serverName(std::move(rhs._serverName)),*/
-/*      _serverVersion(std::move(rhs._serverVersion)),*/
-/*      _serverCreated(std::move(rhs._serverCreated)), _server_fd(rhs._server_fd),*/
-/*      _epoll_fd(rhs._epoll_fd), _connections(rhs._connections),*/
-/*      _fd_to_client(std::move(rhs._fd_to_client)),*/
-/*      _nick_to_client(std::move(rhs._nick_to_client)),*/
-/*      _pingClient(std::move(rhs._pingClient)) {*/
-/*}*/
-/**/
-/*Server &Server::operator=(Server &&rhs) noexcept {*/
-/*    if (this != &rhs) {*/
-/*        _port = rhs._port;*/
-/*        _password = std::move(rhs._password);*/
-/*        _serverName = std::move(rhs._serverName);*/
-/*        _serverVersion = std::move(rhs._serverVersion);*/
-/*        _serverCreated = std::move(rhs._serverCreated);*/
-/*        _server_fd = rhs._server_fd;*/
-/*        _epoll_fd = rhs._epoll_fd;*/
-/*        _connections = rhs._connections;*/
-/*        _fd_to_client = std::move(rhs._fd_to_client);*/
-/*        _nick_to_client = std::move(rhs._nick_to_client);*/
-/*        _pingClient = std::move(rhs._pingClient);*/
-/*    }*/
-/**/
-/*    return *this;*/
-/*}*/
+Server::Server(Server &&rhs) noexcept
+    : _port(rhs._port), _password(std::move(rhs._password)),
+      _serverName(std::move(rhs._serverName)),
+      _serverVersion(std::move(rhs._serverVersion)),
+      _serverCreated(std::move(rhs._serverCreated)), _server_fd(rhs._server_fd),
+      _epoll_fd(rhs._epoll_fd), _connections(rhs._connections),
+      _fd_to_client(std::move(rhs._fd_to_client)),
+      _nick_to_client(std::move(rhs._nick_to_client)) {
+}
 
-Server::~Server() {
-    _shutdown();
+Server &Server::operator=(Server &&rhs) noexcept {
+    if (this != &rhs) {
+        _port = rhs._port;
+        _password = std::move(rhs._password);
+        _serverName = std::move(rhs._serverName);
+        _serverVersion = std::move(rhs._serverVersion);
+        _serverCreated = std::move(rhs._serverCreated);
+        _server_fd = rhs._server_fd;
+        _epoll_fd = rhs._epoll_fd;
+        _connections = rhs._connections;
+        _fd_to_client = std::move(rhs._fd_to_client);
+        _nick_to_client = std::move(rhs._nick_to_client);
+    }
+
+    return *this;
+}
+
+Server::~Server() { _shutdown();
 }
 
 bool Server::init() noexcept {
@@ -401,33 +397,10 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     for (const IRCMessage &token : tokens) {
         switch (token.type) {
             case IRCCommand::NICK:
-                switch (token.err) {
-                    case IRCCodes::NONICK:
-                        _sendMessage(client->getFD(),
-                                     ":" + _serverName + " " +
-                                         std::to_string(static_cast<std::uint16_t>(IRCCodes::NONICK)) +
-                                         " * " + token.params[0] +
-                                         " :No nickname given\r\n");
-                    case IRCCodes::ERRONUENICK:
-                        _sendMessage(client->getFD(),
-                                     ":" + _serverName + " " +
-                                         std::to_string(static_cast<std::uint16_t>(IRCCodes::ERRONUENICK)) +
-                                         " * " + token.params[0] +
-                                         " :Erroneus nickname\r\n");
-                    case IRCCodes::NICKINUSE:
-                        // if the user have already a valid name then use that
-                        // name instead of *
-                        _sendMessage(client->getFD(),
-                                     ":" + _serverName + " " +
-                                         std::to_string(static_cast<std::uint16_t>(IRCCodes::NICKINUSE)) +
-                                         " * " + token.params[0] +
-                                         " :Nickname is already in use\r\n");
-                        break;
-                    case IRCCodes::SUCCES:
-                            client->setNickname(token.params[0]);
-                            break;
-                    default:
-                            break;
+                if (token.success) {
+                    client->setNickname(token.params[0]);
+                } else {
+                    _handleError(token.params, token.err, client->getFD());
                 }
                 break;
             case IRCCommand::USER:
@@ -467,12 +440,9 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             default:
                 std::cerr << "i need to handle it" << '\n';
         }
-        std::flush(std::cerr);
-        std::flush(std::cout);
     }
 }
 
 void Server::_sendMessage(int fd, const std::string &msg) noexcept {
-    /*std::cout << "Send message: '" << msg << "'" << '\n';*/
     send(fd, msg.c_str(), msg.length(), 0);
 }

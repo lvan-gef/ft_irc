@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/28 20:31:54 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/03 20:48:46 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
             }
         }
 
-        parsed.err = IRCCodes::NICKINUSE;
+        parsed.err = IRCCodes::NONICK;
         parsed.type = getCommand(parsed.command);
         std::cerr << "type: " << parsed.command << '\n';
         if (parsed.command != "") {

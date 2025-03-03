@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/27 17:51:46 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/03 20:40:09 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,12 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include <sys/socket.h>
+#include <vector>
 
 #include "./Client.hpp"
+#include "./Enums.hpp"
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
@@ -69,6 +70,10 @@ class Server {
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
     void _sendMessage(int fd, const std::string &msg) noexcept;
+    void _handleError(std::vector<std::string> params, IRCCodes code, int clientFD);
+
+    template <typename... Args>
+    std::string _formatMessage(const Args&... args) noexcept;
 
   private:
     std::uint16_t _port;
@@ -83,7 +88,6 @@ class Server {
     size_t _connections;
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
-    std::vector<std::shared_ptr<Client>> _pingClient;
 };
 
 #endif // !SERVER_HPP

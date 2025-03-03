@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:50 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/28 19:29:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/03 19:37:01 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ struct IRCMessage {
     std::string prefix;
     std::string command;
     std::vector<std::string> params;
+    bool success;
     IRCCodes err;
     IRCCommand type;
 
