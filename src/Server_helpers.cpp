@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 18:22:11 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 18:24:04 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,16 +60,16 @@ void Server::_handleError(IRCMessage message, IRCCodes code,
             break;
         }
         case IRCCodes::NOTEXTTOSEND: {
-            std::string fstring = _formatMessage(
-                std::to_string(static_cast<std::uint16_t>(code)),
-                message.params[0], " :No text to send");
+            std::string fstring =
+                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
+                               message.params[0], " :No text to send");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::UNKNOWCOMMAND: {
-            std::string fstring = _formatMessage(
-                std::to_string(static_cast<std::uint16_t>(code)),
-                message.command, " :Unknow command");
+            std::string fstring =
+                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
+                               message.command, " :Unknow command");
             _sendMessage(client->getFD(), fstring);
             break;
         }
@@ -104,21 +104,23 @@ void Server::_handleError(IRCMessage message, IRCCodes code,
         case IRCCodes::USERNOTINCHANNEL: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                               message.params[0], " ", message.params[1], " :They aren't on that channel");
+                               message.params[0], " ", message.params[1],
+                               " :They aren't on that channel");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::NOTOCHANNEL: {
-            std::string fstring =
-                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                               message.params[0], " :You're not on that channel");
+            std::string fstring = _formatMessage(
+                std::to_string(static_cast<std::uint16_t>(code)),
+                message.params[0], " :You're not on that channel");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::USERONCHANNEL: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                               message.params[0], " ", message.params[1], " :is already in channel");
+                               message.params[0], " ", message.params[1],
+                               " :is already in channel");
             _sendMessage(client->getFD(), fstring);
             break;
         }
@@ -150,77 +152,78 @@ void Server::_handleError(IRCMessage message, IRCCodes code,
             _sendMessage(client->getFD(), fstring);
             break;
         }
-        case IRCCodes::KEYSET: {  // checken if channel is 1 index of the params
+        case IRCCodes::KEYSET: { // checken if channel is 1 index of the params
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[1], " :Channel key already set");
+                               message.params[1], " :Channel key already set");
             _sendMessage(client->getFD(), fstring);
             break;
         }
-        case IRCCodes::CHANNELISFULL: {  // checken if channel is 1 index of the params
+        case IRCCodes::CHANNELISFULL: { // checken if channel is 1 index of the
+                                        // params
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[1], " :Cannot join channel (+l)");
+                               message.params[1], " :Cannot join channel (+l)");
             _sendMessage(client->getFD(), fstring);
             break;
         }
-        case IRCCodes::UNKNOWMODE: {  // checken if char is 2 index of the params
-            std::string fstring =
-                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[2], " :is unknown mode char to me");
+        case IRCCodes::UNKNOWMODE: { // checken if char is 2 index of the params
+            std::string fstring = _formatMessage(
+                std::to_string(static_cast<std::uint16_t>(code)),
+                message.params[2], " :is unknown mode char to me");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::INVITEONLYCHAN: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[1], " :Cannot join channel (+i)");
+                               message.params[1], " :Cannot join channel (+i)");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::BANNEDFROMCHAN: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[1], " :Cannot join channel (+b)");
+                               message.params[1], " :Cannot join channel (+b)");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::BADCHANNELKEY: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              message.params[1], " :Cannot join channel (+k)");
+                               message.params[1], " :Cannot join channel (+k)");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::NOPRIVILEGES: {
-            std::string fstring =
-                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                              " :Permission Denied- You're not an IRC operator");
+            std::string fstring = _formatMessage(
+                std::to_string(static_cast<std::uint16_t>(code)),
+                " :Permission Denied- You're not an IRC operator");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::CHANOPRIVSNEEDED: {
-            std::string fstring =
-                _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                             message.params[1] , " :You're not channel operator");
+            std::string fstring = _formatMessage(
+                std::to_string(static_cast<std::uint16_t>(code)),
+                message.params[1], " :You're not channel operator");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::UMODEUNKNOWNFLAG: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                             " :Unknown MODE flag");
+                               " :Unknown MODE flag");
             _sendMessage(client->getFD(), fstring);
             break;
         }
         case IRCCodes::USERSDONTMATCH: {
             std::string fstring =
                 _formatMessage(std::to_string(static_cast<std::uint16_t>(code)),
-                             " :Cant change mode for other users");
+                               " :Cant change mode for other users");
             _sendMessage(client->getFD(), fstring);
             break;
         }
-        // 6.2 Command responses
+            // 6.2 Command responses
     }
 }
 

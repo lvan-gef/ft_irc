@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 15:44:06 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 18:23:58 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,8 @@ Server &Server::operator=(Server &&rhs) noexcept {
     return *this;
 }
 
-Server::~Server() { _shutdown();
+Server::~Server() {
+    _shutdown();
 }
 
 bool Server::init() noexcept {

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/27 19:33:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 18:23:51 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 #include "../include/Client.hpp"
 
 Client::Client(int fd)
-    : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _event(), _last_seen(0), _registered(false) {
+    : _fd(fd), _username(""), _nickname(""), _partial_buffer(""), _event(),
+      _last_seen(0), _registered(false) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLOUT;
 }

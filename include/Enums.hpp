@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 18:21:08 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 18:24:44 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ enum class IRCCodes : std::int16_t {
     /*WILDTOPLEVEL = 414, // not sure if we need to impl it*/
     UNKNOWCOMMAND = 421,
     /*NOADMININFO = 423,  // think we dont need to impl this*/
-    FILEERROR = 424,  // only for bonus we need to impl thid
+    FILEERROR = 424, // only for bonus we need to impl thid
     NONICK = 431,
     ERRONUENICK = 432,
     NICKINUSE = 433,

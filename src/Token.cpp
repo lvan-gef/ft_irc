@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 16:40:43 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 18:24:11 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../include/Token.hpp"
 #include "../include/Enums.hpp"
+#include "../include/Token.hpp"
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     std::vector<IRCMessage> tokens;
