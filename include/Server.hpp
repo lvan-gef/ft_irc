@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/03 20:40:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 15:53:06 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 
 #include "./Client.hpp"
 #include "./Enums.hpp"
+#include "Token.hpp"
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
@@ -70,8 +71,9 @@ class Server {
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
     void _sendMessage(int fd, const std::string &msg) noexcept;
-    void _handleError(std::vector<std::string> params, IRCCodes code, int clientFD);
+    void _handleError(IRCMessage message, IRCCodes code, const std::shared_ptr<Client> &client);
 
+  private:
     template <typename... Args>
     std::string _formatMessage(const Args&... args) noexcept;
 

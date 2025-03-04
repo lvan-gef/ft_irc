@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/03 21:07:54 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 15:44:06 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -400,7 +400,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
                 if (token.success) {
                     client->setNickname(token.params[0]);
                 } else {
-                    _handleError(token.params, token.err, client->getFD());
+                    _handleError(token.params, token.err, client);
                 }
                 break;
             case IRCCommand::USER:
