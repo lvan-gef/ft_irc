@@ -16,7 +16,7 @@
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""), _event(),
-      _last_seen(0), _registered(false) {
+      _last_seen(0), _registered(0) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLOUT;
 }
@@ -72,7 +72,7 @@ epoll_event &Client::getEvent() noexcept {
 }
 
 bool Client::isRegistered() const noexcept {
-    return _registered;
+    return _registered == ISREGISTERED;
 }
 
 time_t Client::getLastSeen() const noexcept {
@@ -80,15 +80,20 @@ time_t Client::getLastSeen() const noexcept {
 }
 
 void Client::setUsername(const std::string &username) noexcept {
+    unsigned int mask = 1 << 0;
+    _registered |= mask;
     _username = username;
 }
 
 void Client::setNickname(const std::string &nickname) noexcept {
+    unsigned int mask = 1 << 1;
+    _registered |= mask;
     _nickname = nickname;
 }
 
-void Client::setRegistered(bool registered) noexcept {
-    _registered = registered;
+void Client::setPasswordBit() noexcept {
+    unsigned int mask = 1 << 2;
+    _registered |= mask;
 }
 
 void Client::updatedLastSeen() noexcept {

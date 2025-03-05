@@ -18,6 +18,8 @@
 
 #include <sys/epoll.h>
 
+#define ISREGISTERED 7
+
 class Client {
   public:
     explicit Client(int fd);
@@ -41,8 +43,15 @@ class Client {
   public:
     void setUsername(const std::string &username) noexcept;
     void setNickname(const std::string &nickname) noexcept;
-    void setRegistered(bool registered) noexcept;
     void updatedLastSeen() noexcept;
+
+  public:
+    bool getUsernameBit() const noexcept;
+    bool setNicknameBit() const noexcept;
+    bool getPasswordBit() const noexcept;
+    void setUsernameBit() noexcept;
+    void setNicknameBit() noexcept;
+    void setPasswordBit() noexcept;
 
   public:
     void appendToBuffer(const std::string &data) noexcept;
@@ -56,7 +65,7 @@ class Client {
     std::string _partial_buffer;
     epoll_event _event;
     time_t _last_seen;
-    int _registered;  // 111 user, nick, pass
+    unsigned int _registered;  // 111 user, nick, pass
 };
 
 #endif // !CLIENT_HPP

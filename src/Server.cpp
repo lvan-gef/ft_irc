@@ -418,6 +418,8 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
                 break;
             case IRCCommand::PASS:
                 if (token.success) {
+                    unsigned int mask = 1 << 3;
+                    client->setPasswordBit();
                     _clientAccepted(client);
                 } else {
                     _handleError(token, client);
