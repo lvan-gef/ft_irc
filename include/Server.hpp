@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 18:24:52 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 20:18:31 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 #include <sys/socket.h>
 
 #include "./Client.hpp"
-#include "./Enums.hpp"
 #include "Token.hpp"
 
 enum Ranges : std::uint16_t {
@@ -64,14 +63,13 @@ class Server {
 
   private:
     void _newConnection() noexcept;
-    void _clientAccepted(const std::shared_ptr<Client> &client) noexcept;
+    bool _clientAccepted(const std::shared_ptr<Client> &client) noexcept;
     void _clientMessage(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
     void _sendMessage(int fd, const std::string &msg) noexcept;
-    void _handleError(IRCMessage message, IRCCodes code,
-                      const std::shared_ptr<Client> &client);
+    void _handleError(IRCMessage message, const std::shared_ptr<Client> &client);
 
   private:
     template <typename... Args>

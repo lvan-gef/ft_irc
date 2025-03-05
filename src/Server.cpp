@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 18:23:58 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 20:29:49 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,10 +296,11 @@ void Server::_newConnection() noexcept {
     std::cout << "New client connected on fd " << clientFD << '\n';
 }
 
-void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
-    /*if (client->isRegistered() != true) {*/
-    /*    return;*/
-    /*}*/
+bool Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
+    if (client->getUsername() == "" || client->getNickname() == "") {
+        return false;
+    }
+
     std::string nick = "lvan-gef";
     std::string user = "lvan-gef";
     std::string ip = "127.0.0.1";
@@ -329,6 +330,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
                                       " :- Welcome to my IRC server!\r\n");
     _sendMessage(client->getFD(), ":" + _serverName + " 376 " + nick +
                                       " :End of /MOTD command.\r\n");
+    return true;
 }
 
 void Server::_clientMessage(int fd) noexcept {
@@ -400,19 +402,26 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             case IRCCommand::NICK:
                 if (token.success) {
                     client->setNickname(token.params[0]);
+                    _clientAccepted(client);
                 } else {
-                    _handleError(token.params, token.err, client);
+                    _handleError(token, client);
                 }
                 break;
             case IRCCommand::USER:
-                client->setUsername(token.params[0]);
+                if (token.success) {
+                    client->setUsername(token.params[0]);
+                    _clientAccepted(client);
+                } else {
+                    _handleError(token, client);
+                    return;
+                }
                 break;
             case IRCCommand::PASS:
-                if (token.params[0] != _password) {
-                    std::cerr << "send back that pass is incorrect" << '\n';
-                    break;
+                if (token.success) {
+                    _clientAccepted(client);
+                } else {
+                    _handleError(token, client);
                 }
-                /*_clientAccepted(client);*/
                 break;
             case IRCCommand::PRIVMSG:
                 std::cerr << "Not impl yet PRIV" << '\n';

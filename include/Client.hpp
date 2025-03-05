@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/02/25 21:02:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/04 20:29:49 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ class Client {
     std::string _partial_buffer;
     epoll_event _event;
     time_t _last_seen;
-    bool _registered;
+    int _registered;  // 111 user, nick, pass
 };
 
 #endif // !CLIENT_HPP
