@@ -296,9 +296,9 @@ void Server::_newConnection() noexcept {
     std::cout << "New client connected on fd " << clientFD << '\n';
 }
 
-bool Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
-    if (client->getUsername() == "" || client->getNickname() == "") {
-        return false;
+void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
+    if (client->isRegistered() != true) {
+        return;
     }
 
     std::string nick = "lvan-gef";
@@ -330,7 +330,6 @@ bool Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
                                       " :- Welcome to my IRC server!\r\n");
     _sendMessage(client->getFD(), ":" + _serverName + " 376 " + nick +
                                       " :End of /MOTD command.\r\n");
-    return true;
 }
 
 void Server::_clientMessage(int fd) noexcept {
@@ -396,8 +395,8 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
 
     std::string msg = client->getAndClearBuffer();
 
-    std::vector<IRCMessage> tokens = parseIRCMessage(msg);
-    for (const IRCMessage &token : tokens) {
+    std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
+    for (const IRCMessage &token : clientsToken) {
         switch (token.type) {
             case IRCCommand::NICK:
                 if (token.success) {
@@ -413,12 +412,10 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
                     _clientAccepted(client);
                 } else {
                     _handleError(token, client);
-                    return;
                 }
                 break;
             case IRCCommand::PASS:
                 if (token.success) {
-                    unsigned int mask = 1 << 3;
                     client->setPasswordBit();
                     _clientAccepted(client);
                 } else {

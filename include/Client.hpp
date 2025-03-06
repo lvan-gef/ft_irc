@@ -13,12 +13,11 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <bitset>
 #include <ctime>
 #include <string>
 
 #include <sys/epoll.h>
-
-#define ISREGISTERED 7
 
 class Client {
   public:
@@ -34,24 +33,26 @@ class Client {
 
   public:
     int getFD() const noexcept;
-    const std::string &getUsername() const noexcept;
-    const std::string &getNickname() const noexcept;
     epoll_event &getEvent() noexcept;
     bool isRegistered() const noexcept;
-    time_t getLastSeen() const noexcept;
 
   public:
     void setUsername(const std::string &username) noexcept;
     void setNickname(const std::string &nickname) noexcept;
-    void updatedLastSeen() noexcept;
+    const std::string &getUsername() const noexcept;
+    const std::string &getNickname() const noexcept;
 
   public:
-    bool getUsernameBit() const noexcept;
-    bool setNicknameBit() const noexcept;
-    bool getPasswordBit() const noexcept;
+    void updatedLastSeen() noexcept;
+    time_t getLastSeen() const noexcept;
+
+  public:
     void setUsernameBit() noexcept;
     void setNicknameBit() noexcept;
     void setPasswordBit() noexcept;
+    bool getUsernameBit() const noexcept;
+    bool getNicknameBit() const noexcept;
+    bool getPasswordBit() const noexcept;
 
   public:
     void appendToBuffer(const std::string &data) noexcept;
@@ -65,7 +66,7 @@ class Client {
     std::string _partial_buffer;
     epoll_event _event;
     time_t _last_seen;
-    unsigned int _registered;  // 111 user, nick, pass
+    std::bitset<3> _registered; // user, nick, pass
 };
 
 #endif // !CLIENT_HPP

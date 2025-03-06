@@ -16,7 +16,7 @@
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""), _event(),
-      _last_seen(0), _registered(0) {
+      _last_seen(0) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLOUT;
 }
@@ -25,7 +25,7 @@ Client::Client(Client &&rhs) noexcept
     : _fd(rhs._fd), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _event(rhs._event),
-      _last_seen(rhs._last_seen), _registered(rhs._registered) {
+      _last_seen(rhs._last_seen) {
     rhs._fd = -1;
 }
 
@@ -42,7 +42,6 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _partial_buffer = std::move(rhs._partial_buffer);
         _event = rhs._event;
         _last_seen = rhs._last_seen;
-        _registered = rhs._registered;
     }
 
     return *this;
@@ -59,6 +58,24 @@ int Client::getFD() const noexcept {
     return _fd;
 }
 
+epoll_event &Client::getEvent() noexcept {
+    return _event;
+}
+
+bool Client::isRegistered() const noexcept {
+    return _registered.all();
+}
+
+void Client::setUsername(const std::string &username) noexcept {
+    setUsernameBit();
+    _username = username;
+}
+
+void Client::setNickname(const std::string &nickname) noexcept {
+    setNicknameBit();
+    _nickname = nickname;
+}
+
 const std::string &Client::getUsername() const noexcept {
     return _username;
 }
@@ -67,37 +84,36 @@ const std::string &Client::getNickname() const noexcept {
     return _nickname;
 }
 
-epoll_event &Client::getEvent() noexcept {
-    return _event;
-}
-
-bool Client::isRegistered() const noexcept {
-    return _registered == ISREGISTERED;
+void Client::updatedLastSeen() noexcept {
+    _last_seen = time(nullptr);
 }
 
 time_t Client::getLastSeen() const noexcept {
     return _last_seen;
 }
 
-void Client::setUsername(const std::string &username) noexcept {
-    unsigned int mask = 1 << 0;
-    _registered |= mask;
-    _username = username;
+void Client::setUsernameBit() noexcept {
+    _registered.set(0);
 }
 
-void Client::setNickname(const std::string &nickname) noexcept {
-    unsigned int mask = 1 << 1;
-    _registered |= mask;
-    _nickname = nickname;
+void Client::setNicknameBit() noexcept {
+    _registered.set(1);
 }
 
 void Client::setPasswordBit() noexcept {
-    unsigned int mask = 1 << 2;
-    _registered |= mask;
+    _registered.set(2);
 }
 
-void Client::updatedLastSeen() noexcept {
-    _last_seen = time(nullptr);
+bool Client::getUsernameBit() const noexcept {
+    return _registered.test(0);
+}
+
+bool Client::getNicknameBit() const noexcept {
+    return _registered.test(1);
+}
+
+bool Client::getPasswordBit() const noexcept {
+    return _registered.test(2);
 }
 
 void Client::appendToBuffer(const std::string &data) noexcept {
