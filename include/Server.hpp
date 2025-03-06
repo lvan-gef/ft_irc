@@ -69,7 +69,8 @@ class Server {
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
     void _sendMessage(int fd, const std::string &msg) noexcept;
-    void _handleError(IRCMessage message, const std::shared_ptr<Client> &client);
+    void _handleError(IRCMessage message,
+                      const std::shared_ptr<Client> &client);
 
   private:
     template <typename... Args>
