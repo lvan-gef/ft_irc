@@ -440,14 +440,33 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
                                                   _serverName + " :" +
                                                   token.params[0] + "\r\n");
                 break;
+            case IRCCommand::KICK:
+                std::cerr << "Not impl yet KICK" << '\n';
+                break;
+            case IRCCommand::INVITE:
+                std::cerr << "Not impl yet INVITE" << '\n';
+                break;
+            case IRCCommand::MODE_I:
+                std::cerr << "Not impl yet MODE_I" << '\n';
+                break;
+            case IRCCommand::MODE_T:
+                std::cerr << "Not impl yet MODE_T" << '\n';
+                break;
+            case IRCCommand::MODE_K:
+                std::cerr << "Not impl yet MODE_K" << '\n';
+                break;
+            case IRCCommand::MODE_O:
+                std::cerr << "Not impl yet MODE_O" << '\n';
+                break;
+            case IRCCommand::MODE_L:
+                std::cerr << "Not impl yet MODE_L" << '\n';
+                break;
             case IRCCommand::UNKNOW:
                 std::cerr << "--------------------------------------" << '\n';
                 std::cerr << "Not impl yet UNKNOW" << '\n';
                 token.print();
                 std::cerr << "--------------------------------------" << '\n';
                 break;
-            default:
-                std::cerr << "i need to handle it" << '\n';
         }
     }
 }
