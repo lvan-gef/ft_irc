@@ -45,7 +45,7 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
         }
 
         parsed.success = true;
-        parsed.err = IRCCodes::NONICK;
+        parsed.err = IRCCodes::SUCCES;
         parsed.type = getCommand(parsed.command);
         std::cerr << "type: " << parsed.command << '\n';
         if (parsed.command != "") {
@@ -62,8 +62,10 @@ IRCCommand getCommand(const std::string &command) {
         {"PASS", IRCCommand::PASS},     {"PRIVMSG", IRCCommand::PRIVMSG},
         {"JOIN", IRCCommand::JOIN},     {"PART", IRCCommand::PART},
         {"QUIT", IRCCommand::QUIT},     {"PING", IRCCommand::PING},
-        {"UNKNOW", IRCCommand::UNKNOW},
-    };
+        {"KICK", IRCCommand::KICK},     {"INVITE", IRCCommand::INVITE},
+        {"MODE_I", IRCCommand::MODE_I}, {"MODE_T", IRCCommand::MODE_T},
+        {"MODE_K", IRCCommand::MODE_K}, {"MODE_O", IRCCommand::MODE_O},
+        {"MODE_L", IRCCommand::MODE_L}, {"UNKNOW", IRCCommand::UNKNOW}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {

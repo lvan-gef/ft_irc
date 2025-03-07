@@ -18,13 +18,14 @@
 #include <vector>
 
 #include "./Enums.hpp"
+#include "./Optional.hpp"
 
 struct IRCMessage {
     std::string prefix;
     std::string command;
     std::vector<std::string> params;
     bool success;
-    IRCCodes err;
+    Optional<IRCCodes> err;
     IRCCommand type;
 
     void print() const;
