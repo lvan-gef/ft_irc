@@ -6,30 +6,27 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 19:35:17 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/07 21:18:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <cstdarg>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
-#include <string>
 
 #include "../include/Enums.hpp"
-#include "../include/Server.hpp"
 #include "../include/Token.hpp"
+#include "../include/Client.hpp"
+#include "../include/Server.hpp"
 
 void Server::_handleError(IRCMessage message,
                           const std::shared_ptr<Client> &client) {
     int clientFD = client->getFD();
-    std::string errnoAsString;
+    std::string errnoAsString = {};
     IRCCodes error = {};
 
     try {
-        errnoAsString =
-            std::to_string(static_cast<std::uint16_t>(message.err.get_value()));
         error = message.err.get_value();
+        errnoAsString = std::to_string(static_cast<std::uint16_t>(error));
     } catch (std::runtime_error &e) {
         std::cerr << e.what() << '\n';
         return;

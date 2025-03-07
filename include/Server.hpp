@@ -6,16 +6,15 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 16:32:00 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/07 21:35:11 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <cstdint>
 #include <memory>
-#include <string>
+#include <cstdint>
 #include <unordered_map>
 
 #include <sys/socket.h>
@@ -68,7 +67,6 @@ class Server {
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
-    void _sendMessage(int fd, const std::string &msg) noexcept;
     void _handleError(IRCMessage message, const std::shared_ptr<Client> &client);
 
   private:
@@ -89,5 +87,7 @@ class Server {
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
 };
+
+#include "../templates/Server.tpp"
 
 #endif // !SERVER_HPP
