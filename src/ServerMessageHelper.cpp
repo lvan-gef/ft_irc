@@ -18,116 +18,55 @@ void Server::_handleMessage(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
     switch (token.type) {
         case IRCCommand::NICK:
-            if (token.success) {
-                client->setNickname(token.params[0]);
-                _clientAccepted(client);
-            } else {
-                _handleError(token, client);
-            }
+            client->setNickname(token.params[0]);
+            _clientAccepted(client);
             break;
         case IRCCommand::USER:
-            if (token.success) {
-                client->setUsername(token.params[0]);
-                _clientAccepted(client);
-            } else {
-                _handleError(token, client);
-            }
+            client->setUsername(token.params[0]);
+            _clientAccepted(client);
             break;
         case IRCCommand::PASS:
-            if (token.success) {
-                client->setPasswordBit();
-                _clientAccepted(client);
-            } else {
-                _handleError(token, client);
-            }
+            client->setPasswordBit();
+            _clientAccepted(client);
             break;
         case IRCCommand::PRIVMSG:
-            if (token.success) {
-                std::cerr << "Not impl yet PRIV" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet PRIV" << '\n';
             break;
         case IRCCommand::JOIN:
-            if (token.success) {
-                std::cerr << "Not impl yet JOIN" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet JOIN" << '\n';
             break;
         case IRCCommand::PART:
-            if (token.success) {
-                std::cerr << "Not impl yet PART" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet PART" << '\n';
             break;
         case IRCCommand::QUIT:
-            if (token.success) {
-                std::cerr << "Not impl yet QUIT" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet QUIT" << '\n';
             break;
         case IRCCommand::PING:
-            if (token.success) {
-                _sendMessage(client->getFD(), " PONG ", _serverName,
-                             " :" + token.params[0]);
-            } else {
-                _handleError(token, client);
-            }
+            _sendMessage(client->getFD(), " PONG ", _serverName,
+                         " :" + token.params[0]);
             break;
         case IRCCommand::KICK:
-            if (token.success) {
-                std::cerr << "Not impl yet KICK" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet KICK" << '\n';
             break;
         case IRCCommand::INVITE:
-            if (token.success) {
-                std::cerr << "Not impl yet INVITE" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet INVITE" << '\n';
             break;
         case IRCCommand::MODE_I:
-            if (token.success) {
-                std::cerr << "Not impl yet MODE_I" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet MODE_I" << '\n';
             break;
         case IRCCommand::MODE_T:
-            if (token.success) {
-                std::cerr << "Not impl yet MODE_T" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet MODE_T" << '\n';
             break;
         case IRCCommand::MODE_K:
-            if (token.success) {
-                std::cerr << "Not impl yet MODE_K" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet MODE_K" << '\n';
             break;
         case IRCCommand::MODE_O:
-            if (token.success) {
-                std::cerr << "Not impl yet MODE_O" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet MODE_O" << '\n';
             break;
         case IRCCommand::MODE_L:
-            if (token.success) {
-                std::cerr << "Not impl yet MODE_L" << '\n';
-            } else {
-                _handleError(token, client);
-            }
+            std::cerr << "Not impl yet MODE_L" << '\n';
             break;
         case IRCCommand::UNKNOW:
-            _handleError(token, client);
             break;
     }
 }

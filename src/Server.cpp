@@ -42,7 +42,7 @@ Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
       _serverName("codamirc.local"), _serverVersion("0.1.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
-      _epoll_fd(-1), _connections(0) {
+      _epoll_fd(-1), _connections(0), _fd_to_client(), _nick_to_client() {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -56,7 +56,7 @@ Server::Server(const std::string &port, std::string &password)
     }
 
     if (init() != true) {
-        throw std::system_error();
+        throw std::runtime_error("Failed to init");
     }
 
     run();
@@ -398,6 +398,10 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
 
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
-        _handleMessage(token, client);
+        if (token.success != true) {
+            _handleError(token, client);
+        } else {
+            _handleMessage(token, client);
+        }
     }
 }
