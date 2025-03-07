@@ -9,15 +9,14 @@ Optional<T>::Optional() : _has_value(false) {
 }
 
 template <typename T>
-Optional<T>::Optional(const Optional &rhs) has_value_(other.has_value_),
-    value_(other.value_) {
+Optional<T>::Optional(const Optional &rhs) : _has_value(rhs._has_value), _value(rhs._value) {
 }
 
 template <typename T>
 Optional<T> &Optional<T>::operator=(const Optional &rhs) {
     if (this != &rhs) {
-        has_value_ = other.has_value_;
-        value_ = other.value_;
+        _has_value = rhs._has_value;
+        _value = rhs._value;
     }
 
     return *this;
@@ -32,21 +31,20 @@ template <typename T>
 Optional<T> &Optional<T>::operator=(Optional &&rhs) noexcept {
     if (this != &rhs) {
         reset();
-        has_value_ = other.has_value_;
-        value_ = std::move(other.value_);
-        other.has_value_ = false;
+        _has_value = rhs._has_value;
+        _value = std::move(rhs._value);
+        rhs._has_value = false;
     }
 
     return *this;
 }
 
 template <typename T>
-Optional<T>::&has_value() {
-    return _has_value;
+Optional<T>::~Optional() {
 }
 
 template <typename T>
-Optional<T>::&get_value() {
+T &Optional<T>::get_value() {
     if (_has_value != true) {
         throw std::runtime_error("No value stored");
     }
@@ -55,7 +53,7 @@ Optional<T>::&get_value() {
 }
 
 template <typename T>
-const Optional<T>::&get_value() {
+const T &Optional<T>::get_value() const {
     if (_has_value != true) {
         throw std::runtime_error("No value stored");
     }
@@ -64,18 +62,19 @@ const Optional<T>::&get_value() {
 }
 
 template <typename T>
-const Optional<T>::set_value(const T &value) {
+ void Optional<T>::set_value(const T &value) noexcept {
     _has_value = true;
     _value = value;
 }
 
 template <typename T>
-const Optional<T>::reset(const T &value) {
+void Optional<T>::reset() noexcept {
     _has_value = false;
 }
 
 template <typename T>
-Optional<T>::~Optional() {
+bool Optional<T>::has_value()const noexcept {
+    return _has_value;
 }
 
 #endif // !OPTIONAL_HPP

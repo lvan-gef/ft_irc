@@ -6,25 +6,27 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 20:29:49 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/07 16:36:29 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <atomic>
 #include <csignal>
 #include <cstring>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
@@ -304,35 +306,33 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
         return;
     }
 
-    std::string nick = "lvan-gef";
-    std::string user = "lvan-gef";
+    int clientFD = client->getFD();
+    std::string nick = client->getNickname();
+    std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    _sendMessage(client->getFD(),
-                 ":" + _serverName + " 001 " + nick +
-                     " :Welcome to the Internet Relay Network " + nick + "!" +
-                     user + "@" + ip + "\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 002 " + nick +
-                                      " :Your host is " + _serverName +
-                                      ", running version " + _serverVersion +
-                                      "\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 003 " + nick +
-                                      " :This server was created " +
-                                      _serverCreated + "\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 004 " + nick + " " +
-                                      _serverName + " " + _serverVersion +
-                                      " oOiws abiklmnopqrstv\r\n");
-    _sendMessage(
-        client->getFD(),
-        ":" + _serverName + " 005 " + nick +
-            " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 375 " + nick + " :- " +
-                                      _serverName +
-                                      " Message of the Day -\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 372 " + nick +
-                                      " :- Welcome to my IRC server!\r\n");
-    _sendMessage(client->getFD(), ":" + _serverName + " 376 " + nick +
-                                      " :End of /MOTD command.\r\n");
+    _sendMessage(clientFD, " 001 ", nick,
+                 " :Welcome to the Internet Relay Network ", nick, "!", user,
+                 "@", ip);
+
+    _sendMessage(clientFD, " 002 ", nick, " :Your host is ", _serverName,
+                 ", running version ", _serverVersion);
+
+    _sendMessage(clientFD, " 003 ", nick, ":This server was created ",
+                 _serverCreated);
+
+    _sendMessage(clientFD, " 004 ", nick, " ", _serverName, " ", _serverVersion,
+                 " oOiws abiklmnopqrstv");
+
+    _sendMessage(clientFD, " 005 ", nick,
+                 " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server");
+
+    _sendMessage(clientFD, " 375 ", nick, " :- ", _serverName,
+                 " Message of the Day -\r\n");
+
+    _sendMessage(clientFD, " 372 ", nick, " :- Welcome to my IRC server!\r\n");
+
+    _sendMessage(clientFD, " 376 ", nick, " :End of /MOTD command.\r\n");
 }
 
 void Server::_clientMessage(int fd) noexcept {
@@ -439,9 +439,9 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
                 std::cerr << "Not impl yet QUIT" << '\n';
                 break;
             case IRCCommand::PING:
-                _sendMessage(client->getFD(), ":" + _serverName + " PONG " +
-                                                  _serverName + " :" +
-                                                  token.params[0] + "\r\n");
+                /*_sendMessage(client->getFD(), ":" + _serverName + " PONG " +*/
+                /*                                  _serverName + " :" +*/
+                /*                                  token.params[0] + "\r\n");*/
                 break;
             case IRCCommand::KICK:
                 std::cerr << "Not impl yet KICK" << '\n';
@@ -474,6 +474,14 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 }
 
-void Server::_sendMessage(int fd, const std::string &msg) noexcept {
+template <typename... Args>
+void Server::_sendMessage(int fd, const Args &...args) noexcept {
+    std::ostringstream oss;
+
+    oss << ":" << _serverName << " ";
+    (void)std::initializer_list<int>{(oss << args, 0)...};
+    oss << "\r\n";
+
+    std::string msg = oss.str();
     send(fd, msg.c_str(), msg.length(), 0);
 }
