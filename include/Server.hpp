@@ -13,8 +13,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 #include <sys/socket.h>
@@ -65,9 +65,14 @@ class Server {
     void _clientAccepted(const std::shared_ptr<Client> &client) noexcept;
     void _clientMessage(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
-    void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _pingClients() noexcept;
-    void _handleError(IRCMessage message, const std::shared_ptr<Client> &client);
+
+  private:
+    void _processMessage(const std::shared_ptr<Client> &client) noexcept;
+    void _handleError(IRCMessage token,
+                      const std::shared_ptr<Client> &client);
+    void _handleMessage(const IRCMessage &token,
+                        const std::shared_ptr<Client> &client);
 
   private:
     template <typename... Args>
