@@ -139,8 +139,7 @@ const char *Server::ServerException::what() const noexcept {
 }
 
 bool Server::_init() noexcept {
-    /*_server_fd = socket(AF_INET, SOCK_STREAM, 0);*/
-    _server_fd.set(socket(AF_INET, SOCK_STREAM, 0));
+    _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
         std::cerr << "Failed to create a socket: " << strerror(errno) << '\n';
         return false;
