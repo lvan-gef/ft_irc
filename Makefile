@@ -16,7 +16,7 @@ OBJDIR := obj/
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Client.cpp main.cpp Server.cpp ServerErrorHelper.cpp ServerMessageHelper.cpp Token.cpp utils.cpp
+SRCFILES := Client.cpp FileDescriptors.cpp Server.cpp ServerErrorHelper.cpp ServerMessageHelper.cpp Token.cpp main.cpp utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
