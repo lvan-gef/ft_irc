@@ -32,7 +32,6 @@ class FileDescriptors {
 
   private:
     int _fd;
-
 };
 
 #endif // !FILEDESCRIPTORS_HPP

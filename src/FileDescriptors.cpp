@@ -55,10 +55,10 @@ void FileDescriptors::set(int fd) noexcept {
 }
 
 FileDescriptors &FileDescriptors::operator=(int fd) {
-        if (_fd >= 0) {
-            close(_fd);
-        }
-
-        _fd = fd;
-        return *this;
+    if (_fd >= 0) {
+        close(_fd);
     }
+
+    _fd = fd;
+    return *this;
+}

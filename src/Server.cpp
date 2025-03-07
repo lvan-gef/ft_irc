@@ -21,11 +21,11 @@
 #include <utility>
 #include <vector>
 
-#include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
@@ -67,7 +67,8 @@ Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
       _serverName(std::move(rhs._serverName)),
       _serverVersion(std::move(rhs._serverVersion)),
-      _serverCreated(std::move(rhs._serverCreated)), _server_fd(std::move(rhs._server_fd)),
+      _serverCreated(std::move(rhs._serverCreated)),
+      _server_fd(std::move(rhs._server_fd)),
       _epoll_fd(std::move(rhs._epoll_fd)), _connections(rhs._connections),
       _fd_to_client(std::move(rhs._fd_to_client)),
       _nick_to_client(std::move(rhs._nick_to_client)) {
@@ -146,8 +147,8 @@ bool Server::_init() noexcept {
     }
 
     int opt = 1;
-    if (0 >
-        setsockopt(_server_fd.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+    if (0 > setsockopt(_server_fd.get(), SOL_SOCKET, SO_REUSEADDR, &opt,
+                       sizeof(opt))) {
         std::cerr << "setsockopt failed: " << strerror(errno) << '\n';
         return false;
     }
@@ -160,7 +161,8 @@ bool Server::_init() noexcept {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
-    if (0 > bind(_server_fd.get(), (struct sockaddr *)&address, sizeof(address))) {
+    if (0 >
+        bind(_server_fd.get(), (struct sockaddr *)&address, sizeof(address))) {
         std::cerr << "Bind failed: " << strerror(errno) << '\n';
         return false;
     }
@@ -199,9 +201,9 @@ void Server::_run() {
             events.resize(_connections);
         }
 
-        int nfds =
-            epoll_wait(_epoll_fd.get(), static_cast<epoll_event *>(events.data()),
-                       (int)events.size(), INTERVAL);
+        int nfds = epoll_wait(_epoll_fd.get(),
+                              static_cast<epoll_event *>(events.data()),
+                              (int)events.size(), INTERVAL);
 
         if (0 > nfds) {
             if (errno == EINTR) {
@@ -263,8 +265,9 @@ void Server::_newConnection() noexcept {
     sockaddr_in clientAddr{};
     socklen_t clientLen = sizeof(clientAddr);
 
-    int clientFD = accept(_server_fd.get(), reinterpret_cast<sockaddr *>(&clientAddr),
-                          &clientLen);
+    int clientFD =
+        accept(_server_fd.get(), reinterpret_cast<sockaddr *>(&clientAddr),
+               &clientLen);
 
     if (0 > clientFD) {
         std::cerr << "Accept failed: " << strerror(errno) << '\n';
@@ -278,8 +281,8 @@ void Server::_newConnection() noexcept {
 
     std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
 
-    if (0 >
-        epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, clientFD, &client->getEvent())) {
+    if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, clientFD,
+                      &client->getEvent())) {
         std::cerr << "Failed to add client to epoll" << '\n';
         return;
     }
