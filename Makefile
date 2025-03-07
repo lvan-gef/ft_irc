@@ -1,6 +1,5 @@
 NAME := ircserv
 NAME_DEBUG := $(NAME)_debug
-NAME_TEST := $(NAME)_test
 
 CXX := c++
 BASE_FLAGS := -std=c++11
@@ -12,26 +11,19 @@ DEBUG_FLAGS := -g3 -DDEBUG
 RELEASE_FLAGS := -DNDEBUG
 
 SRCDIR := src/
-TESTDIR := tester/src
 OBJDIR := obj/
 
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Client.cpp main.cpp Server.cpp Server_helpers.cpp Token.cpp utils.cpp
-TESTFILES := $(NAME)Tester.cpp
+SRCFILES := Client.cpp Server.cpp ServerErrorHelper.cpp ServerMessageHelper.cpp Token.cpp main.cpp utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
-TESTSRCS := $(addprefix $(TESTDIR)/, $(TESTFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
 OBJS_DEBUG := $(SRCFILES:%.cpp=$(OBJDIR_DEBUG)%.o)
-TESTOBJS := $(TESTFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
-TESTOBJS_DEBUG := $(TESTFILES:%.cpp=$(OBJDIR_DEBUG)%.o)
 
 DEPS := $(OBJS:.o=.d)
 DEPS_DEBUG := $(OBJS_DEBUG:.o=.d)
-TESTDEPS := $(TESTOBJS:.o=.d)
-TESTDEPS_DEBUG := $(TESTOBJS_DEBUG:.o=.d)
 
 HEADERS := -I include
 
@@ -76,13 +68,10 @@ $(NAME_DEBUG): $(OBJS_DEBUG)
 $(OBJDIR_RELEASE)%.o: $(SRCDIR)%.cpp | $(OBJDIR_RELEASE)
 	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $(DEP_FLAGS) $(HEADERS) -c $< -o $@
 
-$(OBJDIR_RELEASE)%.o: $(TESTDIR)/%.cpp | $(OBJDIR_RELEASE)
-	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $(DEP_FLAGS) $(HEADERS) -c $< -o $@
-
 $(OBJDIR_DEBUG)%.o: $(SRCDIR)%.cpp | $(OBJDIR_DEBUG)
 	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) $(DEP_FLAGS) $(HEADERS) -c $< -o $@
 
 $(OBJDIR_RELEASE) $(OBJDIR_DEBUG):
 	mkdir -p $@
 
--include $(DEPS) $(DEPS_DEBUG) $(TESTDEPS) $(TESTDEPS_DEBUG)
+-include $(DEPS) $(DEPS_DEBUG)
