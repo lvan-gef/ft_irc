@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
@@ -290,6 +291,7 @@ void Server::_newConnection() noexcept {
         return;
     }
 
+    client->setIP(inet_ntoa(clientAddr.sin_addr));
     _fd_to_client[clientFD] = client;
     _connections++;
 
@@ -303,7 +305,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     std::string nick = "lvan-gef";
     std::string user = "lvan-gef";
-    std::string ip = "127.0.0.1";
+    std::string ip = client->getIP();
 
     _sendMessage(client->getFD(),
                  ":" + _serverName + " 001 " + nick +
