@@ -18,26 +18,21 @@
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
       _ip("0.0.0.0"), _event(), _last_seen(0) {
-    _event.data.fd = fd;
+    _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
 }
 
 Client::Client(Client &&rhs) noexcept
-    : _fd(rhs._fd), _username(std::move(rhs._username)),
+    : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
       _event(rhs._event), _last_seen(rhs._last_seen) {
-    rhs._fd = -1;
+    rhs._fd.set(-1);
 }
 
 Client &Client::operator=(Client &&rhs) noexcept {
     if (this != &rhs) {
-        if (_fd >= 0) {
-            close(_fd);
-        }
-
-        _fd = rhs._fd;
-        rhs._fd = -1;
+        _fd = std::move(rhs._fd);
         _username = std::move(rhs._username);
         _nickname = std::move(rhs._nickname);
         _partial_buffer = std::move(rhs._partial_buffer);
@@ -50,14 +45,10 @@ Client &Client::operator=(Client &&rhs) noexcept {
 }
 
 Client::~Client() {
-    if (_fd >= 0) {
-        close(_fd);
-        _fd = -1;
-    }
 }
 
 int Client::getFD() const noexcept {
-    return _fd;
+    return _fd.get();
 }
 
 epoll_event &Client::getEvent() noexcept {

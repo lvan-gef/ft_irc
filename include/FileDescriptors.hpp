@@ -27,6 +27,7 @@ class FileDescriptors {
 
   public:
     int get() const noexcept;
+    void set(int fd) noexcept;
 
   private:
     int _fd;

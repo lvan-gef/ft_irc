@@ -44,3 +44,7 @@ FileDescriptors::~FileDescriptors() {
 int FileDescriptors::get() const noexcept {
     return _fd;
 }
+
+void FileDescriptors::set(int fd) noexcept {
+    _fd = fd;
+}

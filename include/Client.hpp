@@ -19,6 +19,8 @@
 
 #include <sys/epoll.h>
 
+#include "./FileDescriptors.hpp"
+
 class Client {
   public:
     explicit Client(int fd);
@@ -64,7 +66,7 @@ class Client {
     bool hasCompleteMessage() const noexcept;
 
   private:
-    int _fd;
+    FileDescriptors _fd;
     std::string _username;
     std::string _nickname;
     std::string _partial_buffer;
