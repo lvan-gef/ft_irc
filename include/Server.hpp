@@ -69,8 +69,7 @@ class Server {
 
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
-    void _handleError(IRCMessage token,
-                      const std::shared_ptr<Client> &client);
+    void _handleError(IRCMessage token, const std::shared_ptr<Client> &client);
     void _handleMessage(const IRCMessage &token,
                         const std::shared_ptr<Client> &client);
 

@@ -26,7 +26,7 @@ class Optional {
 
     ~Optional();
 
-public:
+  public:
     T &get_value();
     const T &get_value() const;
     void set_value(const T &value) noexcept;

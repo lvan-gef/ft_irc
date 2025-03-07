@@ -13,10 +13,10 @@
 #include <iostream>
 #include <memory>
 
-#include "../include/Enums.hpp"
-#include "../include/Token.hpp"
 #include "../include/Client.hpp"
+#include "../include/Enums.hpp"
 #include "../include/Server.hpp"
+#include "../include/Token.hpp"
 
 void Server::_handleError(IRCMessage token,
                           const std::shared_ptr<Client> &client) {

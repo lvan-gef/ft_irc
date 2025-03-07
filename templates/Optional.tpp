@@ -21,7 +21,8 @@ Optional<T>::Optional() : _has_value(false) {
 }
 
 template <typename T>
-Optional<T>::Optional(const Optional &rhs) : _has_value(rhs._has_value), _value(rhs._value) {
+Optional<T>::Optional(const Optional &rhs)
+    : _has_value(rhs._has_value), _value(rhs._value) {
 }
 
 template <typename T>
@@ -74,7 +75,7 @@ const T &Optional<T>::get_value() const {
 }
 
 template <typename T>
- void Optional<T>::set_value(const T &value) noexcept {
+void Optional<T>::set_value(const T &value) noexcept {
     _has_value = true;
     _value = value;
 }
@@ -85,7 +86,7 @@ void Optional<T>::reset() noexcept {
 }
 
 template <typename T>
-bool Optional<T>::has_value()const noexcept {
+bool Optional<T>::has_value() const noexcept {
     return _has_value;
 }
 

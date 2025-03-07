@@ -109,7 +109,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa{};
+    struct sigaction sa {};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -155,7 +155,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address{};
+    struct sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -175,7 +175,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd;
     if (0 > epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _server_fd, &ev)) {

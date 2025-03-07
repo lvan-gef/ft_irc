@@ -54,7 +54,7 @@ class Client {
     bool getNicknameBit() const noexcept;
     bool getPasswordBit() const noexcept;
 
-public:
+  public:
     void setIP(const std::string &ip) noexcept;
     std::string getIP() const noexcept;
 
