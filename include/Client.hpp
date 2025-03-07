@@ -54,6 +54,10 @@ class Client {
     bool getNicknameBit() const noexcept;
     bool getPasswordBit() const noexcept;
 
+public:
+    void setIP(const std::string &ip) noexcept;
+    std::string getIP() const noexcept;
+
   public:
     void appendToBuffer(const std::string &data) noexcept;
     std::string getAndClearBuffer();
@@ -64,6 +68,7 @@ class Client {
     std::string _username;
     std::string _nickname;
     std::string _partial_buffer;
+    std::string _ip;
     epoll_event _event;
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass

@@ -11,12 +11,13 @@
 /* ************************************************************************** */
 
 #include <unistd.h>
+#include <utility>
 
 #include "../include/Client.hpp"
 
 Client::Client(int fd)
-    : _fd(fd), _username(""), _nickname(""), _partial_buffer(""), _event(),
-      _last_seen(0) {
+    : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
+      _ip("0.0.0.0"), _event(), _last_seen(0) {
     _event.data.fd = fd;
     _event.events = EPOLLIN | EPOLLOUT;
 }
@@ -24,8 +25,8 @@ Client::Client(int fd)
 Client::Client(Client &&rhs) noexcept
     : _fd(rhs._fd), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
-      _partial_buffer(std::move(rhs._partial_buffer)), _event(rhs._event),
-      _last_seen(rhs._last_seen) {
+      _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
+      _event(rhs._event), _last_seen(rhs._last_seen) {
     rhs._fd = -1;
 }
 
@@ -40,6 +41,7 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _username = std::move(rhs._username);
         _nickname = std::move(rhs._nickname);
         _partial_buffer = std::move(rhs._partial_buffer);
+        _ip = std::move(rhs._ip);
         _event = rhs._event;
         _last_seen = rhs._last_seen;
     }
@@ -114,6 +116,13 @@ bool Client::getNicknameBit() const noexcept {
 
 bool Client::getPasswordBit() const noexcept {
     return _registered.test(2);
+}
+
+void Client::setIP(const std::string &ip) noexcept {
+    _ip = ip;
+}
+std::string Client::getIP() const noexcept {
+    return _ip;
 }
 
 void Client::appendToBuffer(const std::string &data) noexcept {
