@@ -43,7 +43,7 @@ Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
       _serverName("codamirc.local"), _serverVersion("0.1.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
-      _epoll_fd(-1), _connections(0), _fd_to_client(), _nick_to_client() {
+      _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{} {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -111,7 +111,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa {};
+    struct sigaction sa{};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -157,7 +157,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address {};
+    struct sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -172,14 +172,13 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    /*_epoll_fd = epoll_create1(0);*/
-    _epoll_fd.set(epoll_create1(0));
+    _epoll_fd = epoll_create1(0);
     if (0 > _epoll_fd.get()) {
         std::cerr << "Epoll create failed: " << strerror(errno) << '\n';
         return false;
     }
 
-    struct epoll_event ev {};
+    struct epoll_event ev{};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {
@@ -243,8 +242,15 @@ void Server::_run() {
 
 void Server::_shutdown() noexcept {
     std::cout << '\n' << "Shutting down server..." << '\n';
+
+    std::vector<std::shared_ptr<Client>> clients_to_remove;
+    clients_to_remove.reserve(_fd_to_client.size());
     for (const auto &pair : _fd_to_client) {
-        _removeClient(pair.second);
+        clients_to_remove.push_back(pair.second);
+    }
+
+    for (const auto &client : clients_to_remove) {
+        _removeClient(client);
     }
 
     _fd_to_client.clear();
@@ -326,6 +332,9 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     _sendMessage(clientFD, " 372 ", nick, " :- Welcome to my IRC server!\r\n");
 
     _sendMessage(clientFD, " 376 ", nick, " :End of /MOTD command.\r\n");
+
+    _nick_to_client[nick] = client;
+    std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
 }
 
 void Server::_clientMessage(int fd) noexcept {
@@ -390,6 +399,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 
     std::string msg = client->getAndClearBuffer();
+    std::cout << "recv: " << msg << '\n';
 
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
