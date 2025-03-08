@@ -12,7 +12,6 @@ Channel::Channel(const Channel & /*rhs*/) {
 Channel &Channel::operator=(const Channel &rhs) {
     std::cout << "Copy assigment constructor for Channel is called" << '\n';
     if (this != &rhs) {
-
     }
 
     return *this;
@@ -25,7 +24,6 @@ Channel::Channel(Channel && /*rhs*/) noexcept {
 Channel &Channel::operator=(Channel &&rhs) noexcept {
     std::cout << "Move assigment constructor for Channel is called" << '\n';
     if (this != &rhs) {
-
     }
 
     return *this;

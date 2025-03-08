@@ -19,11 +19,10 @@
 
 #include <sys/socket.h>
 
-#include "./Client.hpp"
-#include "./Token.hpp"
-#include "./FileDescriptors.hpp"
 #include "./Channel.hpp"
-
+#include "./Client.hpp"
+#include "./FileDescriptors.hpp"
+#include "./Token.hpp"
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
