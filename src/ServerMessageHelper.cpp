@@ -10,12 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Server.hpp"
 #include <iostream>
 #include <memory>
 
+#include "../include/Enums.hpp"
+#include "../include/Server.hpp"
+
 void Server::_handleMessage(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
+
+    int clientFD = client->getFD();
+    std::string clientNick = client->getNickname();
+
     switch (token.type) {
         case IRCCommand::NICK:
             client->setNickname(token.params[0]);
@@ -42,7 +48,7 @@ void Server::_handleMessage(const IRCMessage &token,
             std::cerr << "Not impl yet QUIT" << '\n';
             break;
         case IRCCommand::PING:
-            _sendMessage(client->getFD(), " PONG ", _serverName,
+            _sendMessage(clientFD, " PONG ", _serverName,
                          " :" + token.params[0]);
             break;
         case IRCCommand::KICK:
@@ -66,6 +72,23 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::MODE_L:
             std::cerr << "Not impl yet MODE_L" << '\n';
             break;
+        case IRCCommand::USERHOST: {
+            auto it = _nick_to_client.find(token.params[0]);
+
+            if (it != _nick_to_client.end()) {
+                std::shared_ptr<Client> targetClient = it->second;
+                std::string targetNick = targetClient->getNickname();
+
+                _sendMessage(clientFD, "302 ", clientNick, " :", targetNick,
+                             "=-", targetNick, "@", targetClient->getIP());
+            } else {
+                std::cerr << "Server internal error: Could not found target "
+                             "user for USERHOST"
+                          << '\n';
+            }
+
+            break;
+        }
         case IRCCommand::UNKNOW:
             break;
     }

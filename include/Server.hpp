@@ -21,7 +21,9 @@
 
 #include "./Client.hpp"
 #include "./Token.hpp"
-#include "FileDescriptors.hpp"
+#include "./FileDescriptors.hpp"
+#include "./Channel.hpp"
+
 
 enum Ranges : std::uint16_t {
     LOWEST_PORT = 1024,
@@ -89,8 +91,11 @@ class Server {
     FileDescriptors _server_fd;
     FileDescriptors _epoll_fd;
     size_t _connections;
+
+  private:
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
+    Channel channels;
 };
 
 #include "../templates/Server.tpp"

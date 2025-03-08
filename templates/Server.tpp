@@ -24,6 +24,7 @@ void Server::_sendMessage(int fd, const Args &...args) noexcept {
     oss << "\r\n";
 
     std::string msg = oss.str();
+    std::cerr << "Send: " << msg << '\n';
     send(fd, msg.c_str(), msg.length(), 0);
 }
 

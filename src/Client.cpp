@@ -17,7 +17,7 @@
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _ip("0.0.0.0"), _event(), _last_seen(0) {
+      _ip("0.0.0.0"), _event{}, _last_seen(0) {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
 }
@@ -27,7 +27,7 @@ Client::Client(Client &&rhs) noexcept
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
       _event(rhs._event), _last_seen(rhs._last_seen) {
-    rhs._fd.set(-1);
+    rhs._fd = -1;
 }
 
 Client &Client::operator=(Client &&rhs) noexcept {
@@ -112,7 +112,7 @@ bool Client::getPasswordBit() const noexcept {
 void Client::setIP(const std::string &ip) noexcept {
     _ip = ip;
 }
-std::string Client::getIP() const noexcept {
+const std::string &Client::getIP() const noexcept {
     return _ip;
 }
 

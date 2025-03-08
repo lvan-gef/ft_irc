@@ -17,7 +17,7 @@
 #include <utility>
 
 template <typename T>
-Optional<T>::Optional() : _has_value(false) {
+Optional<T>::Optional() : _has_value(false), _value{} {
 }
 
 template <typename T>

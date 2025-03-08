@@ -65,7 +65,8 @@ IRCCommand getCommand(const std::string &command) {
         {"KICK", IRCCommand::KICK},     {"INVITE", IRCCommand::INVITE},
         {"MODE_I", IRCCommand::MODE_I}, {"MODE_T", IRCCommand::MODE_T},
         {"MODE_K", IRCCommand::MODE_K}, {"MODE_O", IRCCommand::MODE_O},
-        {"MODE_L", IRCCommand::MODE_L}, {"UNKNOW", IRCCommand::UNKNOW}};
+        {"MODE_L", IRCCommand::MODE_L}, {"USERHOST", IRCCommand::USERHOST},
+        {"UNKNOW", IRCCommand::UNKNOW}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {

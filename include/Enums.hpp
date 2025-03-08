@@ -15,7 +15,7 @@
 
 #include <cstdint>
 
-enum class IRCCommand : std::uint8_t {
+enum class IRCCommand : std::uint16_t {
     NICK,
     USER,
     PASS,
@@ -31,6 +31,7 @@ enum class IRCCommand : std::uint8_t {
     MODE_K,
     MODE_O,
     MODE_L,
+    USERHOST,
     UNKNOW
 };
 

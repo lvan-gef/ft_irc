@@ -45,15 +45,6 @@ int FileDescriptors::get() const noexcept {
     return _fd;
 }
 
-void FileDescriptors::set(int fd) noexcept {
-    if (fd >= 0) {
-        close(_fd);
-        _fd = -1;
-    }
-
-    _fd = fd;
-}
-
 FileDescriptors &FileDescriptors::operator=(int fd) {
     if (_fd >= 0) {
         close(_fd);

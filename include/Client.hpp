@@ -58,7 +58,7 @@ class Client {
 
   public:
     void setIP(const std::string &ip) noexcept;
-    std::string getIP() const noexcept;
+    const std::string &getIP() const noexcept;
 
   public:
     void appendToBuffer(const std::string &data) noexcept;

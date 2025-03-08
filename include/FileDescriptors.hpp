@@ -28,7 +28,6 @@ class FileDescriptors {
   public:
     FileDescriptors &operator=(int fd);
     int get() const noexcept;
-    void set(int fd) noexcept;
 
   private:
     int _fd;

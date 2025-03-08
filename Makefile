@@ -7,7 +7,7 @@ WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion 
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
-DEBUG_FLAGS := -g3 -DDEBUG
+DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address
 RELEASE_FLAGS := -DNDEBUG
 
 SRCDIR := src/
@@ -16,7 +16,7 @@ OBJDIR := obj/
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Client.cpp FileDescriptors.cpp Server.cpp ServerErrorHelper.cpp ServerMessageHelper.cpp Token.cpp main.cpp utils.cpp
+SRCFILES := Channel.cpp Client.cpp FileDescriptors.cpp main.cpp Server.cpp ServerErrorHelper.cpp ServerMessageHelper.cpp Token.cpp utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
