@@ -310,28 +310,29 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    _sendMessage(clientFD, " 001 ", nick,
+    _sendMessage(clientFD, "001 ", nick,
                  " :Welcome to the Internet Relay Network ", nick, "!", user,
                  "@", ip);
 
-    _sendMessage(clientFD, " 002 ", nick, " :Your host is ", _serverName,
+    _sendMessage(clientFD, "002 ", nick, " :Your host is ", _serverName,
                  ", running version ", _serverVersion);
 
-    _sendMessage(clientFD, " 003 ", nick, ":This server was created ",
+    _sendMessage(clientFD, "003 ", nick, " :This server was created ",
                  _serverCreated);
 
-    _sendMessage(clientFD, " 004 ", nick, " ", _serverName, " ", _serverVersion,
-                 " oOiws abiklmnopqrstv");
+    _sendMessage(clientFD, "004 ", nick, " ", _serverName,
+                 " o i,t,k,o,l :are supported by this server");
 
-    _sendMessage(clientFD, " 005 ", nick,
-                 " CHANTYPES=# PREFIX=(ov)@+ :are supported by this server");
+    _sendMessage(clientFD, "005 ", nick,
+                 " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
+                 "PING USERHOST :are supported by this server");
 
-    _sendMessage(clientFD, " 375 ", nick, " :- ", _serverName,
-                 " Message of the Day -\r\n");
+    _sendMessage(clientFD, "375 ", nick, " :- ", _serverName,
+                 " Message of the Day -");
 
-    _sendMessage(clientFD, " 372 ", nick, " :- Welcome to my IRC server!\r\n");
+    _sendMessage(clientFD, "372 ", nick, " :- Welcome to my IRC server!");
 
-    _sendMessage(clientFD, " 376 ", nick, " :End of /MOTD command.\r\n");
+    _sendMessage(clientFD, "376 ", nick, " :End of /MOTD command.");
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
