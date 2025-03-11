@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/10 21:16:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 17:50:13 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include "../include/Channel.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "../include/utils.hpp"
 
 Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::string &channelTopic,
@@ -53,29 +52,27 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
 }
 
 Channel::~Channel() {
+    std::cout << "Remove channel: " << _channelName << " from the map" << '\n';
 }
 
 void Channel::init(const std::shared_ptr<Client> &client) {
-    int clientFD = client->getFD();
     std::string nickname = client->getNickname();
 
     addUser(client);
     addOperator(client);
 
-    sendMessage(clientFD, _serverName, "332 ", nickname, " ", _channelName,
-                " :", _topic);
+    client->appendMessageToQue(_serverName, "332 ", nickname, " ", _channelName,
+                               " :", _topic);
 
-    std::string userList;
-    for (const std::shared_ptr<Client> &user : _users) {
-        userList += (isOperator(user) ? "@" : "") + user->getNickname() + " ";
-    }
-    sendMessage(clientFD, _serverName, "353 ", nickname, " = ", _channelName,
-                " :", userList);
-    sendMessage(clientFD, _serverName, "366 ", nickname, " ", _channelName,
-                " :End of /NAMES list");
+    std::string userList = allUsersInChannel();
+    client->appendMessageToQue(_serverName, "353 ", nickname, " = ",
+                               _channelName, " :", userList);
+    client->appendMessageToQue(_serverName, "366 ", nickname, " ", _channelName,
+                               " :End of /NAMES list");
 
-    sendMessage(clientFD, _serverName, "NOTICE ", nickname, " ", _channelName,
-                " :Channel created. You are the operator");
+    client->appendMessageToQue(_serverName, "NOTICE ", nickname, " ",
+                               _channelName,
+                               " :Channel created. You are the operator");
 }
 
 void Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
@@ -83,20 +80,20 @@ void Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_users.begin(), _users.end(), client);
 
     if (it != _users.end()) {
-        sendMessage(client->getFD(), _serverName, "443 ", nickname, " ",
-                    _channelName, " :is already on channel");
+        client->appendMessageToQue(_serverName, "443 ", nickname, " ",
+                                   _channelName, " :is already on channel");
         return;
     }
 
     if (isBannedUser(client)) {
-        sendMessage(client->getFD(), _serverName, "474 ", nickname, " ",
-                    _channelName, " :Cannot join channel (+b)");
+        client->appendMessageToQue(_serverName, "474 ", nickname, " ",
+                                   _channelName, " :Cannot join channel (+b)");
         return;
     }
 
     if (_usersActive >= _userLimit) {
-        sendMessage(client->getFD(), _serverName, "471 ", nickname, " ",
-                    _channelName, " :Cannot join channel (+l)");
+        client->appendMessageToQue(_serverName, "471 ", nickname, " ",
+                                   _channelName, " :Cannot join channel (+l)");
         return;
     }
 
@@ -107,8 +104,17 @@ void Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
                               client->getUsername() + "@" + client->getIP() +
                               " JOIN " + _channelName;
     for (const std::shared_ptr<Client> &user : _users) {
-        sendMessage(user->getFD(), joinMessage);
+        (void)user;
+        if (user != client) {
+            client->appendMessageToQue(joinMessage);
+        }
     }
+
+    std::string userList = allUsersInChannel();
+    client->appendMessageToQue(_serverName, "353 ", nickname, " = ",
+                               _channelName, " :", userList);
+    client->appendMessageToQue(_serverName, "366 ", nickname, " ", _channelName,
+                               " :End of /NAMES list");
 
     std::cout << "User: " << nickname
               << " is added to channel: " << _channelName << '\n';
@@ -119,7 +125,15 @@ void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
 
     if (it != _users.end()) {
         std::cout << "remove user from the channel" << '\n';
+        _users.erase(client);
+        removeOperator(client);
         _usersActive = _users.size();
+
+        std::string userList = allUsersInChannel();
+        client->appendMessageToQue(_serverName, "353 ", client->getNickname(), " = ",
+                                   _channelName, " :", userList);
+        client->appendMessageToQue(_serverName, "366 ", client->getNickname(), " ",
+                                   _channelName, " :End of /NAMES list");
     } else {
         std::cerr << "User not in channel. send error code back??" << '\n';
     }
@@ -174,6 +188,9 @@ void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
         }
 
         _operators.emplace(client);
+        client->appendMessageToQue(_serverName, "NOTICE ",
+                                   client->getNickname(), " ", _channelName,
+                                   " :Channel created. You are the operator");
         std::cout << "User: " << client
                   << " is now a operator of channel: " << _channelName << '\n';
     } else {
@@ -189,6 +206,11 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
 
     if (it != _operators.end()) {
         std::cout << "Remove user as operator" << '\n';
+        _operators.erase(client);
+        if (_usersActive > 0) {
+            std::shared_ptr<Client> newOperator = *_users.begin();
+            addOperator(newOperator);
+        }
     } else {
         std::cerr << "User was never a operator. send error code back??"
                   << '\n';
@@ -203,4 +225,21 @@ bool Channel::isOperator(const std::shared_ptr<Client> &client) const noexcept {
     }
 
     return false;
+}
+
+size_t Channel::usersActive() const noexcept {
+    return _usersActive;
+}
+
+std::string Channel::channelName() const noexcept {
+    return _channelName;
+}
+
+std::string Channel::allUsersInChannel() const noexcept {
+    std::string userList;
+    for (const std::shared_ptr<Client> &user : _users) {
+        userList += (isOperator(user) ? "@" : "") + user->getNickname() + " ";
+    }
+
+    return userList;
 }

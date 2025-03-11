@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 21:46:12 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 17:14:20 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <sys/epoll.h>
 #include <utility>
 #include <vector>
 
@@ -224,14 +225,21 @@ void Server::_run() {
             } else if (event.events & EPOLLIN) {
                 _clientMessage(event.data.fd);
             } else if (event.events & EPOLLOUT) {
-                /*std::cout << "What we need to send back no idea how to get it"
-                 * << '\n';*/
-                /*_sendMessage(event.data.fd,*/
-                /*             "What we need to send back no idea how to get
-                 * it");*/
+                std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
+                while (client->haveMessagesToSend()) {
+                    std::string msg = client->getMessage();
+                    send(client->getFD(), msg.c_str(), msg.length(), 0);
+                }
+
+                epoll_event ev = client->getEvent();
+                ev.events = EPOLLIN;
+                epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                if (auto client = _fd_to_client[event.data.fd]) {
-                    _removeClient(client);
+                auto it = _fd_to_client.find(event.data.fd);
+                if (it != _fd_to_client.end()) {
+                    _removeClient(it->second);
+                } else {
+                    std::cerr << "Client on fd: " << event.data.fd << " is not in the map" << '\n';
                 }
             } else {
                 std::cout << "Unknow message from client: " << event.data.fd
@@ -313,29 +321,33 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    sendMessage(clientFD, _serverName, "001 ", nick,
-                 " :Welcome to the Internet Relay Network ", nick, "!", user,
-                 "@", ip);
+    client->appendMessageToQue(_serverName, "001 ", nick,
+                               " :Welcome to the Internet Relay Network ", nick,
+                               "!", user, "@", ip);
 
-    sendMessage(clientFD, _serverName, "002 ", nick, " :Your host is ", _serverName,
-                 ", running version ", _serverVersion);
+    client->appendMessageToQue(_serverName, "002 ", nick, " :Your host is ",
+                               _serverName, ", running version ",
+                               _serverVersion);
 
-    sendMessage(clientFD, _serverName, "003 ", nick, " :This server was created ",
-                 _serverCreated);
+    client->appendMessageToQue(_serverName, "003 ", nick,
+                               " :This server was created ", _serverCreated);
 
-    sendMessage(clientFD, _serverName, "004 ", nick, " ", _serverName,
-                 " o i,t,k,o,l :are supported by this server");
+    client->appendMessageToQue(_serverName, "004 ", nick, " ", _serverName,
+                               " o i,t,k,o,l :are supported by this server");
 
-    sendMessage(clientFD, _serverName, "005 ", nick,
-                 " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
-                 "PING USERHOST :are supported by this server");
+    client->appendMessageToQue(
+        _serverName, "005 ", nick,
+        " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
+        "PING USERHOST :are supported by this server");
 
-    sendMessage(clientFD, _serverName, "375 ", nick, " :- ", _serverName,
-                 " Message of the Day -");
+    client->appendMessageToQue(_serverName, "375 ", nick, " :- ", _serverName,
+                               " Message of the Day -");
 
-    sendMessage(clientFD, _serverName, "372 ", nick, " :- Welcome to my IRC server!");
+    client->appendMessageToQue(_serverName, "372 ", nick,
+                               " :- Welcome to my IRC server!");
 
-    sendMessage(clientFD, _serverName, "376 ", nick, " :End of /MOTD command.");
+    client->appendMessageToQue(_serverName, "376 ", nick,
+                               " :End of /MOTD command.");
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
@@ -413,4 +425,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             _handleMessage(token, client);
         }
     }
+    epoll_event ev = client->getEvent();
+    ev.events = EPOLLIN | EPOLLOUT;
+    epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);
 }

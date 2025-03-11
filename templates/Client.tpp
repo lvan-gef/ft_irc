@@ -1,26 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Server.tpp                                         :+:    :+:            */
+/*   Client.tpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:34 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 22:48:34 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 16:26:48 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_TPP
-#define SERVER_TPP
+#ifndef CLIENT_TPP
+#define CLIENT_TPP
 
-#include <iostream>
 #include <sstream>
 #include <string>
 
 #include <sys/socket.h>
 
 template <typename... Args>
-void sendMessage(int fd, const std::string &serverName, const Args &...args) noexcept {
+void Client::appendMessageToQue(const std::string &serverName,
+                        const Args &...args) noexcept {
     std::ostringstream oss;
 
     oss << ":" << serverName << " ";
@@ -28,8 +28,9 @@ void sendMessage(int fd, const std::string &serverName, const Args &...args) noe
     oss << "\r\n";
 
     std::string msg = oss.str();
-    std::cout << "Send: " << msg << '\n';
-    send(fd, msg.c_str(), msg.length(), 0);
+    _messages.emplace(msg);
+    /*std::cout << "Send: " << msg << '\n';*/
+    /*send(fd, msg.c_str(), msg.length(), 0);*/
 }
 
-#endif // SERVER_TPP
+#endif // CLIENT_TPP

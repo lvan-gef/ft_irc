@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/10 21:16:25 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 17:46:15 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,11 @@ class Channel {
     void addOperator(const std::shared_ptr<Client> &client) noexcept;
     void removeOperator(const std::shared_ptr<Client> &client) noexcept;
     bool isOperator(const std::shared_ptr<Client> &client) const noexcept;
+
+  public:
+    size_t usersActive() const noexcept;
+    std::string channelName() const noexcept;
+    std::string allUsersInChannel() const noexcept;
 
   private:
     std::string _serverName;

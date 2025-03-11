@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 20:29:49 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 16:51:55 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <bitset>
 #include <ctime>
+#include <queue>
 #include <string>
 
 #include <sys/epoll.h>
@@ -65,6 +66,13 @@ class Client {
     std::string getAndClearBuffer();
     bool hasCompleteMessage() const noexcept;
 
+  public:
+    template <typename... Args>
+    void appendMessageToQue(const std::string &serverName,
+                            const Args &...args) noexcept;
+    std::string getMessage();
+    bool haveMessagesToSend();
+
   private:
     FileDescriptors _fd;
     std::string _username;
@@ -72,8 +80,11 @@ class Client {
     std::string _partial_buffer;
     std::string _ip;
     epoll_event _event;
+    std::queue<std::string> _messages;
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass
 };
+
+#include "../templates/Client.tpp"
 
 #endif // !CLIENT_HPP

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/05 21:34:16 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 16:59:19 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _ip("0.0.0.0"), _event{}, _last_seen(0) {
+      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0) {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
 }
@@ -26,7 +26,7 @@ Client::Client(Client &&rhs) noexcept
     : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
-      _event(rhs._event), _last_seen(rhs._last_seen) {
+      _event(rhs._event), _messages(std::move(rhs._messages)), _last_seen(rhs._last_seen) {
     rhs._fd = -1;
 }
 
@@ -38,6 +38,7 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _partial_buffer = std::move(rhs._partial_buffer);
         _ip = std::move(rhs._ip);
         _event = rhs._event;
+        _messages = std::move(rhs._messages);
         _last_seen = rhs._last_seen;
     }
 
@@ -128,4 +129,19 @@ std::string Client::getAndClearBuffer() {
 
 bool Client::hasCompleteMessage() const noexcept {
     return _partial_buffer.find("\r\n") != std::string::npos;
+}
+
+std::string Client::getMessage() {
+    std::string msg = _messages.front();
+    _messages.pop();
+
+    return msg;
+}
+
+bool Client::haveMessagesToSend() {
+    if (_messages.size() > 0) {
+        return true;
+    }
+
+    return false;
 }

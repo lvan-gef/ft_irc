@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 21:35:11 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 17:30:38 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,6 @@ class Server {
     void _handleError(IRCMessage token, const std::shared_ptr<Client> &client);
     void _handleMessage(const IRCMessage &token,
                         const std::shared_ptr<Client> &client);
-
-  private:
 
   private:
     std::uint16_t _port;
