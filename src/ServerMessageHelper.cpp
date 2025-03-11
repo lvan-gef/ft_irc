@@ -115,7 +115,7 @@ void Server::_handleMessage(const IRCMessage &token,
             auto it = _channels.find(token.params[0]);
 
             if (it != _channels.end()) {
-                if (it->second.isOperator()) {
+                if (it->second.isOperator(client)) {
                     auto clientTarget = _nick_to_client.find(token.params[1]);
                     if (clientTarget != _nick_to_client.end()) {
                         it->second.removeUser(clientTarget->second);
