@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 16:51:55 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 18:40:39 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <ctime>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include <sys/epoll.h>
 
@@ -73,6 +74,12 @@ class Client {
     std::string getMessage();
     bool haveMessagesToSend();
 
+  public:
+    void addChannel(const std::string &channelName) noexcept;
+    void removeChannel(const std::string &channelName) noexcept;
+    void removeAllChannels() noexcept;
+    std::vector<std::string> allChannels() noexcept;
+
   private:
     FileDescriptors _fd;
     std::string _username;
@@ -83,6 +90,7 @@ class Client {
     std::queue<std::string> _messages;
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass
+    std::vector<std::string> _channels;
 };
 
 #include "../templates/Client.tpp"

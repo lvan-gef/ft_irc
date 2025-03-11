@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/04 18:24:44 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 20:30:17 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 enum Defaults {
     LOWEST_PORT = 1024,
     HIGHEST_PORT = 65535,
-    INIT_EVENTS_SIZE = 10,
+    EVENT_SIZE = 2048,
     MAX_CONNECTIONS = SOMAXCONN,
     READ_SIZE = 512,
     INTERVAL = 1000,

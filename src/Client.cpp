@@ -6,27 +6,33 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 16:59:19 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 20:30:17 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
+#include <iostream>
 #include <unistd.h>
 #include <utility>
+#include <vector>
 
 #include "../include/Client.hpp"
+#include "../include/Enums.hpp"
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0) {
+      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0), _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
+    _channels.reserve(EVENT_SIZE);
 }
 
 Client::Client(Client &&rhs) noexcept
     : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
-      _event(rhs._event), _messages(std::move(rhs._messages)), _last_seen(rhs._last_seen) {
+      _event(rhs._event), _messages(std::move(rhs._messages)),
+      _last_seen(rhs._last_seen), _channels(std::move(rhs._channels)) {
     rhs._fd = -1;
 }
 
@@ -40,12 +46,15 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _event = rhs._event;
         _messages = std::move(rhs._messages);
         _last_seen = rhs._last_seen;
+        _channels = std::move(rhs._channels);
     }
 
     return *this;
 }
 
 Client::~Client() {
+    std::cout << "Client destructor is called" << '\n';
+    removeAllChannels();
 }
 
 int Client::getFD() const noexcept {
@@ -144,4 +153,31 @@ bool Client::haveMessagesToSend() {
     }
 
     return false;
+}
+
+void Client::addChannel(const std::string &channelName) noexcept {
+    auto it = std::find(_channels.begin(), _channels.end(), channelName);
+
+    if (it != _channels.end()) {
+        _channels.emplace_back(channelName);
+    }
+}
+void Client::removeChannel(const std::string &channelName) noexcept {
+    auto it = std::find(_channels.begin(), _channels.end(), channelName);
+
+    if (it != _channels.end()) {
+        _channels.erase(it);
+    }
+}
+
+void Client::removeAllChannels() noexcept {
+    std::vector<std::string> channels = allChannels();
+
+    for (const std::string &channel : channels) {
+        removeChannel(channel);
+    }
+}
+
+std::vector<std::string> Client::allChannels() noexcept {
+    return _channels;
 }

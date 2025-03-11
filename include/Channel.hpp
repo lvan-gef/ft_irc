@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 17:46:15 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 20:52:03 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,9 @@ class Channel {
     size_t usersActive() const noexcept;
     std::string channelName() const noexcept;
     std::string allUsersInChannel() const noexcept;
+
+  public:
+    void broadcastMessage(const std::string &message) const noexcept;
 
   private:
     std::string _serverName;

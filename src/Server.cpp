@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 17:14:20 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/11 21:16:54 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,14 +196,9 @@ bool Server::_init() noexcept {
 }
 
 void Server::_run() {
-    std::vector<epoll_event> events(INIT_EVENTS_SIZE);
+    std::vector<epoll_event> events(EVENT_SIZE);
 
     while (g_running) {
-        if (events.capacity() != _connections &&
-            _connections > INIT_EVENTS_SIZE) {
-            events.resize(_connections);
-        }
-
         int nfds = epoll_wait(_epoll_fd.get(),
                               static_cast<epoll_event *>(events.data()),
                               (int)events.size(), INTERVAL);
@@ -239,7 +234,8 @@ void Server::_run() {
                 if (it != _fd_to_client.end()) {
                     _removeClient(it->second);
                 } else {
-                    std::cerr << "Client on fd: " << event.data.fd << " is not in the map" << '\n';
+                    std::cerr << "Client on fd: " << event.data.fd
+                              << " is not in the map" << '\n';
                 }
             } else {
                 std::cout << "Unknow message from client: " << event.data.fd
@@ -401,6 +397,14 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             _nick_to_client.erase(nick_it);
         }
 
+        std::vector<std::string> channels = client->allChannels();
+        for (const std::string &channel : channels) {
+            auto it = _channels.find(channel);
+            if (it != _channels.end()) {
+                it->second.removeUser(client);
+            }
+        }
+
         std::cout << "Client disconnected - FD: " << fd << " Nickname: '"
                   << nickname << "' - " << '\n';
     } catch (const std::exception &e) {
@@ -425,6 +429,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             _handleMessage(token, client);
         }
     }
+
     epoll_event ev = client->getEvent();
     ev.events = EPOLLIN | EPOLLOUT;
     epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);
