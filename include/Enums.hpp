@@ -15,12 +15,28 @@
 
 #include <cstdint>
 
+#include <limits>
+#include <sys/socket.h>
+
+enum Defaults {
+    LOWEST_PORT = 1024,
+    HIGHEST_PORT = 65535,
+    INIT_EVENTS_SIZE = 10,
+    MAX_CONNECTIONS = SOMAXCONN,
+    READ_SIZE = 512,
+    INTERVAL = 1000,
+    TIMEOUT = 360,
+    USERLIMIT = std::numeric_limits<size_t>::max()
+};
+
 enum class IRCCommand : std::uint16_t {
     NICK,
     USER,
     PASS,
     PRIVMSG,
     JOIN,
+    CREATE,
+    TOPIC,
     PART,
     QUIT,
     PING,

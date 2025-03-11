@@ -13,18 +13,22 @@
 #ifndef SERVER_TPP
 #define SERVER_TPP
 
+#include <iostream>
 #include <sstream>
+#include <string>
+
+#include <sys/socket.h>
 
 template <typename... Args>
-void Server::_sendMessage(int fd, const Args &...args) noexcept {
+void sendMessage(int fd, const std::string &serverName, const Args &...args) noexcept {
     std::ostringstream oss;
 
-    oss << ":" << _serverName << " ";
+    oss << ":" << serverName << " ";
     (void)std::initializer_list<int>{(oss << args, 0)...};
     oss << "\r\n";
 
     std::string msg = oss.str();
-    std::cerr << "Send: " << msg << '\n';
+    std::cout << "Send: " << msg << '\n';
     send(fd, msg.c_str(), msg.length(), 0);
 }
 

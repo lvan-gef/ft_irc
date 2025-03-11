@@ -20,4 +20,9 @@
 
 std::uint16_t toUint16(const std::string &str);
 
+template <typename... Args>
+void sendMessage(int fd, const std::string &serverName, const Args &...args) noexcept;
+
+#include "../templates/Server.tpp"
+
 #endif // UTILS_HPP

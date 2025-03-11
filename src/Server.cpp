@@ -43,7 +43,8 @@ Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
       _serverName("codamirc.local"), _serverVersion("0.1.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
-      _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{} {
+      _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{},
+      _channels{} {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -71,7 +72,8 @@ Server::Server(Server &&rhs) noexcept
       _server_fd(std::move(rhs._server_fd)),
       _epoll_fd(std::move(rhs._epoll_fd)), _connections(rhs._connections),
       _fd_to_client(std::move(rhs._fd_to_client)),
-      _nick_to_client(std::move(rhs._nick_to_client)) {
+      _nick_to_client(std::move(rhs._nick_to_client)),
+      _channels(std::move(rhs._channels)) {
 }
 
 Server &Server::operator=(Server &&rhs) noexcept {
@@ -86,6 +88,7 @@ Server &Server::operator=(Server &&rhs) noexcept {
         _connections = rhs._connections;
         _fd_to_client = std::move(rhs._fd_to_client);
         _nick_to_client = std::move(rhs._nick_to_client);
+        _channels = std::move(rhs._channels);
     }
 
     return *this;
@@ -310,29 +313,29 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    _sendMessage(clientFD, "001 ", nick,
+    sendMessage(clientFD, _serverName, "001 ", nick,
                  " :Welcome to the Internet Relay Network ", nick, "!", user,
                  "@", ip);
 
-    _sendMessage(clientFD, "002 ", nick, " :Your host is ", _serverName,
+    sendMessage(clientFD, _serverName, "002 ", nick, " :Your host is ", _serverName,
                  ", running version ", _serverVersion);
 
-    _sendMessage(clientFD, "003 ", nick, " :This server was created ",
+    sendMessage(clientFD, _serverName, "003 ", nick, " :This server was created ",
                  _serverCreated);
 
-    _sendMessage(clientFD, "004 ", nick, " ", _serverName,
+    sendMessage(clientFD, _serverName, "004 ", nick, " ", _serverName,
                  " o i,t,k,o,l :are supported by this server");
 
-    _sendMessage(clientFD, "005 ", nick,
+    sendMessage(clientFD, _serverName, "005 ", nick,
                  " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
                  "PING USERHOST :are supported by this server");
 
-    _sendMessage(clientFD, "375 ", nick, " :- ", _serverName,
+    sendMessage(clientFD, _serverName, "375 ", nick, " :- ", _serverName,
                  " Message of the Day -");
 
-    _sendMessage(clientFD, "372 ", nick, " :- Welcome to my IRC server!");
+    sendMessage(clientFD, _serverName, "372 ", nick, " :- Welcome to my IRC server!");
 
-    _sendMessage(clientFD, "376 ", nick, " :End of /MOTD command.");
+    sendMessage(clientFD, _serverName, "376 ", nick, " :End of /MOTD command.");
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';

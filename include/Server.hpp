@@ -24,16 +24,6 @@
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
 
-enum Ranges : std::uint16_t {
-    LOWEST_PORT = 1024,
-    HIGHEST_PORT = 65535,
-    INIT_EVENTS_SIZE = 10,
-    MAX_CONNECTIONS = SOMAXCONN,
-    READ_SIZE = 512,
-    INTERVAL = 1000,
-    TIMEOUT = 360
-};
-
 class Server {
   public:
     explicit Server(const std::string &port, std::string &password);
@@ -76,8 +66,6 @@ class Server {
                         const std::shared_ptr<Client> &client);
 
   private:
-    template <typename... Args>
-    void _sendMessage(int fd, const Args &...args) noexcept;
 
   private:
     std::uint16_t _port;
@@ -94,9 +82,7 @@ class Server {
   private:
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
-    Channel channels;
+    std::unordered_map<std::string, Channel> _channels;
 };
-
-#include "../templates/Server.tpp"
 
 #endif // !SERVER_HPP

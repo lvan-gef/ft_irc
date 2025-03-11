@@ -15,6 +15,8 @@
 
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
+#include "../include/Channel.hpp"
+#include "../include/utils.hpp"
 
 void Server::_handleMessage(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
@@ -38,8 +40,26 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::PRIVMSG:
             std::cerr << "Not impl yet PRIV" << '\n';
             break;
-        case IRCCommand::JOIN:
-            std::cerr << "Not impl yet JOIN" << '\n';
+        case IRCCommand::CREATE:
+            if (_channels.find(token.params[0]) == _channels.end()) {
+                std::string topic = token.params.size() > 1 ? token.params[1] : "Default";
+                _channels.emplace(token.params[0], Channel(_serverName, token.params[0], topic, client));
+            } else {
+                std::cerr << "Impl channel does exists" << '\n';
+            }
+            break;
+        case IRCCommand::JOIN: {
+            auto channel = _channels.find(token.params[0]);
+            if (channel == _channels.end()) {
+                std::string topic = token.params.size() > 1 ? token.params[1] : "Default";
+                _channels.emplace(token.params[0], Channel(_serverName, token.params[0], topic, client));
+            } else {
+                channel->second.addUser(client);
+            }
+            break;
+        }
+        case IRCCommand::TOPIC:
+            std::cerr << "Not impl yet TOPIC" << '\n';
             break;
         case IRCCommand::PART:
             std::cerr << "Not impl yet PART" << '\n';
@@ -48,7 +68,7 @@ void Server::_handleMessage(const IRCMessage &token,
             std::cerr << "Not impl yet QUIT" << '\n';
             break;
         case IRCCommand::PING:
-            _sendMessage(clientFD, " PONG ", _serverName,
+            sendMessage(clientFD, _serverName, " PONG ", _serverName,
                          " :" + token.params[0]);
             break;
         case IRCCommand::KICK:
@@ -79,7 +99,7 @@ void Server::_handleMessage(const IRCMessage &token,
                 std::shared_ptr<Client> targetClient = it->second;
                 std::string targetNick = targetClient->getNickname();
 
-                _sendMessage(clientFD, "302 ", clientNick, " :", targetNick,
+                sendMessage(clientFD, _serverName, "302 ", clientNick, " :", targetNick,
                              "=-", targetNick, "@", targetClient->getIP());
             } else {
                 std::cerr << "Server internal error: Could not found target "

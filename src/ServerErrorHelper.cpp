@@ -17,6 +17,7 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
+#include "../include/utils.hpp"
 
 void Server::_handleError(IRCMessage token,
                           const std::shared_ptr<Client> &client) {
@@ -34,42 +35,42 @@ void Server::_handleError(IRCMessage token,
 
     switch (error) {
         case IRCCodes::NOSUCHNICK:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :No such nick/channel");
             break;
         case IRCCodes::NOSUCHCHANNEL:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :No such channel");
             break;
         case IRCCodes::CANNOTSENDTOCHAN:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :Cannot send to channel");
             break;
         case IRCCodes::TOMANYCHANNELS:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :You have joined too many channels");
             break;
         case IRCCodes::NORECIPIENT:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :No recipient given ", token.command);
             break;
         case IRCCodes::NOTEXTTOSEND:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :No text to send");
             break;
         case IRCCodes::UNKNOWCOMMAND:
-            _sendMessage(clientFD, errnoAsString, token.command,
+            sendMessage(clientFD, _serverName, errnoAsString, token.command,
                          " :Unknow command");
             break;
         case IRCCodes::FILEERROR:
             std::cerr << "Need to impl this" << '\n';
             break;
         case IRCCodes::NONICK:
-            _sendMessage(clientFD, errnoAsString, " * ", token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, " * ", token.params[0],
                          " :No nickname given");
             break;
         case IRCCodes::ERRONUENICK:
-            _sendMessage(clientFD, errnoAsString, " * ", token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, " * ", token.params[0],
                          " :Erronues nickname");
             break;
         case IRCCodes::NICKINUSE: {
@@ -77,73 +78,73 @@ void Server::_handleError(IRCMessage token,
             if (client->getNickname() != "") {
                 clientNick = " " + client->getNickname() + " ";
             }
-            _sendMessage(clientFD, errnoAsString, clientNick, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, clientNick, token.params[0],
                          " :Nickname is already in use");
             break;
         }
         case IRCCodes::USERNOTINCHANNEL:
-            _sendMessage(clientFD, errnoAsString, token.params[0], " ",
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0], " ",
                          token.params[1], " :They aren't on that channel");
             break;
         case IRCCodes::NOTOCHANNEL:
-            _sendMessage(clientFD, errnoAsString, token.params[0],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0],
                          " :You're not on that channel");
             break;
         case IRCCodes::USERONCHANNEL:
-            _sendMessage(clientFD, errnoAsString, token.params[0], " ",
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[0], " ",
                          token.params[1], " :is already in channel");
             break;
         case IRCCodes::NOTREGISTERED:
-            _sendMessage(clientFD, errnoAsString, " :You have not registered");
+            sendMessage(clientFD, _serverName, errnoAsString, " :You have not registered");
             break;
         case IRCCodes::NEEDMOREPARAMS:
-            _sendMessage(clientFD, errnoAsString, token.command,
+            sendMessage(clientFD, _serverName, errnoAsString, token.command,
                          " :Not enough parameters");
             break;
         case IRCCodes::ALREADYREGISTERED:
-            _sendMessage(clientFD, errnoAsString, " :You may not reregister");
+            sendMessage(clientFD, _serverName, errnoAsString, " :You may not reregister");
             break;
         case IRCCodes::PASSWDMISMATCH:
-            _sendMessage(clientFD, errnoAsString, " :Password incorrect");
+            sendMessage(clientFD, _serverName, errnoAsString, " :Password incorrect");
             break;
         case IRCCodes::KEYSET: // checken if channel is 1 index of the params
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :Channel key already set");
             break;
         case IRCCodes::CHANNELISFULL: // checken if channel is 1 index of the
                                       // params
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :Cannot join channel (+l)");
             break;
         case IRCCodes::UNKNOWMODE: // checken if char is 2 index of the params
-            _sendMessage(clientFD, errnoAsString, token.params[2],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[2],
                          " :is unknown mode char to me");
             break;
         case IRCCodes::INVITEONLYCHAN:
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :Cannot join channel (+i)");
             break;
         case IRCCodes::BANNEDFROMCHAN:
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :Cannot join channel (+b)");
             break;
         case IRCCodes::BADCHANNELKEY:
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :Cannot join channel (+k)");
             break;
         case IRCCodes::NOPRIVILEGES:
-            _sendMessage(clientFD, errnoAsString,
+            sendMessage(clientFD, _serverName, errnoAsString,
                          " :Permission Denied- You're not an IRC operator");
             break;
         case IRCCodes::CHANOPRIVSNEEDED:
-            _sendMessage(clientFD, errnoAsString, token.params[1],
+            sendMessage(clientFD, _serverName, errnoAsString, token.params[1],
                          " :You're not channel operator");
             break;
         case IRCCodes::UMODEUNKNOWNFLAG:
-            _sendMessage(clientFD, errnoAsString, " :Unknown MODE flag");
+            sendMessage(clientFD, _serverName, errnoAsString, " :Unknown MODE flag");
             break;
         case IRCCodes::USERSDONTMATCH:
-            _sendMessage(clientFD, errnoAsString,
+            sendMessage(clientFD, _serverName, errnoAsString,
                          " :Cant change mode for other users");
             break;
     }
