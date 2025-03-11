@@ -76,9 +76,17 @@ void Server::_handleMessage(const IRCMessage &token,
             }
             break;
         }
-        case IRCCommand::TOPIC:
-            std::cerr << "Not impl yet TOPIC" << '\n';
+        case IRCCommand::TOPIC: {
+            auto it = _channels.find(token.params[0]);
+
+            if (it != _channels.end()) {
+                it->second.setTopic(token.params[1]);
+            } else {
+                std::cerr << "No channel found with name: " << token.params[0]
+                          << '\n';
+            }
             break;
+        }
         case IRCCommand::PART: {
             auto it = _channels.find(token.params[0]);
 
@@ -140,6 +148,7 @@ void Server::_handleMessage(const IRCMessage &token,
             break;
         }
         case IRCCommand::UNKNOW:
+            std::cerr << "Not impl yet UNKNOW" << '\n';
             break;
     }
 }

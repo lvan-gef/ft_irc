@@ -236,3 +236,7 @@ void Channel::broadcastMessage(const std::string &message) const noexcept {
         client->appendMessageToQue(_serverName, message);
     }
 }
+
+void Channel::setTopic(const std::string &topic) noexcept {
+    _topic = topic;
+}

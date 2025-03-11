@@ -60,6 +60,9 @@ class Channel {
   public:
     void broadcastMessage(const std::string &message) const noexcept;
 
+  public:
+    void setTopic(const std::string &topic) noexcept;
+
   private:
     std::string _serverName;
     std::string _channelName;
