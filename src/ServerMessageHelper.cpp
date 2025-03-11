@@ -108,9 +108,25 @@ void Server::_handleMessage(const IRCMessage &token,
             client->appendMessageToQue(_serverName, "PONG ", _serverName,
                                        " :" + token.params[0]);
             break;
-        case IRCCommand::KICK:
-            std::cerr << "Not impl yet KICK" << '\n';
+        case IRCCommand::KICK: {
+            auto it = _channels.find(token.params[0]);
+
+            if (it != _channels.end()) {
+                if (it->second.isOperator()) {
+                    auto clientTarget = _nick_to_client.find(token.params[1]);
+                    if (clientTarget != _nick_to_client.end()) {
+                        it->second.removeUser(clientTarget->second);
+                    } else {
+                        std::cerr << "No user in the channel. error code??" << '\n';
+                    }
+                } else {
+                    std::cerr << "Who was calling kick was not a operator" << '\n';
+                }
+            } else {
+                std::cerr << "No channel with that name" << '\n';
+            }
             break;
+        }
         case IRCCommand::INVITE:
             std::cerr << "Not impl yet INVITE" << '\n';
             break;
@@ -144,7 +160,6 @@ void Server::_handleMessage(const IRCMessage &token,
                              "user for USERHOST"
                           << '\n';
             }
-
             break;
         }
         case IRCCommand::UNKNOW:

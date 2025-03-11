@@ -71,6 +71,9 @@ class Channel {
     size_t _usersActive;
 
   private:
+    bool _inviteOnly;
+
+  private:
     std::unordered_set<std::shared_ptr<Client>> _users;
     std::unordered_set<std::shared_ptr<Client>> _banned;
     std::unordered_set<std::shared_ptr<Client>> _operators;

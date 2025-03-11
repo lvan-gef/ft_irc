@@ -25,7 +25,7 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
       _userLimit(USERLIMIT), _usersActive(1), _users{}, _banned{},
-      _operators{} {
+      _operators{}, _inviteOnly(false) {
     init(client);
 }
 
