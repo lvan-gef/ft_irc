@@ -62,6 +62,7 @@ class Channel {
 
   public:
     void setTopic(const std::string &topic) noexcept;
+    bool inviteOnly() const noexcept;
 
   private:
     std::string _serverName;

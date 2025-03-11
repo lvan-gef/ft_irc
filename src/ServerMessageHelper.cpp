@@ -72,6 +72,9 @@ void Server::_handleMessage(const IRCMessage &token,
                     token.params[0],
                     Channel(_serverName, token.params[0], topic, client));
             } else {
+                if (channel->second.inviteOnly()) {
+                    std::cerr << "channel invite only. send back error" << '\n';
+                }
                 channel->second.addUser(client);
             }
             break;

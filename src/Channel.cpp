@@ -240,3 +240,7 @@ void Channel::broadcastMessage(const std::string &message) const noexcept {
 void Channel::setTopic(const std::string &topic) noexcept {
     _topic = topic;
 }
+
+bool Channel::inviteOnly() const noexcept {
+    return _inviteOnly;
+}
