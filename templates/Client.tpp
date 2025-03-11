@@ -20,7 +20,7 @@
 
 template <typename... Args>
 void Client::appendMessageToQue(const std::string &serverName,
-                        const Args &...args) noexcept {
+                                const Args &...args) noexcept {
     std::ostringstream oss;
 
     oss << ":" << serverName << " ";

@@ -120,10 +120,12 @@ void Server::_handleMessage(const IRCMessage &token,
                     if (clientTarget != _nick_to_client.end()) {
                         it->second.removeUser(clientTarget->second);
                     } else {
-                        std::cerr << "No user in the channel. error code??" << '\n';
+                        std::cerr << "No user in the channel. error code??"
+                                  << '\n';
                     }
                 } else {
-                    std::cerr << "Who was calling kick was not a operator" << '\n';
+                    std::cerr << "Who was calling kick was not a operator"
+                              << '\n';
                 }
             } else {
                 std::cerr << "No channel with that name" << '\n';
