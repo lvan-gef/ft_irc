@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 16:17:54 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/12 20:49:42 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ void Server::_handleError(IRCMessage token,
     }
 
     switch (error) {
+        case IRCCodes::SUCCES:
+            break;
         case IRCCodes::NOSUCHNICK:
             client->appendMessageToQue(_serverName, errnoAsString,
                                        token.params[0],

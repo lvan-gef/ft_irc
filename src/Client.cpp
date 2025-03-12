@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 20:30:17 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/12 21:28:23 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0), _channels{} {
+      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0), _channels{}, _offset(0) {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(EVENT_SIZE);
@@ -32,7 +32,7 @@ Client::Client(Client &&rhs) noexcept
       _nickname(std::move(rhs._nickname)),
       _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
       _event(rhs._event), _messages(std::move(rhs._messages)),
-      _last_seen(rhs._last_seen), _channels(std::move(rhs._channels)) {
+      _last_seen(rhs._last_seen), _channels(std::move(rhs._channels)), _offset(rhs._offset) {
     rhs._fd = -1;
 }
 
@@ -47,6 +47,7 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _messages = std::move(rhs._messages);
         _last_seen = rhs._last_seen;
         _channels = std::move(rhs._channels);
+        _offset = rhs._offset;
     }
 
     return *this;
@@ -141,10 +142,12 @@ bool Client::hasCompleteMessage() const noexcept {
 }
 
 std::string Client::getMessage() {
-    std::string msg = _messages.front();
-    _messages.pop();
+    return _messages.front();
+}
 
-    return msg;
+void Client::removeMessage() {
+    _messages.pop();
+    _offset = 0;
 }
 
 bool Client::haveMessagesToSend() {
@@ -180,4 +183,12 @@ void Client::removeAllChannels() noexcept {
 
 std::vector<std::string> Client::allChannels() noexcept {
     return _channels;
+}
+
+void Client::setOffset(size_t offset) noexcept {
+    _offset += offset;
+}
+
+size_t Client::getOffset() const noexcept {
+    return _offset;
 }

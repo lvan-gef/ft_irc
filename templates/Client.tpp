@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:34 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 16:26:48 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/12 21:48:49 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ void Client::appendMessageToQue(const std::string &serverName,
 
     std::string msg = oss.str();
     _messages.emplace(msg);
+    std::cout << "Message queued: " << msg << std::endl;
     /*std::cout << "Send: " << msg << '\n';*/
     /*send(fd, msg.c_str(), msg.length(), 0);*/
 }

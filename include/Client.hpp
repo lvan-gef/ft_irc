@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 18:40:39 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/12 21:21:10 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ class Client {
     void appendMessageToQue(const std::string &serverName,
                             const Args &...args) noexcept;
     std::string getMessage();
+    void removeMessage();
     bool haveMessagesToSend();
 
   public:
@@ -79,6 +80,10 @@ class Client {
     void removeChannel(const std::string &channelName) noexcept;
     void removeAllChannels() noexcept;
     std::vector<std::string> allChannels() noexcept;
+
+  public:
+    void setOffset(size_t offset) noexcept;
+    size_t getOffset() const noexcept;
 
   private:
     FileDescriptors _fd;
@@ -91,6 +96,7 @@ class Client {
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass
     std::vector<std::string> _channels;
+    size_t _offset;
 };
 
 #include "../templates/Client.tpp"

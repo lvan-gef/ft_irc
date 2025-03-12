@@ -6,11 +6,12 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 21:16:54 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/12 21:52:41 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <atomic>
+#include <cerrno>
 #include <csignal>
 #include <cstring>
 #include <iostream>
@@ -223,13 +224,36 @@ void Server::_run() {
                 std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
                 while (client->haveMessagesToSend()) {
                     std::string msg = client->getMessage();
-                    std::cout << "Send: " << msg << '\n';
-                    send(client->getFD(), msg.c_str(), msg.length(), 0);
-                }
+                    std::cout << "Send: " << time(nullptr) << " " << msg << '\n';
 
-                epoll_event ev = client->getEvent();
-                ev.events = EPOLLIN;
-                epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);
+                    size_t offset = client->getOffset();
+                    ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
+                                         msg.length() - offset, MSG_DONTWAIT);
+
+                    if (bytes < 0) {
+                        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                            break;
+                        } else {
+                            std::cerr
+                                << "Error while sending: " << strerror(errno)
+                                << '\n';
+                            _removeClient(client);
+                            break;
+                        }
+                    }
+                    client->setOffset(static_cast<size_t>(bytes));
+                    if (client->getOffset() >= msg.length()) {
+                        client->removeMessage();
+                    } else {
+                        break;
+                    }
+                }
+                if (!client->hasCompleteMessage()) {
+                    epoll_event ev = client->getEvent();
+                    ev.events = EPOLLIN;
+                    epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(),
+                              &ev);
+                }
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
                 auto it = _fd_to_client.find(event.data.fd);
                 if (it != _fd_to_client.end()) {
@@ -351,13 +375,15 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_clientMessage(int fd) noexcept {
+    std::cout << time(nullptr) << " clientMessage" << '\n';
     std::shared_ptr<Client> client = _fd_to_client[fd];
     if (!client) {
         return;
     }
 
     char buffer[READ_SIZE] = {0};
-    ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, 0);
+    std::cout << time(nullptr) << " read data" << '\n';
+    ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;
@@ -369,7 +395,7 @@ void Server::_clientMessage(int fd) noexcept {
         return;
     }
 
-    std::cerr << buffer << '\n';
+    std::cerr << time(nullptr) << " " << buffer << '\n';
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
@@ -415,7 +441,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
-    if (client->hasCompleteMessage() != true) {
+        if (!client->hasCompleteMessage()) {
         return;
     }
 
@@ -424,14 +450,48 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
 
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
-        if (token.success != true) {
+        if (!token.success) {
             _handleError(token, client);
         } else {
             _handleMessage(token, client);
         }
     }
 
-    epoll_event ev = client->getEvent();
-    ev.events = EPOLLIN | EPOLLOUT;
-    epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);
+    if (client->haveMessagesToSend()) {
+        std::cout << "Setting EPOLLOUT immediately after processing message" << '\n';
+        epoll_event ev = client->getEvent();
+        ev.events = EPOLLIN | EPOLLOUT;
+        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) == -1) {
+            if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) == -1) {
+    std::cerr << "epoll_ctl failed: " << strerror(errno) << std::endl;
 }
+        }
+    } else {
+        std::cout << "No messages to send, not setting EPOLLOUT" << std::endl;
+    }
+}
+/*    std::cout << time(nullptr) << " processMessage" << '\n';*/
+/*    if (client->hasCompleteMessage() != true) {*/
+/*        return;*/
+/*    }*/
+/**/
+/*    std::string msg = client->getAndClearBuffer();*/
+/*    std::cout << "recv: " << time(nullptr) << " " << msg << '\n';*/
+/**/
+/*    std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);*/
+/*    for (const IRCMessage &token : clientsToken) {*/
+/*        if (token.success != true) {*/
+/*            _handleError(token, client);*/
+/*        } else {*/
+/*            _handleMessage(token, client);*/
+/*        }*/
+/*    }*/
+/*    std::cout << time(nullptr) << " " << "after loop parsing" << '\n';*/
+/**/
+/*    if (client->haveMessagesToSend()) {*/
+/*        std::cout << time(nullptr) << " " << "Set EPOLLOUT" << '\n';*/
+/*        epoll_event ev = client->getEvent();*/
+/*        ev.events = EPOLLIN | EPOLLOUT;*/
+/*        epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);*/
+/*    }*/
+/*}*/
