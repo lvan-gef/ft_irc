@@ -17,7 +17,6 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "../include/utils.hpp"
 
 void Server::_handleError(IRCMessage token,
                           const std::shared_ptr<Client> &client) {

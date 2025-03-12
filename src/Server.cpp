@@ -223,6 +223,7 @@ void Server::_run() {
                 std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
                 while (client->haveMessagesToSend()) {
                     std::string msg = client->getMessage();
+                    std::cout << "Send: " << msg << '\n';
                     send(client->getFD(), msg.c_str(), msg.length(), 0);
                 }
 

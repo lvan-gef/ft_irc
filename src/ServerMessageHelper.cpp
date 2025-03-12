@@ -45,10 +45,13 @@ void Server::_handleMessage(const IRCMessage &token,
                 auto it = _nick_to_client.find(token.params[0]);
                 if (it != _nick_to_client.end()) {
                     it->second->appendMessageToQue(clientNick, "PRIVMSG ",
-                                                   clientNick, " :",
+                                                   it->second->getNickname(), " :",
                                                    token.params[1]);
                 } else {
-                    std::cerr << "no client with that name send errror back";
+                    IRCMessage newToken = token;
+                    newToken.setIRCCode(IRCCodes::NOSUCHNICK);
+
+                    _handleError(newToken, client);
                 }
             }
             break;

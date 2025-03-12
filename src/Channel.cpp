@@ -33,8 +33,8 @@ Channel::Channel(Channel &&rhs) noexcept
     : _serverName(std::move(rhs._serverName)),
       _channelName(std::move(rhs._channelName)), _topic(std::move(rhs._topic)),
       _userLimit(rhs._userLimit), _usersActive(rhs._usersActive),
-      _users(std::move(rhs._users)), _banned(std::move(rhs._banned)),
-      _operators(std::move(rhs._operators)) {
+      _inviteOnly(false), _users(std::move(rhs._users)),
+      _banned(std::move(rhs._banned)), _operators(std::move(rhs._operators)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {

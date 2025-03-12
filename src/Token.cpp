@@ -102,3 +102,7 @@ void IRCMessage::print() const {
     }
     std::cout << '\n';
 }
+
+void IRCMessage::setIRCCode(const IRCCodes &code) noexcept {
+    err.set_value(code);
+}
