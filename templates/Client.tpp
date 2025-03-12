@@ -28,7 +28,8 @@ void Client::appendMessageToQue(const std::string &serverName,
     oss << "\r\n";
 
     std::string msg = oss.str();
-    _messages.emplace(msg);
+    /*_messages.emplace(msg);*/
+    _messages.push(msg);
     std::cout << "Message queued: " << msg << std::endl;
     /*std::cout << "Send: " << msg << '\n';*/
     /*send(fd, msg.c_str(), msg.length(), 0);*/

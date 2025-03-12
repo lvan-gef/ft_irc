@@ -116,7 +116,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa{};
+    struct sigaction sa {};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -162,7 +162,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address{};
+    struct sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -183,7 +183,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {
@@ -224,7 +224,8 @@ void Server::_run() {
                 std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
                 while (client->haveMessagesToSend()) {
                     std::string msg = client->getMessage();
-                    std::cout << "Send: " << time(nullptr) << " " << msg << '\n';
+                    std::cout << "Send: " << time(nullptr) << " " << msg
+                              << '\n';
 
                     size_t offset = client->getOffset();
                     ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
@@ -441,7 +442,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
-        if (!client->hasCompleteMessage()) {
+    if (!client->hasCompleteMessage()) {
         return;
     }
 
@@ -458,13 +459,13 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 
     if (client->haveMessagesToSend()) {
-        std::cout << "Setting EPOLLOUT immediately after processing message" << '\n';
+        std::cout << "Setting EPOLLOUT immediately after processing message"
+                  << '\n';
         epoll_event ev = client->getEvent();
         ev.events = EPOLLIN | EPOLLOUT;
-        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) == -1) {
-            if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) == -1) {
-    std::cerr << "epoll_ctl failed: " << strerror(errno) << std::endl;
-}
+        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) ==
+            -1) {
+            std::cerr << "epoll_ctl failed: " << strerror(errno) << std::endl;
         }
     } else {
         std::cout << "No messages to send, not setting EPOLLOUT" << std::endl;
