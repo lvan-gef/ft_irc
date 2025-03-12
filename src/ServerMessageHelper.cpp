@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <cstring>
 #include <iostream>
 #include <memory>
 
@@ -65,9 +66,19 @@ void Server::_handleMessage(const IRCMessage &token,
             } else {
                 auto it = _nick_to_client.find(token.params[0]);
                 if (it != _nick_to_client.end()) {
-                    it->second->appendMessageToQue(clientNick, "PRIVMSG ",
-                                                   it->second->getNickname(),
+                    std::shared_ptr<Client> targetClient = it->second;
+                    targetClient->appendMessageToQue(clientNick, "PRIVMSG ",
+                                                   targetClient->getNickname(),
                                                    " :", token.params[1]);
+                    if (targetClient->haveMessagesToSend()) {
+                        epoll_event ev = targetClient->getEvent();
+                        ev.events = EPOLLIN | EPOLLOUT;
+                        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD,
+                                      targetClient->getFD(), &ev) == -1) {
+                            std::cerr << "epoll_ctl failed: " << strerror(errno)
+                                      << '\n';
+                        }
+                    }
                 } else {
                     IRCMessage newToken = token;
                     newToken.setIRCCode(IRCCodes::NOSUCHNICK);

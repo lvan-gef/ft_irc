@@ -151,7 +151,7 @@ void Client::removeMessage() {
 }
 
 bool Client::haveMessagesToSend() {
-    if (_messages.size() > 0) {
+    if (!_messages.empty()) {
         return true;
     }
 
