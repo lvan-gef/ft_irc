@@ -45,8 +45,8 @@ void Server::_handleMessage(const IRCMessage &token,
                 auto it = _nick_to_client.find(token.params[0]);
                 if (it != _nick_to_client.end()) {
                     it->second->appendMessageToQue(clientNick, "PRIVMSG ",
-                                                   it->second->getNickname(), " :",
-                                                   token.params[1]);
+                                                   it->second->getNickname(),
+                                                   " :", token.params[1]);
                 } else {
                     IRCMessage newToken = token;
                     newToken.setIRCCode(IRCCodes::NOSUCHNICK);
