@@ -24,8 +24,15 @@ void Server::_handleMessage(const IRCMessage &token,
 
     switch (token.type) {
         case IRCCommand::NICK:
-            client->setNickname(token.params[0]);
-            _clientAccepted(client);
+            if (_nick_to_client.find(token.params[0]) == _nick_to_client.end()) {
+                client->setNickname(token.params[0]);
+                if (client->isRegistered() != true) {
+                    _clientAccepted(client);
+                } // send something back?
+            } else {
+                IRCMessage newToken = token;
+                newToken.setIRCCode(IRCCodes::NICKINUSE);
+            }
             break;
         case IRCCommand::USER:
             client->setUsername(token.params[0]);
