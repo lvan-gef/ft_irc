@@ -19,6 +19,7 @@
 #include <unordered_set>
 
 #include "../include/Client.hpp"
+#include "Enums.hpp"
 
 class Channel {
   public:
@@ -39,7 +40,7 @@ class Channel {
     void init(const std::shared_ptr<Client> &client);
 
   public:
-    void addUser(const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes addUser(const std::shared_ptr<Client> &client) noexcept;
     void removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:

@@ -19,6 +19,7 @@
 #include "../include/Channel.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
+#include "Token.hpp"
 
 Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::string &channelTopic,
@@ -62,26 +63,26 @@ void Channel::init(const std::shared_ptr<Client> &client) {
     addUser(client);
 }
 
-void Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
+IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
     std::string nickname = client->getNickname();
     auto it = std::find(_users.begin(), _users.end(), client);
 
     if (it != _users.end()) {
-        client->appendMessageToQue(_serverName, "443 ", nickname, " ",
-                                   _channelName, " :is already on channel");
-        return;
+        /*client->appendMessageToQue(_serverName, "443 ", nickname, " ",*/
+        /*                           _channelName, " :is already on channel");*/
+        return IRCCodes::USERONCHANNEL;
     }
 
     if (isBannedUser(client)) {
-        client->appendMessageToQue(_serverName, "474 ", nickname, " ",
-                                   _channelName, " :Cannot join channel (+b)");
-        return;
+        /*client->appendMessageToQue(_serverName, "474 ", nickname, " ",*/
+        /*                           _channelName, " :Cannot join channel (+b)");*/
+        return IRCCodes::BANNEDFROMCHAN;
     }
 
     if (_usersActive >= _userLimit) {
-        client->appendMessageToQue(_serverName, "471 ", nickname, " ",
-                                   _channelName, " :Cannot join channel (+l)");
-        return;
+        /*client->appendMessageToQue(_serverName, "471 ", nickname, " ",*/
+        /*                           _channelName, " :Cannot join channel (+l)");*/
+        return IRCCodes::CHANNELISFULL;
     }
 
     _users.emplace(client);
@@ -103,6 +104,7 @@ void Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
 
     std::cout << "User: " << nickname
               << " is added to channel: " << _channelName << '\n';
+    return IRCCodes::SUCCES;
 }
 
 void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {

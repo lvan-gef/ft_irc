@@ -16,6 +16,7 @@
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
+#include "../include/Token.hpp"
 
 void Server::_handleMessage(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
@@ -24,7 +25,8 @@ void Server::_handleMessage(const IRCMessage &token,
 
     switch (token.type) {
         case IRCCommand::NICK:
-            if (_nick_to_client.find(token.params[0]) == _nick_to_client.end()) {
+            if (_nick_to_client.find(token.params[0]) ==
+                _nick_to_client.end()) {
                 client->setNickname(token.params[0]);
                 if (client->isRegistered() != true) {
                     _clientAccepted(client);
@@ -32,11 +34,18 @@ void Server::_handleMessage(const IRCMessage &token,
             } else {
                 IRCMessage newToken = token;
                 newToken.setIRCCode(IRCCodes::NICKINUSE);
+
+                _handleError(newToken, client);
             }
             break;
         case IRCCommand::USER:
-            client->setUsername(token.params[0]);
-            _clientAccepted(client);
+            if (client->isRegistered() != true) {
+                client->setUsername(token.params[0]);
+                _clientAccepted(client);
+            } else {
+                IRCMessage newToken = token;
+                newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
+            }
             break;
         case IRCCommand::PASS:
             if (client->isRegistered()) {
@@ -88,9 +97,19 @@ void Server::_handleMessage(const IRCMessage &token,
                     Channel(_serverName, token.params[0], topic, client));
             } else {
                 if (channel->second.inviteOnly()) {
-                    std::cerr << "channel invite only. send back error" << '\n';
+                    IRCMessage newToken = token;
+                    newToken.setIRCCode(IRCCodes::INVITEONLYCHAN);
+
+                    _handleError(token, client);
+                } else {
+                    IRCCodes addResult = channel->second.addUser(client);
+                    if (addResult != IRCCodes::SUCCES) {
+                        IRCMessage newToken = token;
+                        newToken.setIRCCode(addResult);
+
+                        _handleError(token, client);
+                    }
                 }
-                channel->second.addUser(client);
             }
             break;
         }
@@ -100,8 +119,10 @@ void Server::_handleMessage(const IRCMessage &token,
             if (it != _channels.end()) {
                 it->second.setTopic(token.params[1]);
             } else {
-                std::cerr << "No channel found with name: " << token.params[0]
-                          << '\n';
+                IRCMessage newToken = token;
+                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+
+                _handleError(newToken, client);
             }
             break;
         }
@@ -114,8 +135,10 @@ void Server::_handleMessage(const IRCMessage &token,
                     _channels.erase(it->second.channelName());
                 }
             } else {
-                std::cerr << "No channel found with name: " << token.params[0]
-                          << '\n';
+                IRCMessage newToken = token;
+                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+
+                _handleError(newToken, client);
             }
             break;
         }
