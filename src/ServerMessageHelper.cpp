@@ -32,8 +32,13 @@ void Server::_handleMessage(const IRCMessage &token,
             _clientAccepted(client);
             break;
         case IRCCommand::PASS:
-            client->setPasswordBit();
-            _clientAccepted(client);
+            if (client->isRegistered()) {
+                IRCMessage newToken = token;
+                newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
+                _handleError(newToken, client);
+            } else {
+                client->setPasswordBit();
+            }
             break;
         case IRCCommand::PRIVMSG:
             if (token.params[0][0] == '#') {
