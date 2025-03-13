@@ -69,7 +69,7 @@ class Client {
 
   public:
     template <typename... Args>
-    void appendMessageToQue(const std::string &serverName,
+    void appendMessageToQue(int _epollFD, const std::string &serverName,
                             const Args &...args) noexcept;
     std::string getMessage();
     void removeMessage();

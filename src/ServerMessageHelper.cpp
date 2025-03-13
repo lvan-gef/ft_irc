@@ -59,26 +59,17 @@ void Server::_handleMessage(const IRCMessage &token,
             break;
         case IRCCommand::PRIVMSG:
             if (token.params[0][0] == '#') {
-                auto it = _channels.find(token.params[0]);
-                if (it != _channels.end()) {
-                    it->second.broadcastMessage(token.params[1]);
+                auto channel_it = _channels.find(token.params[0]);
+                if (channel_it != _channels.end()) {
+                    channel_it->second.broadcastMessage(token.params[1]);
                 }
             } else {
-                auto it = _nick_to_client.find(token.params[0]);
-                if (it != _nick_to_client.end()) {
-                    std::shared_ptr<Client> targetClient = it->second;
-                    targetClient->appendMessageToQue(clientNick, "PRIVMSG ",
-                                                   targetClient->getNickname(),
-                                                   " :", token.params[1]);
-                    if (targetClient->haveMessagesToSend()) {
-                        epoll_event ev = targetClient->getEvent();
-                        ev.events = EPOLLIN | EPOLLOUT;
-                        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD,
-                                      targetClient->getFD(), &ev) == -1) {
-                            std::cerr << "epoll_ctl failed: " << strerror(errno)
-                                      << '\n';
-                        }
-                    }
+                auto nick_it = _nick_to_client.find(token.params[0]);
+                if (nick_it != _nick_to_client.end()) {
+                    std::shared_ptr<Client> targetClient = nick_it->second;
+                    targetClient->appendMessageToQue(
+                        clientNick, "PRIVMSG ", targetClient->getNickname(),
+                        " :", token.params[1]);
                 } else {
                     IRCMessage newToken = token;
                     newToken.setIRCCode(IRCCodes::NOSUCHNICK);
@@ -99,21 +90,21 @@ void Server::_handleMessage(const IRCMessage &token,
             }
             break;
         case IRCCommand::JOIN: {
-            auto channel = _channels.find(token.params[0]);
-            if (channel == _channels.end()) {
+            auto channel_it = _channels.find(token.params[0]);
+            if (channel_it == _channels.end()) {
                 std::string topic =
                     token.params.size() > 1 ? token.params[1] : "Default";
                 _channels.emplace(
                     token.params[0],
                     Channel(_serverName, token.params[0], topic, client));
             } else {
-                if (channel->second.inviteOnly()) {
+                if (channel_it->second.inviteOnly()) {
                     IRCMessage newToken = token;
                     newToken.setIRCCode(IRCCodes::INVITEONLYCHAN);
 
                     _handleError(token, client);
                 } else {
-                    IRCCodes addResult = channel->second.addUser(client);
+                    IRCCodes addResult = channel_it->second.addUser(client);
                     if (addResult != IRCCodes::SUCCES) {
                         IRCMessage newToken = token;
                         newToken.setIRCCode(addResult);

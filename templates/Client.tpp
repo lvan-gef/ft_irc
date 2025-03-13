@@ -19,7 +19,7 @@
 #include <sys/socket.h>
 
 template <typename... Args>
-void Client::appendMessageToQue(const std::string &serverName,
+void Client::appendMessageToQue(int epollFD, const std::string &serverName,
                                 const Args &...args) noexcept {
     std::ostringstream oss;
 
@@ -28,11 +28,15 @@ void Client::appendMessageToQue(const std::string &serverName,
     oss << "\r\n";
 
     std::string msg = oss.str();
-    /*_messages.emplace(msg);*/
-    _messages.push(msg);
+    _messages.emplace(msg);
     std::cout << "Message queued: " << msg << std::endl;
-    /*std::cout << "Send: " << msg << '\n';*/
-    /*send(fd, msg.c_str(), msg.length(), 0);*/
+
+    epoll_event ev = getEvent();
+    ev.events = EPOLLIN | EPOLLOUT;
+    if (epoll_ctl(epollFD, EPOLL_CTL_MOD, targetClient->getFD(), &ev) ==
+        -1) {
+        std::cerr << "epoll_ctl failed: " << strerror(errno) << '\n';
+    }
 }
 
 #endif // CLIENT_TPP
