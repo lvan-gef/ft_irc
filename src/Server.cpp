@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/12 21:52:41 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/13 19:11:45 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,8 +224,6 @@ void Server::_run() {
                 std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
                 while (client->haveMessagesToSend()) {
                     std::string msg = client->getMessage();
-                    std::cout << "Send: " << time(nullptr) << " " << msg
-                              << '\n';
 
                     size_t offset = client->getOffset();
                     ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
@@ -251,8 +249,6 @@ void Server::_run() {
                 }
                 epoll_event ev = client->getEvent();
                 if (client->haveMessagesToSend()) {
-                    ev.events = EPOLLIN | EPOLLOUT; // Keep EPOLLOUT enabled
-                } else {
                     ev.events = EPOLLIN; // No more messages, remove EPOLLOUT
                 }
                 if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(),
@@ -261,13 +257,6 @@ void Server::_run() {
                         << "Failed to update epoll event: " << strerror(errno)
                         << std::endl;
                 }
-                /*if (!client->hasCompleteMessage()) {*/
-                /*    epoll_event ev = client->getEvent();*/
-                /*    ev.events = EPOLLIN;*/
-                /*    epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD,
-                 * client->getFD(),*/
-                /*              &ev);*/
-                /*}*/
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
                 auto it = _fd_to_client.find(event.data.fd);
                 if (it != _fd_to_client.end()) {
@@ -356,32 +345,32 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    client->appendMessageToQue(_serverName, "001 ", nick,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "001 ", nick,
                                " :Welcome to the Internet Relay Network ", nick,
                                "!", user, "@", ip);
 
-    client->appendMessageToQue(_serverName, "002 ", nick, " :Your host is ",
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "002 ", nick, " :Your host is ",
                                _serverName, ", running version ",
                                _serverVersion);
 
-    client->appendMessageToQue(_serverName, "003 ", nick,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "003 ", nick,
                                " :This server was created ", _serverCreated);
 
-    client->appendMessageToQue(_serverName, "004 ", nick, " ", _serverName,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "004 ", nick, " ", _serverName,
                                " o i,t,k,o,l :are supported by this server");
 
-    client->appendMessageToQue(
+    client->appendMessageToQue(_epoll_fd.get(),
         _serverName, "005 ", nick,
         " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
         "PING USERHOST :are supported by this server");
 
-    client->appendMessageToQue(_serverName, "375 ", nick, " :- ", _serverName,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "375 ", nick, " :- ", _serverName,
                                " Message of the Day -");
 
-    client->appendMessageToQue(_serverName, "372 ", nick,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "372 ", nick,
                                " :- Welcome to my IRC server!");
 
-    client->appendMessageToQue(_serverName, "376 ", nick,
+    client->appendMessageToQue(_epoll_fd.get(), _serverName, "376 ", nick,
                                " :End of /MOTD command.");
 
     _nick_to_client[nick] = client;
@@ -389,14 +378,12 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_clientMessage(int fd) noexcept {
-    std::cout << time(nullptr) << " clientMessage" << '\n';
     std::shared_ptr<Client> client = _fd_to_client[fd];
     if (!client) {
         return;
     }
 
     char buffer[READ_SIZE] = {0};
-    std::cout << time(nullptr) << " read data" << '\n';
     ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -409,7 +396,6 @@ void Server::_clientMessage(int fd) noexcept {
         return;
     }
 
-    std::cerr << time(nullptr) << " " << buffer << '\n';
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
@@ -470,53 +456,4 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             _handleMessage(token, client);
         }
     }
-
-    if (client->haveMessagesToSend()) {
-        epoll_event ev = client->getEvent();
-        ev.events = EPOLLIN | EPOLLOUT; // Enable EPOLLOUT for pending sends
-        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) ==
-            -1) {
-            std::cerr << "epoll_ctl failed: " << strerror(errno) << std::endl;
-        }
-    }
-    /*if (client->haveMessagesToSend()) {*/
-    /*    std::cout << "Setting EPOLLOUT immediately after processing message"*/
-    /*              << '\n';*/
-    /*    epoll_event ev = client->getEvent();*/
-    /*    ev.events = EPOLLIN | EPOLLOUT;*/
-    /*    if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev)
-     * ==*/
-    /*        -1) {*/
-    /*        std::cerr << "epoll_ctl failed: " << strerror(errno) <<
-     * std::endl;*/
-    /*    }*/
-    /*} else {*/
-    /*    std::cout << "No messages to send, not setting EPOLLOUT" <<
-     * std::endl;*/
-    /*}*/
 }
-/*    std::cout << time(nullptr) << " processMessage" << '\n';*/
-/*    if (client->hasCompleteMessage() != true) {*/
-/*        return;*/
-/*    }*/
-/**/
-/*    std::string msg = client->getAndClearBuffer();*/
-/*    std::cout << "recv: " << time(nullptr) << " " << msg << '\n';*/
-/**/
-/*    std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);*/
-/*    for (const IRCMessage &token : clientsToken) {*/
-/*        if (token.success != true) {*/
-/*            _handleError(token, client);*/
-/*        } else {*/
-/*            _handleMessage(token, client);*/
-/*        }*/
-/*    }*/
-/*    std::cout << time(nullptr) << " " << "after loop parsing" << '\n';*/
-/**/
-/*    if (client->haveMessagesToSend()) {*/
-/*        std::cout << time(nullptr) << " " << "Set EPOLLOUT" << '\n';*/
-/*        epoll_event ev = client->getEvent();*/
-/*        ev.events = EPOLLIN | EPOLLOUT;*/
-/*        epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev);*/
-/*    }*/
-/*}*/

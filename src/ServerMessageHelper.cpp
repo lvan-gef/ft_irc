@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 21:16:33 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/13 17:50:29 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ void Server::_handleMessage(const IRCMessage &token,
                 auto nick_it = _nick_to_client.find(token.params[0]);
                 if (nick_it != _nick_to_client.end()) {
                     std::shared_ptr<Client> targetClient = nick_it->second;
-                    targetClient->appendMessageToQue(
+                    targetClient->appendMessageToQue(_epoll_fd.get(),
                         clientNick, "PRIVMSG ", targetClient->getNickname(),
                         " :", token.params[1]);
                 } else {
@@ -148,7 +148,7 @@ void Server::_handleMessage(const IRCMessage &token,
             _removeClient(client);
             break;
         case IRCCommand::PING:
-            client->appendMessageToQue(_serverName, "PONG ", _serverName,
+            client->appendMessageToQue(_epoll_fd.get(), _serverName, "PONG ", _serverName,
                                        " :" + token.params[0]);
             break;
         case IRCCommand::KICK: {
@@ -197,7 +197,7 @@ void Server::_handleMessage(const IRCMessage &token,
                 std::shared_ptr<Client> targetClient = it->second;
                 std::string targetNick = targetClient->getNickname();
 
-                client->appendMessageToQue(_serverName, "302 ", clientNick,
+                client->appendMessageToQue(_epoll_fd.get(), _serverName, "302 ", clientNick,
                                            " :", targetNick, "=-", targetNick,
                                            "@", targetClient->getIP());
             } else {
