@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/12 21:21:10 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 20:26:05 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,12 +68,10 @@ class Client {
     bool hasCompleteMessage() const noexcept;
 
   public:
-    template <typename... Args>
-    void appendMessageToQue(int _epollFD, const std::string &serverName,
-                            const Args &...args) noexcept;
     std::string getMessage();
     void removeMessage();
     bool haveMessagesToSend();
+    void appendMessageToQue(const std::string &msg) noexcept;
 
   public:
     void addChannel(const std::string &channelName) noexcept;
@@ -98,7 +96,5 @@ class Client {
     std::vector<std::string> _channels;
     size_t _offset;
 };
-
-#include "../templates/Client.tpp"
 
 #endif // !CLIENT_HPP

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/13 19:11:45 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 21:50:07 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,6 +226,7 @@ void Server::_run() {
                     std::string msg = client->getMessage();
 
                     size_t offset = client->getOffset();
+                    std::cout << "send: " << msg.c_str() << '\n';
                     ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
                                          msg.length() - offset, MSG_DONTWAIT);
 
@@ -330,7 +331,7 @@ void Server::_newConnection() noexcept {
 
     client->setIP(inet_ntoa(clientAddr.sin_addr));
     _fd_to_client[clientFD] = client;
-    _connections++;
+    _connections = _fd_to_client.size();
 
     std::cout << "New client connected on fd " << clientFD << '\n';
 }
@@ -345,33 +346,33 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "001 ", nick,
+    client->appendMessageToQue(formatMessage(":", _serverName, " 001 ", nick,
                                " :Welcome to the Internet Relay Network ", nick,
-                               "!", user, "@", ip);
+                               "!", user, "@", ip));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "002 ", nick, " :Your host is ",
+    client->appendMessageToQue(formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
                                _serverName, ", running version ",
-                               _serverVersion);
+                               _serverVersion));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "003 ", nick,
-                               " :This server was created ", _serverCreated);
+    client->appendMessageToQue(formatMessage(":", _serverName, " 003 ", nick,
+                               " :This server was created ", _serverCreated));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "004 ", nick, " ", _serverName,
-                               " o i,t,k,o,l :are supported by this server");
+    client->appendMessageToQue(formatMessage(":", _serverName, " 004 ", nick, " ", _serverName,
+                               " o i,t,k,o,l :are supported by this server"));
 
-    client->appendMessageToQue(_epoll_fd.get(),
-        _serverName, "005 ", nick,
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 005 ", nick,
         " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
-        "PING USERHOST :are supported by this server");
+        "PING USERHOST :are supported by this server"));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "375 ", nick, " :- ", _serverName,
-                               " Message of the Day -");
+    client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick, " :- ", _serverName,
+                               " Message of the Day -"));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "372 ", nick,
-                               " :- Welcome to my IRC server!");
+    client->appendMessageToQue(formatMessage(":", _serverName, " 372 ", nick,
+                               " :- Welcome to my IRC server!"));
 
-    client->appendMessageToQue(_epoll_fd.get(), _serverName, "376 ", nick,
-                               " :End of /MOTD command.");
+    client->appendMessageToQue(formatMessage(":", _serverName, " 376 ", nick,
+                               " :End of /MOTD command."));
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
@@ -417,7 +418,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
         if (fd_it != _fd_to_client.end() && fd_it->second == client) {
             _fd_to_client.erase(fd_it);
             epoll_ctl(_epoll_fd.get(), EPOLL_CTL_DEL, fd, nullptr);
-            _connections--;
+            _connections = _fd_to_client.size();
         }
 
         if (nick_it != _nick_to_client.end() && nick_it->second == client) {

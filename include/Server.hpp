@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 17:30:38 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 20:28:23 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,5 +82,6 @@ class Server {
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
     std::unordered_map<std::string, Channel> _channels;
 };
+
 
 #endif // !SERVER_HPP

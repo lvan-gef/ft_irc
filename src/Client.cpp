@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/12 21:28:23 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 20:43:13 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,6 +156,10 @@ bool Client::haveMessagesToSend() {
     }
 
     return false;
+}
+
+void Client::appendMessageToQue(const std::string &msg) noexcept {
+    _messages.emplace(msg);
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {

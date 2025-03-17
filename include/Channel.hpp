@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 18:12:21 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 21:29:57 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ class Channel {
     std::string allUsersInChannel() const noexcept;
 
   public:
-    void broadcastMessage(const std::string &message) const noexcept;
+    void broadcastMessage(const std::string &message, const std::string &fromUser) const noexcept;
 
   public:
     void setTopic(const std::string &topic) noexcept;

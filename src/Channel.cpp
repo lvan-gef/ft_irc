@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 18:13:03 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 21:46:19 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "../include/Channel.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
+#include "../include/utils.hpp"
 
 Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::string &channelTopic,
@@ -89,17 +90,20 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
     _usersActive = _users.size();
 
     std::string userList = allUsersInChannel();
-    std::string joinMessage = client->getNickname() + "!" +
+    std::string joinMessage = ":" + client->getNickname() + "!" +
                               client->getUsername() + "@" + client->getIP() +
                               " JOIN " + _channelName;
     for (const std::shared_ptr<Client> &user : _users) {
-        user->appendMessageToQue(client->getFD(), _serverName, "332 ", nickname,
-                                 " ", _channelName, " :", _topic);
-        user->appendMessageToQue(client->getFD(), joinMessage);
-        user->appendMessageToQue(client->getFD(), _serverName, "353 ", nickname,
-                                 " = ", _channelName, " :", userList);
-        user->appendMessageToQue(client->getFD(), _serverName, "366 ", nickname,
-                                 " ", _channelName, " :End of /NAMES list");
+        user->appendMessageToQue(formatMessage(joinMessage));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 332 ",
+                                               nickname, " ", _channelName,
+                                               " :", _topic));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 353 ",
+                                               nickname, " = ", _channelName,
+                                               " :", userList));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 366 ",
+                                               nickname, " ", _channelName,
+                                               " :End of /NAMES list"));
     }
 
     std::cout << "User: " << nickname
@@ -116,17 +120,26 @@ void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
         _usersActive = _users.size();
         removeOperator(client);
 
+        std::string partMessage = ":" + client->getNickname() + "!" +
+                                  client->getUsername() + "@" +
+                                  client->getIP() + " PART " + _channelName;
+        for (const std::shared_ptr<Client> &user : _users) {
+            user->appendMessageToQue(formatMessage(partMessage));
+        }
+
         std::string userList = allUsersInChannel();
         for (const std::shared_ptr<Client> &user : _users) {
-            user->appendMessageToQue(client->getFD(), _serverName, "353 ",
-                                     client->getNickname(), " = ", _channelName,
-                                     " :", userList);
-            user->appendMessageToQue(client->getFD(), _serverName, "366 ",
-                                     client->getNickname(), " ", _channelName,
-                                     " :End of /NAMES list");
+            user->appendMessageToQue(
+                formatMessage(":", _serverName, " 353 ", client->getNickname(),
+                              " = ", _channelName, " :", userList));
+            user->appendMessageToQue(
+                formatMessage(":", _serverName, " 366 ", client->getNickname(),
+                              " ", _channelName, " :End of /NAMES list"));
         }
     } else {
         std::cerr << "User not in channel. send error code back??" << '\n';
+
+        // send error back
     }
 }
 
@@ -179,9 +192,9 @@ void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
         }
 
         _operators.emplace(client);
-        client->appendMessageToQue(client->getFD(), _serverName, "NOTICE ",
-                                   client->getNickname(), " ", _channelName,
-                                   " :Channel created. You are the operator");
+        client->appendMessageToQue(formatMessage(
+            ":", _serverName, " NOTICE ", client->getNickname(), " ",
+            _channelName, " :Channel created. You are the operator"));
         std::cout << "User: " << client->getNickname()
                   << " is now a operator of channel: " << _channelName << '\n';
     } else {
@@ -235,9 +248,13 @@ std::string Channel::allUsersInChannel() const noexcept {
     return userList;
 }
 
-void Channel::broadcastMessage(const std::string &message) const noexcept {
+void Channel::broadcastMessage(const std::string &message,
+                               const std::string &fromUser) const noexcept {
     for (const std::shared_ptr<Client> &client : _users) {
-        client->appendMessageToQue(client->getFD(), _serverName, message);
+        if (client->getNickname() != fromUser) {
+            client->appendMessageToQue(formatMessage(
+                ":", fromUser, " PRIVMSG ", _channelName, " :", message));
+        }
     }
 }
 
