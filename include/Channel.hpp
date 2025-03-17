@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/11 20:52:03 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 18:12:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <unordered_set>
 
 #include "../include/Client.hpp"
-#include "Enums.hpp"
+#include "../include/Enums.hpp"
 
 class Channel {
   public:

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/13 17:52:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/17 18:13:03 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,13 +73,15 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
 
     if (isBannedUser(client)) {
         /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
-        /*                           _channelName, " :Cannot join channel (+b)");*/
+        /*                           _channelName, " :Cannot join channel
+         * (+b)");*/
         return IRCCodes::BANNEDFROMCHAN;
     }
 
     if (_usersActive >= _userLimit) {
         /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
-        /*                           _channelName, " :Cannot join channel (+l)");*/
+        /*                           _channelName, " :Cannot join channel
+         * (+l)");*/
         return IRCCodes::CHANNELISFULL;
     }
 
@@ -91,13 +93,13 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
                               client->getUsername() + "@" + client->getIP() +
                               " JOIN " + _channelName;
     for (const std::shared_ptr<Client> &user : _users) {
-        user->appendMessageToQue(client->getFD(), _serverName, "332 ", nickname, " ",
-                                 _channelName, " :", _topic);
+        user->appendMessageToQue(client->getFD(), _serverName, "332 ", nickname,
+                                 " ", _channelName, " :", _topic);
         user->appendMessageToQue(client->getFD(), joinMessage);
-        user->appendMessageToQue(client->getFD(), _serverName, "353 ", nickname, " = ",
-                                 _channelName, " :", userList);
-        user->appendMessageToQue(client->getFD(), _serverName, "366 ", nickname, " ",
-                                 _channelName, " :End of /NAMES list");
+        user->appendMessageToQue(client->getFD(), _serverName, "353 ", nickname,
+                                 " = ", _channelName, " :", userList);
+        user->appendMessageToQue(client->getFD(), _serverName, "366 ", nickname,
+                                 " ", _channelName, " :End of /NAMES list");
     }
 
     std::cout << "User: " << nickname
@@ -116,10 +118,12 @@ void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
 
         std::string userList = allUsersInChannel();
         for (const std::shared_ptr<Client> &user : _users) {
-            user->appendMessageToQue(client->getFD(), _serverName, "353 ", client->getNickname(),
-                                     " = ", _channelName, " :", userList);
-            user->appendMessageToQue(client->getFD(), _serverName, "366 ", client->getNickname(),
-                                     " ", _channelName, " :End of /NAMES list");
+            user->appendMessageToQue(client->getFD(), _serverName, "353 ",
+                                     client->getNickname(), " = ", _channelName,
+                                     " :", userList);
+            user->appendMessageToQue(client->getFD(), _serverName, "366 ",
+                                     client->getNickname(), " ", _channelName,
+                                     " :End of /NAMES list");
         }
     } else {
         std::cerr << "User not in channel. send error code back??" << '\n';
