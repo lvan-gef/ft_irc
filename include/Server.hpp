@@ -83,5 +83,4 @@ class Server {
     std::unordered_map<std::string, Channel> _channels;
 };
 
-
 #endif // !SERVER_HPP

@@ -13,9 +13,9 @@
 #ifndef UTILS_TPP
 #define UTILS_TPP
 
+#include <cstring>
 #include <sstream>
 #include <string>
-#include <cstring>
 
 #include <sys/socket.h>
 

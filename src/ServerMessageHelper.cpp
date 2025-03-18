@@ -62,15 +62,16 @@ void Server::_handleMessage(const IRCMessage &token,
             if (token.params[0][0] == '#') {
                 auto channel_it = _channels.find(token.params[0]);
                 if (channel_it != _channels.end()) {
-                    channel_it->second.broadcastMessage(token.params[1], clientNick);
+                    channel_it->second.broadcastMessage(token.params[1],
+                                                        clientNick);
                 }
             } else {
                 auto nick_it = _nick_to_client.find(token.params[0]);
                 if (nick_it != _nick_to_client.end()) {
                     std::shared_ptr<Client> targetClient = nick_it->second;
                     targetClient->appendMessageToQue(formatMessage(
-                        ":", clientNick, " PRIVMSG ", targetClient->getNickname(),
-                        " :", token.params[1]));
+                        ":", clientNick, " PRIVMSG ",
+                        targetClient->getNickname(), " :", token.params[1]));
                 } else {
                     IRCMessage newToken = token;
                     newToken.setIRCCode(IRCCodes::NOSUCHNICK);
@@ -149,8 +150,9 @@ void Server::_handleMessage(const IRCMessage &token,
             _removeClient(client);
             break;
         case IRCCommand::PING:
-            client->appendMessageToQue(formatMessage(":", _serverName, " PONG ", _serverName,
-                                       " :" + token.params[0]));
+            client->appendMessageToQue(formatMessage(":", _serverName, " PONG ",
+                                                     _serverName,
+                                                     " :" + token.params[0]));
             break;
         case IRCCommand::KICK: {
             auto it = _channels.find(token.params[0]);
@@ -198,9 +200,9 @@ void Server::_handleMessage(const IRCMessage &token,
                 std::shared_ptr<Client> targetClient = it->second;
                 std::string targetNick = targetClient->getNickname();
 
-                client->appendMessageToQue(formatMessage(":", _serverName, " 302 ", clientNick,
-                                           " :", targetNick, "=-", targetNick,
-                                           "@", targetClient->getIP()));
+                client->appendMessageToQue(formatMessage(
+                    ":", _serverName, " 302 ", clientNick, " :", targetNick,
+                    "=-", targetNick, "@", targetClient->getIP()));
             } else {
                 std::cerr << "Server internal error: Could not found target "
                              "user for USERHOST"

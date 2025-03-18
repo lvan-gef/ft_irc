@@ -59,7 +59,8 @@ class Channel {
     std::string allUsersInChannel() const noexcept;
 
   public:
-    void broadcastMessage(const std::string &message, const std::string &fromUser) const noexcept;
+    void broadcastMessage(const std::string &message,
+                          const std::string &fromUser) const noexcept;
 
   public:
     void setTopic(const std::string &topic) noexcept;

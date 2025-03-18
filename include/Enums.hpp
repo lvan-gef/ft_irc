@@ -52,7 +52,7 @@ enum class IRCCommand : std::uint16_t {
 };
 
 enum class IRCCodes : std::int16_t {
-    SUCCES = 0,  // For my own use
+    SUCCES = 0, // For my own use
     NOSUCHNICK = 401,
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,

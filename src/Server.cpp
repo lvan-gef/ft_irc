@@ -250,13 +250,13 @@ void Server::_run() {
                 }
                 epoll_event ev = client->getEvent();
                 if (client->haveMessagesToSend()) {
-                    ev.events = EPOLLIN; // No more messages, remove EPOLLOUT
+                    ev.events = EPOLLIN;
                 }
                 if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(),
                               &ev) == -1) {
                     std::cerr
                         << "Failed to update epoll event: " << strerror(errno)
-                        << std::endl;
+                        << '\n';
                 }
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
                 auto it = _fd_to_client.find(event.data.fd);
@@ -267,7 +267,7 @@ void Server::_run() {
                               << " is not in the map" << '\n';
                 }
             } else {
-                std::cout << "Unknow message from client: " << event.data.fd
+                std::cout << "Unknow event from client: " << event.data.fd
                           << '\n';
             }
         }
@@ -346,33 +346,36 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string user = client->getUsername();
     std::string ip = client->getIP();
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 001 ", nick,
-                               " :Welcome to the Internet Relay Network ", nick,
-                               "!", user, "@", ip));
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 001 ", nick,
+        " :Welcome to the Internet Relay Network ", nick, "!", user, "@", ip));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
-                               _serverName, ", running version ",
-                               _serverVersion));
+    client->appendMessageToQue(
+        formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
+                      _serverName, ", running version ", _serverVersion));
 
     client->appendMessageToQue(formatMessage(":", _serverName, " 003 ", nick,
-                               " :This server was created ", _serverCreated));
+                                             " :This server was created ",
+                                             _serverCreated));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 004 ", nick, " ", _serverName,
-                               " o i,t,k,o,l :are supported by this server"));
+    client->appendMessageToQue(
+        formatMessage(":", _serverName, " 004 ", nick, " ", _serverName,
+                      " o i,t,k,o,l :are supported by this server"));
 
     client->appendMessageToQue(formatMessage(
         ":", _serverName, " 005 ", nick,
         " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
         "PING USERHOST :are supported by this server"));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick, " :- ", _serverName,
-                               " Message of the Day -"));
+    client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick,
+                                             " :- ", _serverName,
+                                             " Message of the Day -"));
 
     client->appendMessageToQue(formatMessage(":", _serverName, " 372 ", nick,
-                               " :- Welcome to my IRC server!"));
+                                             " :- Welcome to my IRC server!"));
 
     client->appendMessageToQue(formatMessage(":", _serverName, " 376 ", nick,
-                               " :End of /MOTD command."));
+                                             " :End of /MOTD command."));
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
