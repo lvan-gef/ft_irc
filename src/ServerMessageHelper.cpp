@@ -76,13 +76,13 @@ void Server::_handlePassword(const IRCMessage &token,
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
-    const std::string nickname = token.params[0];
 
-    if (nickname[0] == '#') {
-        auto channel_it = _channels.find(nickname);
+    if (token.params[0][0] == '#') {
+        auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.broadcastMessage(token.params[1], nickname);
+            channel_it->second.broadcastMessage(token.params[1],
+                                                client->getFullID());
         } else {
             IRCMessage newToken = token;
             newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
@@ -90,13 +90,13 @@ void Server::_handlePriv(const IRCMessage &token,
             _handleError(newToken, client);
         }
     } else {
-        auto nick_it = _nick_to_client.find(nickname);
+        auto nick_it = _nick_to_client.find(token.params[0]);
         if (nick_it != _nick_to_client.end()) {
             std::shared_ptr<Client> targetClient = nick_it->second;
 
             targetClient->appendMessageToQue(formatMessage(
-                ":", nickname, " PRIVMSG ", targetClient->getNickname(), " :",
-                token.params[1]));
+                ":", client->getFullID(), " PRIVMSG ",
+                targetClient->getNickname(), " :", token.params[1]));
         } else {
             IRCMessage newToken = token;
             newToken.setIRCCode(IRCCodes::NOSUCHNICK);

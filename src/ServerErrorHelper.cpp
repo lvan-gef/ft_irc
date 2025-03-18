@@ -37,7 +37,7 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::NOSUCHNICK:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(), " ",
                               token.params[0], " :No such nick/channel"));
             break;
         case IRCCodes::NOSUCHCHANNEL:

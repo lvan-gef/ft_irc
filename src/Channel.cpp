@@ -249,11 +249,11 @@ std::string Channel::allUsersInChannel() const noexcept {
 }
 
 void Channel::broadcastMessage(const std::string &message,
-                               const std::string &fromUser) const noexcept {
+                               const std::string &fullID) const noexcept {
     for (const std::shared_ptr<Client> &client : _users) {
-        if (client->getNickname() != fromUser) {
+        if (client->getFullID() != fullID) {
             client->appendMessageToQue(formatMessage(
-                ":", fromUser, " PRIVMSG ", _channelName, " :", message));
+                ":", fullID, " PRIVMSG ", _channelName, " :", message));
         }
     }
 }

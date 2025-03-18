@@ -26,8 +26,6 @@ struct IRCMessage {
     std::vector<std::string> params;
     bool success;
     Optional<IRCCodes> err;
-    Optional<std::vector<std::string>>
-        targets; // when we do multi target clients
     IRCCommand type;
 
     void print() const;

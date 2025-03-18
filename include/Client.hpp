@@ -57,6 +57,7 @@ class Client {
     bool getUsernameBit() const noexcept;
     bool getNicknameBit() const noexcept;
     bool getPasswordBit() const noexcept;
+    std::string getFullID() const noexcept;
 
   public:
     void setIP(const std::string &ip) noexcept;
@@ -87,14 +88,20 @@ class Client {
     FileDescriptors _fd;
     std::string _username;
     std::string _nickname;
-    std::string _partial_buffer;
     std::string _ip;
-    epoll_event _event;
+
+  private:
+    std::string _partial_buffer;
     std::queue<std::string> _messages;
+    size_t _offset;
+
+  private:
+    epoll_event _event;
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass
+
+  private:
     std::vector<std::string> _channels;
-    size_t _offset;
 };
 
 #endif // !CLIENT_HPP

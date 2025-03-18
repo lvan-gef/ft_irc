@@ -20,9 +20,9 @@
 #include "../include/Enums.hpp"
 
 Client::Client(int fd)
-    : _fd(fd), _username(""), _nickname(""), _partial_buffer(""),
-      _ip("0.0.0.0"), _event{}, _messages{}, _last_seen(0), _channels{},
-      _offset(0) {
+    : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
+      _partial_buffer(""), _messages{}, _offset(0), _event{}, _last_seen(0),
+      _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(EVENT_SIZE);
@@ -31,10 +31,10 @@ Client::Client(int fd)
 Client::Client(Client &&rhs) noexcept
     : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
       _nickname(std::move(rhs._nickname)),
-      _partial_buffer(std::move(rhs._partial_buffer)), _ip(std::move(rhs._ip)),
-      _event(rhs._event), _messages(std::move(rhs._messages)),
-      _last_seen(rhs._last_seen), _channels(std::move(rhs._channels)),
-      _offset(rhs._offset) {
+      _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
+      _messages(std::move(rhs._messages)), _offset(rhs._offset),
+      _event(rhs._event), _last_seen(rhs._last_seen),
+      _channels(std::move(rhs._channels)) {
     rhs._fd = -1;
 }
 
@@ -120,6 +120,11 @@ bool Client::getNicknameBit() const noexcept {
 
 bool Client::getPasswordBit() const noexcept {
     return _registered.test(2);
+}
+
+std::string Client::getFullID() const noexcept {
+    return getNickname() + "!" + getUsername() + "@" + getIP();
+
 }
 
 void Client::setIP(const std::string &ip) noexcept {
