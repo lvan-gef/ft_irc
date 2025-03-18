@@ -42,8 +42,9 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::NOSUCHCHANNEL:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(), " ",
-                              token.params[0], " :No such channel"));
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
+                              client->getNickname(), " ", token.params[0],
+                              " :No such channel"));
             break;
         case IRCCodes::CANNOTSENDTOCHAN:
             client->appendMessageToQue(
@@ -124,8 +125,9 @@ void Server::_handleError(IRCMessage token,
                               " :You may not reregister"));
             break;
         case IRCCodes::PASSWDMISMATCH:
-            client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, " *", " :Password incorrect"));
+            client->appendMessageToQue(formatMessage(":", _serverName, " ",
+                                                     errnoAsString, " *",
+                                                     " :Password incorrect"));
             break;
         case IRCCodes::KEYSET: // checken if channel is 1 index of the params
             client->appendMessageToQue(
@@ -155,8 +157,9 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::BADCHANNELKEY:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(),
-                              token.params[1], " :Cannot join channel (+k) - bad key"));
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
+                              client->getNickname(), token.params[1],
+                              " :Cannot join channel (+k) - bad key"));
             break;
         case IRCCodes::NOPRIVILEGES:
             client->appendMessageToQue(formatMessage(

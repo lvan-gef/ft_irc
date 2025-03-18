@@ -72,7 +72,7 @@ class Server {
     void _handlePassword(const IRCMessage &token,
                          const std::shared_ptr<Client> &client);
     void _handlePriv(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;
