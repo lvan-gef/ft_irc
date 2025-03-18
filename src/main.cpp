@@ -32,12 +32,11 @@ int main(int argc, char **argv) {
         }
 
         server.run();
-        std::cout << "Server is succesfully stopped" << '\n';
-
     } catch (const std::exception &e) {
         std::cerr << "Server error: " << e.what() << '\n';
         return 3;
     }
 
+    std::cout << "Server is succesfully stopped" << '\n';
     return 0;
 }

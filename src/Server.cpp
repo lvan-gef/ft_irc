@@ -58,12 +58,6 @@ Server::Server(const std::string &port, std::string &password)
     if (_password.length() == 0) {
         throw std::invalid_argument("password can not be empty");
     }
-
-    if (init() != true) {
-        throw std::runtime_error("Failed to init");
-    }
-
-    run();
 }
 
 Server::Server(Server &&rhs) noexcept
@@ -272,8 +266,6 @@ void Server::_run() {
             }
         }
     }
-
-    _shutdown();
 }
 
 void Server::_shutdown() noexcept {
