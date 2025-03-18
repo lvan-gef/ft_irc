@@ -35,7 +35,6 @@ enum class IRCCommand : std::uint16_t {
     PASS,
     PRIVMSG,
     JOIN,
-    CREATE,
     TOPIC,
     PART,
     QUIT,

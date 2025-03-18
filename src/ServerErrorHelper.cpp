@@ -42,7 +42,7 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::NOSUCHCHANNEL:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(), " ",
                               token.params[0], " :No such channel"));
             break;
         case IRCCodes::CANNOTSENDTOCHAN:
@@ -125,7 +125,7 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::PASSWDMISMATCH:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, " :Password incorrect"));
+                ":", _serverName, " ", errnoAsString, " *", " :Password incorrect"));
             break;
         case IRCCodes::KEYSET: // checken if channel is 1 index of the params
             client->appendMessageToQue(
@@ -155,8 +155,8 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::BADCHANNELKEY:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
-                              token.params[1], " :Cannot join channel (+k)"));
+                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(),
+                              token.params[1], " :Cannot join channel (+k) - bad key"));
             break;
         case IRCCodes::NOPRIVILEGES:
             client->appendMessageToQue(formatMessage(

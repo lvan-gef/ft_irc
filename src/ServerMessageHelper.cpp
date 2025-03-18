@@ -11,207 +11,97 @@
 /* ************************************************************************** */
 
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "utils.hpp"
+#include "../include/utils.hpp"
 
-void Server::_handleMessage(const IRCMessage &token,
-                            const std::shared_ptr<Client> &client) {
+void Server::_handleNickname(const IRCMessage &token,
+                             const std::shared_ptr<Client> &client) {
 
-    std::string clientNick = client->getNickname();
+    if (client->isRegistered()) {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
 
-    switch (token.type) {
-        case IRCCommand::NICK:
-            if (_nick_to_client.find(token.params[0]) ==
-                _nick_to_client.end()) {
-                client->setNickname(token.params[0]);
-                if (client->isRegistered() != true) {
-                    _clientAccepted(client);
-                } // send something back?
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::NICKINUSE);
+        _handleError(newToken, client);
+        return;
+    }
 
-                _handleError(newToken, client);
-            }
-            break;
-        case IRCCommand::USER:
-            if (client->isRegistered() != true) {
-                client->setUsername(token.params[0]);
-                _clientAccepted(client);
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
-            }
-            break;
-        case IRCCommand::PASS:
-            if (client->isRegistered()) {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
-                _handleError(newToken, client);
-            } else {
-                client->setPasswordBit();
-            }
-            break;
-        case IRCCommand::PRIVMSG:
-            if (token.params[0][0] == '#') {
-                auto channel_it = _channels.find(token.params[0]);
-                if (channel_it != _channels.end()) {
-                    channel_it->second.broadcastMessage(token.params[1],
-                                                        clientNick);
-                }
-            } else {
-                auto nick_it = _nick_to_client.find(token.params[0]);
-                if (nick_it != _nick_to_client.end()) {
-                    std::shared_ptr<Client> targetClient = nick_it->second;
-                    targetClient->appendMessageToQue(formatMessage(
-                        ":", clientNick, " PRIVMSG ",
-                        targetClient->getNickname(), " :", token.params[1]));
-                } else {
-                    IRCMessage newToken = token;
-                    newToken.setIRCCode(IRCCodes::NOSUCHNICK);
+    const std::string nickname = token.params[0];
+    if (_nick_to_client.find(nickname) == _nick_to_client.end()) {
+        client->setNickname(nickname);
+        _clientAccepted(client);
+    } else {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::NICKINUSE);
 
-                    _handleError(newToken, client);
-                }
-            }
-            break;
-        case IRCCommand::CREATE:
-            if (_channels.find(token.params[0]) == _channels.end()) {
-                std::string topic =
-                    token.params.size() > 1 ? token.params[1] : "Default";
-                _channels.emplace(
-                    token.params[0],
-                    Channel(_serverName, token.params[0], topic, client));
-            } else {
-                std::cerr << "Impl channel does exists" << '\n';
-            }
-            break;
-        case IRCCommand::JOIN: {
-            auto channel_it = _channels.find(token.params[0]);
-            if (channel_it == _channels.end()) {
-                std::string topic =
-                    token.params.size() > 1 ? token.params[1] : "Default";
-                _channels.emplace(
-                    token.params[0],
-                    Channel(_serverName, token.params[0], topic, client));
-            } else {
-                if (channel_it->second.inviteOnly()) {
-                    IRCMessage newToken = token;
-                    newToken.setIRCCode(IRCCodes::INVITEONLYCHAN);
+        _handleError(newToken, client);
+    }
+}
 
-                    _handleError(token, client);
-                } else {
-                    IRCCodes addResult = channel_it->second.addUser(client);
-                    if (addResult != IRCCodes::SUCCES) {
-                        IRCMessage newToken = token;
-                        newToken.setIRCCode(addResult);
+void Server::_handleUsername(const IRCMessage &token,
+                             const std::shared_ptr<Client> &client) {
+    if (client->isRegistered()) {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
 
-                        _handleError(token, client);
-                    }
-                }
-            }
-            break;
+        _handleError(newToken, client);
+    } else {
+        client->setUsername(token.params[0]);
+        _clientAccepted(client);
+    }
+}
+
+void Server::_handlePassword(const IRCMessage &token,
+                             const std::shared_ptr<Client> &client) {
+    if (client->isRegistered()) {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::ALREADYREGISTERED);
+
+        _handleError(newToken, client);
+    } else {
+        if (token.params[0] == _password) {
+            client->setPasswordBit();
+        } else {
+            IRCMessage newToken = token;
+            newToken.setIRCCode(IRCCodes::PASSWDMISMATCH);
+
+            _handleError(newToken, client); // we should dissconnect the client
         }
-        case IRCCommand::TOPIC: {
-            auto it = _channels.find(token.params[0]);
+    }
+}
 
-            if (it != _channels.end()) {
-                it->second.setTopic(token.params[1]);
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+void Server::_handlePriv(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) {
+    const std::string nickname = token.params[0];
 
-                _handleError(newToken, client);
-            }
-            break;
+    if (nickname[0] == '#') {
+        auto channel_it = _channels.find(nickname);
+
+        if (channel_it != _channels.end()) {
+            channel_it->second.broadcastMessage(token.params[1], nickname);
+        } else {
+            IRCMessage newToken = token;
+            newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+
+            _handleError(newToken, client);
         }
-        case IRCCommand::PART: {
-            auto it = _channels.find(token.params[0]);
+    } else {
+        auto nick_it = _nick_to_client.find(nickname);
+        if (nick_it != _nick_to_client.end()) {
+            std::shared_ptr<Client> targetClient = nick_it->second;
 
-            if (it != _channels.end()) {
-                it->second.removeUser(client);
-                if (it->second.usersActive() == 0) {
-                    _channels.erase(it->second.channelName());
-                }
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+            targetClient->appendMessageToQue(formatMessage(
+                ":", nickname, " PRIVMSG ", targetClient->getNickname(), " :",
+                token.params[1]));
+        } else {
+            IRCMessage newToken = token;
+            newToken.setIRCCode(IRCCodes::NOSUCHNICK);
 
-                _handleError(newToken, client);
-            }
-            break;
+            _handleError(newToken, client);
         }
-        case IRCCommand::QUIT:
-            _removeClient(client);
-            break;
-        case IRCCommand::PING:
-            client->appendMessageToQue(formatMessage(":", _serverName, " PONG ",
-                                                     _serverName,
-                                                     " :" + token.params[0]));
-            break;
-        case IRCCommand::KICK: {
-            auto it = _channels.find(token.params[0]);
-
-            if (it != _channels.end()) {
-                if (it->second.isOperator(client)) {
-                    auto clientTarget = _nick_to_client.find(token.params[1]);
-                    if (clientTarget != _nick_to_client.end()) {
-                        it->second.removeUser(clientTarget->second);
-                    } else {
-                        std::cerr << "No user in the channel. error code??"
-                                  << '\n';
-                    }
-                } else {
-                    std::cerr << "Who was calling kick was not a operator"
-                              << '\n';
-                }
-            } else {
-                std::cerr << "No channel with that name" << '\n';
-            }
-            break;
-        }
-        case IRCCommand::INVITE:
-            std::cerr << "Not impl yet INVITE" << '\n';
-            break;
-        case IRCCommand::MODE_I:
-            std::cerr << "Not impl yet MODE_I" << '\n';
-            break;
-        case IRCCommand::MODE_T:
-            std::cerr << "Not impl yet MODE_T" << '\n';
-            break;
-        case IRCCommand::MODE_K:
-            std::cerr << "Not impl yet MODE_K" << '\n';
-            break;
-        case IRCCommand::MODE_O:
-            std::cerr << "Not impl yet MODE_O" << '\n';
-            break;
-        case IRCCommand::MODE_L:
-            std::cerr << "Not impl yet MODE_L" << '\n';
-            break;
-        case IRCCommand::USERHOST: {
-            auto it = _nick_to_client.find(token.params[0]);
-
-            if (it != _nick_to_client.end()) {
-                std::shared_ptr<Client> targetClient = it->second;
-                std::string targetNick = targetClient->getNickname();
-
-                client->appendMessageToQue(formatMessage(
-                    ":", _serverName, " 302 ", clientNick, " :", targetNick,
-                    "=-", targetNick, "@", targetClient->getIP()));
-            } else {
-                std::cerr << "Server internal error: Could not found target "
-                             "user for USERHOST"
-                          << '\n';
-            }
-            break;
-        }
-        case IRCCommand::UNKNOW:
-            std::cerr << "Not impl yet UNKNOW" << '\n';
-            break;
     }
 }

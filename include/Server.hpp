@@ -57,13 +57,22 @@ class Server {
     void _clientAccepted(const std::shared_ptr<Client> &client) noexcept;
     void _clientMessage(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
-    void _pingClients() noexcept;
 
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _handleError(IRCMessage token, const std::shared_ptr<Client> &client);
     void _handleMessage(const IRCMessage &token,
                         const std::shared_ptr<Client> &client);
+
+  private:
+    void _handleNickname(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client);
+    void _handleUsername(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client);
+    void _handlePassword(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client);
+    void _handlePriv(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;
