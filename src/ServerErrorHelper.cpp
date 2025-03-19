@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 16:43:39 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 19:44:32 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,8 @@ void Server::_handleError(IRCMessage token,
         }
         case IRCCodes::USERNOTINCHANNEL:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, token.params[0], " ",
+                ":", _serverName, " ", errnoAsString, " ",
+                client->getNickname(), " ", token.params[0], " ",
                 token.params[1], " :They aren't on that channel"));
             break;
         case IRCCodes::NOTOCHANNEL:

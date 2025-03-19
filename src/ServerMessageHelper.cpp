@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 16:35:35 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 20:32:27 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.broadcastMessage(token.params[1], "PRIVMSG",
+            channel_it->second.broadcastMessage(" :" + token.params[1], "PRIVMSG",
                                                 client->getFullID());
         } else {
             IRCMessage newToken = token;
@@ -176,21 +176,22 @@ void Server::_handleKick(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
-        if (channel_it->second.isOperator(client)) {
-            auto clientTarget = _nick_to_client.find(token.params[1]);
+        auto userToKick = _nick_to_client.find(token.params[1]);
+        if (userToKick != _nick_to_client.end()) {
+            IRCCodes result =
+                channel_it->second.kickUser(userToKick->second, client);
 
-            if (clientTarget != _nick_to_client.end()) {
-                channel_it->second.removeUser(clientTarget->second);
-            } else {
+            if (result != IRCCodes::SUCCES) {
                 IRCMessage newToken = token;
 
-                newToken.setIRCCode(IRCCodes::USERNOTINCHANNEL);
-                _handleError(newToken, client);
+                newToken.setIRCCode(result);
+                _handleError(token, client);
+            } else {
             }
         } else {
             IRCMessage newToken = token;
 
-            newToken.setIRCCode(IRCCodes::CHANOPRIVSNEEDED);
+            newToken.setIRCCode(IRCCodes::USERNOTINCHANNEL);
             _handleError(newToken, client);
         }
     } else {

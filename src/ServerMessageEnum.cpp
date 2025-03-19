@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ServerMessageHelper.cpp                            :+:    :+:            */
+/*   ServerMessageEnum.cpp                              :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:30:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 19:17:37 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include <iostream>
 #include <memory>
 
-#include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
@@ -45,9 +44,8 @@ void Server::_handleMessage(const IRCMessage &token,
             break;
         case IRCCommand::PING:
             return _handlePing(token, client);
-        case IRCCommand::KICK: {
-            break;
-        }
+        case IRCCommand::KICK:
+            return _handleKick(token, client);
         case IRCCommand::INVITE:
             std::cerr << "Not impl yet INVITE" << '\n';
             break;

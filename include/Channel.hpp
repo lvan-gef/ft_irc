@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 19:13:40 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 19:27:08 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class Channel {
 
   public:
     IRCCodes addUser(const std::shared_ptr<Client> &client) noexcept;
-    void removeUser(const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:
     void banUser(const std::shared_ptr<Client> &client) noexcept;
@@ -66,6 +66,8 @@ class Channel {
     IRCCodes setTopic(const std::string &topic,
                       const std::shared_ptr<Client> &client) noexcept;
     bool inviteOnly() const noexcept;
+    IRCCodes kickUser(const std::shared_ptr<Client> &user,
+                      const std::shared_ptr<Client> &client);
 
   private:
     std::string _serverName;
