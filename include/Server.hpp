@@ -85,6 +85,22 @@ class Server {
                      const std::shared_ptr<Client> &client);
     void _handleKick(const IRCMessage &token,
                      const std::shared_ptr<Client> &client);
+    void _handleInvite(const IRCMessage &token,
+                       const std::shared_ptr<Client> &client);
+    void _handleModeI(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handleModeT(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handleModeK(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handleModeO(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handleModeL(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handleUserhost(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client);
+    void _handleUnknown(const IRCMessage &token,
+                        const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;
