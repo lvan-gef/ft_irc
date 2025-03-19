@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 16:49:01 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 20:33:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,11 +115,10 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
     return IRCCodes::SUCCES;
 }
 
-void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
+IRCCodes Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_users.begin(), _users.end(), client);
 
     if (it != _users.end()) {
-        std::cout << "remove user from the channel" << '\n';
         _users.erase(client);
         _usersActive = _users.size();
         removeOperator(client);
@@ -140,11 +139,10 @@ void Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
                 formatMessage(":", _serverName, " 366 ", client->getNickname(),
                               " ", _channelName, " :End of /NAMES list"));
         }
-    } else {
-        std::cerr << "User not in channel. send error code back??" << '\n';
-
-        // send error back
+        return IRCCodes::SUCCES;
     }
+
+    return IRCCodes::USERNOTINCHANNEL;
 }
 
 void Channel::banUser(const std::shared_ptr<Client> &client) noexcept {
@@ -262,7 +260,7 @@ void Channel::broadcastMessage(const std::string &message,
             }
         }
         client->appendMessageToQue(formatMessage(":", fullID, " ", type, " ",
-                                                 _channelName, " :", message));
+                                                 _channelName, message));
     }
 }
 
@@ -270,8 +268,7 @@ IRCCodes Channel::setTopic(const std::string &topic,
                            const std::shared_ptr<Client> &client) noexcept {
     if (isOperator(client)) {
         _topic = topic;
-        broadcastMessage(topic, "TOPIC",
-                         client->getFullID());
+        broadcastMessage(" :" + topic, "TOPIC", client->getFullID());
         return IRCCodes::SUCCES;
     }
 
@@ -280,4 +277,14 @@ IRCCodes Channel::setTopic(const std::string &topic,
 
 bool Channel::inviteOnly() const noexcept {
     return _inviteOnly;
+}
+
+IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
+                           const std::shared_ptr<Client> &client) {
+    std::cout << ">>>>>> KICK IT BABY" << '\n';
+    if (isOperator(client)) {
+        broadcastMessage(" :Bye", "KICK " + user->getNickname(), client->getFullID());
+    }
+
+    return IRCCodes::CHANOPRIVSNEEDED;
 }
