@@ -67,7 +67,7 @@ void Server::_handleError(IRCMessage token,
                 formatMessage(":", _serverName, " ", errnoAsString,
                               token.params[0], " :No text to send"));
             break;
-        case IRCCodes::UNKNOWCOMMAND:
+        case IRCCodes::UNKNOWNCOMMAND:
             client->appendMessageToQue(
                 formatMessage(":", _serverName, " ", errnoAsString,
                               token.command, " :Unknow command"));
