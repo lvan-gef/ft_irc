@@ -86,6 +86,10 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
         return IRCCodes::CHANNELISFULL;
     }
 
+    if (_inviteOnly) {
+        return IRCCodes::INVITEONLYCHAN;
+    }
+
     _users.emplace(client);
     _usersActive = _users.size();
 

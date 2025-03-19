@@ -34,88 +34,18 @@ void Server::_handleMessage(const IRCMessage &token,
             return _handlePassword(token, client);
         case IRCCommand::PRIVMSG:
             return _handlePriv(token, client);
-        case IRCCommand::JOIN: {
-            auto channel_it = _channels.find(token.params[0]);
-            if (channel_it == _channels.end()) {
-                std::string topic =
-                    token.params.size() > 1 ? token.params[1] : "Default";
-                _channels.emplace(
-                    token.params[0],
-                    Channel(_serverName, token.params[0], topic, client));
-            } else {
-                if (channel_it->second.inviteOnly()) {
-                    IRCMessage newToken = token;
-                    newToken.setIRCCode(IRCCodes::INVITEONLYCHAN);
-
-                    _handleError(token, client);
-                } else {
-                    IRCCodes addResult = channel_it->second.addUser(client);
-                    if (addResult != IRCCodes::SUCCES) {
-                        IRCMessage newToken = token;
-                        newToken.setIRCCode(addResult);
-
-                        _handleError(token, client);
-                    }
-                }
-            }
-            break;
-        }
-        case IRCCommand::TOPIC: {
-            auto it = _channels.find(token.params[0]);
-
-            if (it != _channels.end()) {
-                it->second.setTopic(token.params[1]);
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
-
-                _handleError(newToken, client);
-            }
-            break;
-        }
-        case IRCCommand::PART: {
-            auto it = _channels.find(token.params[0]);
-
-            if (it != _channels.end()) {
-                it->second.removeUser(client);
-                if (it->second.usersActive() == 0) {
-                    _channels.erase(it->second.channelName());
-                }
-            } else {
-                IRCMessage newToken = token;
-                newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
-
-                _handleError(newToken, client);
-            }
-            break;
-        }
+        case IRCCommand::JOIN:
+            return _handleJoin(token, client);
+        case IRCCommand::TOPIC:
+            return _handleTopic(token, client);
+        case IRCCommand::PART:
+            return _handlePart(token, client);
         case IRCCommand::QUIT:
-            _removeClient(client);
+            _removeClient(client);  // mark user for removeing§
             break;
         case IRCCommand::PING:
-            client->appendMessageToQue(formatMessage(":", _serverName, " PONG ",
-                                                     _serverName,
-                                                     " :" + token.params[0]));
-            break;
+            return _handlePing(token, client);
         case IRCCommand::KICK: {
-            auto it = _channels.find(token.params[0]);
-
-            if (it != _channels.end()) {
-                if (it->second.isOperator(client)) {
-                    auto clientTarget = _nick_to_client.find(token.params[1]);
-                    if (clientTarget != _nick_to_client.end()) {
-                        it->second.removeUser(clientTarget->second);
-                    } else {
-                        std::cerr << "No user in the channel. error code??"
-                                  << '\n';
-                    }
-                } else {
-                    std::cerr << "Who was calling kick was not a operator"
-                              << '\n';
-                }
-            } else {
-                std::cerr << "No channel with that name" << '\n';
-            }
             break;
         }
         case IRCCommand::INVITE:

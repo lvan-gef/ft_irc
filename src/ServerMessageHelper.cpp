@@ -91,6 +91,7 @@ void Server::_handlePriv(const IRCMessage &token,
         }
     } else {
         auto nick_it = _nick_to_client.find(token.params[0]);
+
         if (nick_it != _nick_to_client.end()) {
             std::shared_ptr<Client> targetClient = nick_it->second;
 
@@ -103,5 +104,93 @@ void Server::_handlePriv(const IRCMessage &token,
 
             _handleError(newToken, client);
         }
+    }
+}
+
+void Server::_handleJoin(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+
+    if (channel_it == _channels.end()) {
+        std::string topic =
+            token.params.size() > 1 ? token.params[1] : "Default";
+        _channels.emplace(token.params[0],
+                          Channel(_serverName, token.params[0], topic, client));
+    } else {
+        IRCCodes addResult = channel_it->second.addUser(client);
+
+        if (addResult != IRCCodes::SUCCES) {
+            IRCMessage newToken = token;
+            newToken.setIRCCode(addResult);
+
+            _handleError(token, client);
+        }
+    }
+}
+
+void Server::_handleTopic(const IRCMessage &token,
+                          const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+
+    if (channel_it != _channels.end()) {
+        channel_it->second.setTopic(token.params[1]);
+    } else {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+
+        _handleError(newToken, client);
+    }
+}
+
+void Server::_handlePart(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+
+    if (channel_it != _channels.end()) {
+        channel_it->second.removeUser(client);
+        if (channel_it->second.usersActive() == 0) {
+            _channels.erase(channel_it->second.channelName());
+        }
+    } else {
+        IRCMessage newToken = token;
+        newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+
+        _handleError(newToken, client);
+    }
+}
+
+void Server::_handlePing(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) {
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " PONG ", _serverName, " :" + token.params[0]));
+}
+
+void Server::_handleKick(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+
+    if (channel_it != _channels.end()) {
+        if (channel_it->second.isOperator(client)) {
+            auto clientTarget = _nick_to_client.find(token.params[1]);
+
+            if (clientTarget != _nick_to_client.end()) {
+                channel_it->second.removeUser(clientTarget->second);
+            } else {
+                IRCMessage newToken = token;
+
+                newToken.setIRCCode(IRCCodes::USERNOTINCHANNEL);
+                _handleError(newToken, client);
+            }
+        } else {
+            IRCMessage newToken = token;
+
+            newToken.setIRCCode(IRCCodes::CHANOPRIVSNEEDED);
+            _handleError(newToken, client);
+        }
+    } else {
+        IRCMessage newToken = token;
+
+        newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
+        _handleError(newToken, client);
     }
 }

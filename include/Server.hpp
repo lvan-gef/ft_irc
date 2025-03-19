@@ -73,6 +73,18 @@ class Server {
                          const std::shared_ptr<Client> &client);
     void _handlePriv(const IRCMessage &token,
                      const std::shared_ptr<Client> &client);
+    void _handleJoin(const IRCMessage &token,
+                     const std::shared_ptr<Client> &client);
+    void _handleTopic(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client);
+    void _handlePart(const IRCMessage &token,
+                     const std::shared_ptr<Client> &client);
+    void _handleQuit(const IRCMessage &token,
+                     const std::shared_ptr<Client> &client);
+    void _handlePing(const IRCMessage &token,
+                     const std::shared_ptr<Client> &client);
+    void _handleKick(const IRCMessage &token,
+                     const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;
