@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:50:07 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 19:04:33 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
+#include "Client.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -242,8 +243,9 @@ void Server::_run() {
                         break;
                     }
                 }
+
                 epoll_event ev = client->getEvent();
-                if (client->haveMessagesToSend()) {
+                if (client->haveMessagesToSend() != true) {
                     ev.events = EPOLLIN;
                 }
                 if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(),
@@ -450,6 +452,18 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             _handleError(token, client);
         } else {
             _handleMessage(token, client);
+        }
+    }
+
+    for (const auto &user : _nick_to_client) {
+        if (user.second->haveMessagesToSend()) {
+            epoll_event ev = user.second->getEvent();
+            ev.events = EPOLLIN | EPOLLOUT;
+            if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, user.second->getFD(),
+                          &ev) == -1) {
+                std::cerr << "Failed to update epoll event: " << strerror(errno)
+                          << '\n';
+            }
         }
     }
 }
