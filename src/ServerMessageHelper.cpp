@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 20:32:27 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 20:41:12 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,6 @@ void Server::_handleKick(const IRCMessage &token,
 
                 newToken.setIRCCode(result);
                 _handleError(token, client);
-            } else {
             }
         } else {
             IRCMessage newToken = token;
