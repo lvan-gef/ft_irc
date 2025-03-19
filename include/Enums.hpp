@@ -64,7 +64,7 @@ enum class IRCCodes : std::int16_t {
     NOTEXTTOSEND = 412,
     /*NOTOPLEVEL = 413,  // not sure if we need to impl it*/
     /*WILDTOPLEVEL = 414, // not sure if we need to impl it*/
-    UNKNOWCOMMAND = 421,
+    UNKNOWNCOMMAND = 421,
     /*NOADMININFO = 423,  // think we dont need to impl this*/
     FILEERROR = 424, // only for bonus we need to impl thid
     NONICK = 431,
