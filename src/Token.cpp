@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 19:41:36 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 16:16:20 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,15 +58,16 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
 
 IRCCommand getCommand(const std::string &command) {
     static const std::unordered_map<std::string, IRCCommand> commandMap = {
-        {"NICK", IRCCommand::NICK},     {"USER", IRCCommand::USER},
-        {"PASS", IRCCommand::PASS},     {"PRIVMSG", IRCCommand::PRIVMSG},
-        {"JOIN", IRCCommand::JOIN},     {"PART", IRCCommand::PART},
-        {"QUIT", IRCCommand::QUIT},     {"PING", IRCCommand::PING},
-        {"KICK", IRCCommand::KICK},     {"INVITE", IRCCommand::INVITE},
-        {"MODE_I", IRCCommand::MODE_I}, {"MODE_T", IRCCommand::MODE_T},
-        {"MODE_K", IRCCommand::MODE_K}, {"MODE_O", IRCCommand::MODE_O},
-        {"MODE_L", IRCCommand::MODE_L}, {"USERHOST", IRCCommand::USERHOST},
-        {"UNKNOW", IRCCommand::UNKNOW}};
+
+        {"NICK", IRCCommand::NICK},         {"USER", IRCCommand::USER},
+        {"PASS", IRCCommand::PASS},         {"PRIVMSG", IRCCommand::PRIVMSG},
+        {"JOIN", IRCCommand::JOIN},         {"TOPIC", IRCCommand::TOPIC},
+        {"PART", IRCCommand::PART},         {"QUIT", IRCCommand::QUIT},
+        {"PING", IRCCommand::PING},         {"KICK", IRCCommand::KICK},
+        {"INVITE", IRCCommand::INVITE},     {"MODE_I", IRCCommand::MODE_I},
+        {"MODE_T", IRCCommand::MODE_T},     {"MODE_K", IRCCommand::MODE_K},
+        {"MODE_O", IRCCommand::MODE_O},     {"MODE_L", IRCCommand::MODE_L},
+        {"USERHOST", IRCCommand::USERHOST}, {"UNKNOW", IRCCommand::UNKNOW}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {
