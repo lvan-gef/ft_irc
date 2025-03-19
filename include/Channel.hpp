@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:29:57 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 19:13:40 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,11 +59,12 @@ class Channel {
     std::string allUsersInChannel() const noexcept;
 
   public:
-    void broadcastMessage(const std::string &message,
+    void broadcastMessage(const std::string &message, const std::string &type,
                           const std::string &fullID) const noexcept;
 
   public:
-    void setTopic(const std::string &topic) noexcept;
+    IRCCodes setTopic(const std::string &topic,
+                      const std::shared_ptr<Client> &client) noexcept;
     bool inviteOnly() const noexcept;
 
   private:

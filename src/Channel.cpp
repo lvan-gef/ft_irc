@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:46:19 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 16:49:01 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,17 +253,29 @@ std::string Channel::allUsersInChannel() const noexcept {
 }
 
 void Channel::broadcastMessage(const std::string &message,
+                               const std::string &type,
                                const std::string &fullID) const noexcept {
     for (const std::shared_ptr<Client> &client : _users) {
-        if (client->getFullID() != fullID) {
-            client->appendMessageToQue(formatMessage(
-                ":", fullID, " PRIVMSG ", _channelName, " :", message));
+        if (type == "PRIVMSG") {
+            if (fullID == client->getFullID()) {
+                continue;
+            }
         }
+        client->appendMessageToQue(formatMessage(":", fullID, " ", type, " ",
+                                                 _channelName, " :", message));
     }
 }
 
-void Channel::setTopic(const std::string &topic) noexcept {
-    _topic = topic;
+IRCCodes Channel::setTopic(const std::string &topic,
+                           const std::shared_ptr<Client> &client) noexcept {
+    if (isOperator(client)) {
+        _topic = topic;
+        broadcastMessage(topic, "TOPIC",
+                         client->getFullID());
+        return IRCCodes::SUCCES;
+    }
+
+    return IRCCodes::CHANOPRIVSNEEDED;
 }
 
 bool Channel::inviteOnly() const noexcept {
