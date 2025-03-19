@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:03:05 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 16:43:39 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,9 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCodes::NOSUCHNICK:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString, " ", client->getNickname(), " ",
-                              token.params[0], " :No such nick/channel"));
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
+                              client->getNickname(), " ", token.params[0],
+                              " :No such nick/channel"));
             break;
         case IRCCodes::NOSUCHCHANNEL:
             client->appendMessageToQue(
@@ -167,9 +168,10 @@ void Server::_handleError(IRCMessage token,
                 " :Permission Denied- You're not an IRC operator"));
             break;
         case IRCCodes::CHANOPRIVSNEEDED:
-            client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, token.params[1],
-                " :You're not channel operator"));
+            client->appendMessageToQue(
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
+                              client->getNickname(), " ", token.params[0],
+                              " :You're not channel operator"));
             break;
         case IRCCodes::UMODEUNKNOWNFLAG:
             client->appendMessageToQue(formatMessage(

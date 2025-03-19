@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 21:30:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 16:35:35 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.broadcastMessage(token.params[1],
+            channel_it->second.broadcastMessage(token.params[1], "PRIVMSG",
                                                 client->getFullID());
         } else {
             IRCMessage newToken = token;
@@ -133,7 +133,13 @@ void Server::_handleTopic(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
-        channel_it->second.setTopic(token.params[1]);
+        IRCCodes result = channel_it->second.setTopic(token.params[1], client);
+        if (result != IRCCodes::SUCCES) {
+            IRCMessage newToken = token;
+            newToken.setIRCCode(result);
+
+            _handleError(newToken, client);
+        }
     } else {
         IRCMessage newToken = token;
         newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
