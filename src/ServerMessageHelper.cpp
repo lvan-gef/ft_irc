@@ -81,8 +81,8 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.broadcastMessage(" :" + token.params[1], "PRIVMSG",
-                                                client->getFullID());
+            channel_it->second.broadcastMessage(" :" + token.params[1],
+                                                "PRIVMSG", client->getFullID());
         } else {
             IRCMessage newToken = token;
             newToken.setIRCCode(IRCCodes::NOSUCHCHANNEL);
@@ -182,6 +182,13 @@ void Server::_handleKick(const IRCMessage &token,
                 channel_it->second.kickUser(userToKick->second, client);
 
             if (result != IRCCodes::SUCCES) {
+                if (result == IRCCodes::UNKNOWCOMMAND) {
+                    // when it trys to kick himself
+                    client->appendMessageToQue(formatMessage(
+                        _serverName, "NOTICE", client->getNickname(),
+                        " :You cannot kick yourself from the channel"));
+                    return;
+                }
                 IRCMessage newToken = token;
 
                 newToken.setIRCCode(result);

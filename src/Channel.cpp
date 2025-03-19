@@ -283,7 +283,7 @@ IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
                            const std::shared_ptr<Client> &client) {
     if (isOperator(client)) {
         if (user == client) {
-            return IRCCodes::NOSUCHNICK;  // need see what we really have to give back
+            return IRCCodes::UNKNOWCOMMAND;
         }
         broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ", client->getFullID());
         removeUser(user);
