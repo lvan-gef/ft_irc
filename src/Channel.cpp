@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 20:41:12 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/19 20:54:32 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,9 +281,12 @@ bool Channel::inviteOnly() const noexcept {
 
 IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
                            const std::shared_ptr<Client> &client) {
-    std::cout << ">>>>>> KICK IT BABY" << '\n';
     if (isOperator(client)) {
+        if (user == client) {
+            return IRCCodes::NOSUCHNICK;  // need see what we really have to give back
+        }
         broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ", client->getFullID());
+        removeUser(user);
     }
 
     return IRCCodes::CHANOPRIVSNEEDED;
