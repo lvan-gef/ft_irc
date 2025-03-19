@@ -155,18 +155,43 @@ void Server::_handleKick(const IRCMessage &token,
             if (result != IRCCodes::SUCCES) {
                 if (result == IRCCodes::UNKNOWNCOMMAND) {
                     // when it trys to kick himself
+                    // does not show up in channel, only in global
                     client->appendMessageToQue(formatMessage(
-                        _serverName, "NOTICE", client->getNickname(),
+                        _serverName, " NOTICE ", client->getNickname(), " ",
+                        channel_it->second.channelName(),
                         " :You cannot kick yourself from the channel"));
                     return;
                 }
                 _handleError(formatError(token, result), client);
             }
         } else {
-            _handleError(formatError(token, IRCCodes::USERNOTINCHANNEL), client);
+            _handleError(formatError(token, IRCCodes::USERNOTINCHANNEL),
+                         client);
         }
     } else {
         _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
+    }
+}
+
+void Server::_handleInvite(const IRCMessage &token,
+                           const std::shared_ptr<Client> &client) {
+
+    auto targetUser_it = _nick_to_client.find(token.params[0]);
+    if (targetUser_it == _nick_to_client.end()) {
+        _handleError(formatError(token, IRCCodes::NOSUCHNICK), client);
+        return;
+    }
+
+    auto channel_it = _channels.find(token.params[1]);
+    if (channel_it == _channels.end()) {
+        _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
+        return;
+    }
+
+    IRCCodes result =
+        channel_it->second.inviteUser(targetUser_it->second, client);
+    if (result != IRCCodes::SUCCES) {
+        _handleError(formatError(token, result), client);
     }
 }
 

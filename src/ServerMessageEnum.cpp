@@ -47,8 +47,7 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::KICK:
             return _handleKick(token, client);
         case IRCCommand::INVITE:
-            std::cerr << "Not impl yet INVITE" << '\n';
-            break;
+            return _handleInvite(token, client);
         case IRCCommand::MODE_I:
             std::cerr << "Not impl yet MODE_I" << '\n';
             break;

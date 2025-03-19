@@ -280,7 +280,7 @@ bool Channel::inviteOnly() const noexcept {
 }
 
 IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
-                           const std::shared_ptr<Client> &client) {
+                           const std::shared_ptr<Client> &client) noexcept {
     if (isOperator(client)) {
         if (user == client) {
             return IRCCodes::UNKNOWNCOMMAND;
@@ -290,4 +290,14 @@ IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
     }
 
     return IRCCodes::CHANOPRIVSNEEDED;
+}
+
+IRCCodes Channel::inviteUser(const std::shared_ptr<Client> &user,
+                        const std::shared_ptr<Client> &client) noexcept {
+
+    if (isOperator(client) != true) {
+        return IRCCodes::CHANOPRIVSNEEDED;
+    }
+
+    return addUser(user);
 }

@@ -67,7 +67,9 @@ class Channel {
                       const std::shared_ptr<Client> &client) noexcept;
     bool inviteOnly() const noexcept;
     IRCCodes kickUser(const std::shared_ptr<Client> &user,
-                      const std::shared_ptr<Client> &client);
+                      const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes inviteUser(const std::shared_ptr<Client> &user,
+                        const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::string _serverName;
