@@ -22,8 +22,6 @@
 void Server::_handleMessage(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
 
-    std::string clientNick = client->getNickname();
-
     switch (token.type) {
         case IRCCommand::NICK:
             return _handleNickname(token, client);
@@ -72,7 +70,7 @@ void Server::_handleMessage(const IRCMessage &token,
                 std::string targetNick = targetClient->getNickname();
 
                 client->appendMessageToQue(formatMessage(
-                    ":", _serverName, " 302 ", clientNick, " :", targetNick,
+                    ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
                     "=-", targetNick, "@", targetClient->getIP()));
             } else {
                 std::cerr << "Server internal error: Could not found target "
