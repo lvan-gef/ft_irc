@@ -191,7 +191,7 @@ void Client::removeAllChannels() noexcept {
     }
 }
 
-std::vector<std::string> Client::allChannels() noexcept {
+const std::vector<std::string> &Client::allChannels() noexcept {
     return _channels;
 }
 
