@@ -40,7 +40,7 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::PART:
             return _handlePart(token, client);
         case IRCCommand::QUIT:
-            _removeClient(client);  // mark user for removeing§
+            _removeClient(client); // mark user for removeing§
             break;
         case IRCCommand::PING:
             return _handlePing(token, client);

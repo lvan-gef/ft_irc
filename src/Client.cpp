@@ -30,8 +30,8 @@ Client::Client(int fd)
 
 Client::Client(Client &&rhs) noexcept
     : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
-      _nickname(std::move(rhs._nickname)),
-      _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
+      _nickname(std::move(rhs._nickname)), _ip(std::move(rhs._ip)),
+      _partial_buffer(std::move(rhs._partial_buffer)),
       _messages(std::move(rhs._messages)), _offset(rhs._offset),
       _event(rhs._event), _last_seen(rhs._last_seen),
       _channels(std::move(rhs._channels)) {
@@ -124,7 +124,6 @@ bool Client::getPasswordBit() const noexcept {
 
 std::string Client::getFullID() const noexcept {
     return getNickname() + "!" + getUsername() + "@" + getIP();
-
 }
 
 void Client::setIP(const std::string &ip) noexcept {

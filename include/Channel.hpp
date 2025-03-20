@@ -51,9 +51,9 @@ class Channel {
     void addOperator(const std::shared_ptr<Client> &client) noexcept;
     void removeOperator(const std::shared_ptr<Client> &client) noexcept;
 
-
-public:
-    IRCCodes modeI(const std::string &state, const std::shared_ptr<Client> &client) noexcept;
+  public:
+    IRCCodes modeI(const std::string &state,
+                   const std::shared_ptr<Client> &client) noexcept;
 
   public:
     size_t usersActive() const noexcept;

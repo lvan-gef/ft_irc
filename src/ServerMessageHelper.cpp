@@ -197,7 +197,7 @@ void Server::_handleInvite(const IRCMessage &token,
 }
 
 void Server::_handleModeI(const IRCMessage &token,
-                  const std::shared_ptr<Client> &client) {
+                          const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
         _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
