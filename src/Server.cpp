@@ -10,13 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <csignal>
 #include <cstring>
 #include <iostream>
-#include <iterator>
 #include <memory>
 #include <ostream>
 #include <stdexcept>
