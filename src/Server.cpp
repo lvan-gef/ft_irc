@@ -10,11 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <csignal>
 #include <cstring>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <ostream>
 #include <stdexcept>
@@ -29,10 +31,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "../include/Client.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
-#include "Client.hpp"
 
 static std::atomic<bool> g_running{true};
 
