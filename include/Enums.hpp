@@ -41,6 +41,7 @@ enum class IRCCommand : std::uint16_t {
     PING,
     KICK,
     INVITE,
+    MODE,
     MODE_I,
     MODE_T,
     MODE_K,

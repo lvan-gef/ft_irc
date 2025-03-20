@@ -168,6 +168,22 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
     }
 }
 
+IRCCodes Channel::modeI(const std::string &state,
+                        const std::shared_ptr<Client> &client) noexcept {
+    if (_isOperator(client) != true) {
+        return IRCCodes::CHANOPRIVSNEEDED;
+    }
+
+    std::cout << "'" << state[0] << "'" << '\n';
+    if (state[0] == '-') {
+        _inviteOnly = false;
+    } else {
+        _inviteOnly = true;
+    }
+
+    return IRCCodes::SUCCES;
+}
+
 size_t Channel::usersActive() const noexcept {
     return _usersActive;
 }

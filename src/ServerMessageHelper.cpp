@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 
 #include "../include/Channel.hpp"
@@ -193,6 +194,28 @@ void Server::_handleInvite(const IRCMessage &token,
     if (result != IRCCodes::SUCCES) {
         _handleError(formatError(token, result), client);
     }
+}
+
+void Server::_handleModeI(const IRCMessage &token,
+                  const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
+        return;
+    }
+
+    if (token.params.size() < 2) {
+        std::cerr << "We need this now because i'm testing something" << '\n';
+        return;
+    }
+
+    IRCCodes result = channel_it->second.modeI(token.params[1], client);
+    if (result != IRCCodes::SUCCES) {
+        _handleError(formatError(token, result), client);
+        return;
+    }
+
+    // send message to channel that it is invite only?
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCodes newCode) {
