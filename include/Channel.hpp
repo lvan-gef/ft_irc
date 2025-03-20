@@ -71,6 +71,7 @@ class Channel {
     bool _isInviteOnly() const noexcept;
     void _broadcastMessage(const std::string &message, const std::string &type,
                            const std::string &userID) const noexcept;
+    IRCCodes _addUser(const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::string _allUsersInChannel() const noexcept;

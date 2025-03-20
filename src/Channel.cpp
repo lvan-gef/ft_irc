@@ -63,56 +63,12 @@ void Channel::init(const std::shared_ptr<Client> &client) {
 }
 
 IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
-    std::string nickname = client->getNickname();
-    auto it = std::find(_users.begin(), _users.end(), client);
-
-    if (it != _users.end()) {
-        /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
-        /*                           _channelName, " :is already on channel");*/
-        return IRCCodes::USERONCHANNEL;
-    }
-
-    if (_isBannedUser(client)) {
-        /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
-        /*                           _channelName, " :Cannot join channel
-         * (+b)");*/
-        return IRCCodes::BANNEDFROMCHAN;
-    }
-
-    if (_usersActive >= _userLimit) {
-        /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
-        /*                           _channelName, " :Cannot join channel
-         * (+l)");*/
-        return IRCCodes::CHANNELISFULL;
-    }
 
     if (_isInviteOnly()) {
         return IRCCodes::INVITEONLYCHAN;
     }
 
-    _users.emplace(client);
-    _usersActive = _users.size();
-
-    std::string userList = _allUsersInChannel();
-    std::string joinMessage = ":" + client->getNickname() + "!" +
-                              client->getUsername() + "@" + client->getIP() +
-                              " JOIN " + _channelName;
-    for (const std::shared_ptr<Client> &user : _users) {
-        user->appendMessageToQue(formatMessage(joinMessage));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 332 ",
-                                               nickname, " ", _channelName,
-                                               " :", _topic));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 353 ",
-                                               nickname, " = ", _channelName,
-                                               " :", userList));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 366 ",
-                                               nickname, " ", _channelName,
-                                               " :End of /NAMES list"));
-    }
-
-    std::cout << "User: " << nickname
-              << " is added to channel: " << _channelName << '\n';
-    return IRCCodes::SUCCES;
+    return _addUser(client);
 }
 
 IRCCodes Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
@@ -257,7 +213,7 @@ IRCCodes Channel::inviteUser(const std::shared_ptr<Client> &user,
         return IRCCodes::CHANOPRIVSNEEDED;
     }
 
-    return addUser(user);
+    return _addUser(user);
 }
 
 bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {
@@ -285,15 +241,6 @@ bool Channel::_isInviteOnly() const noexcept {
     return _inviteOnly;
 }
 
-std::string Channel::_allUsersInChannel() const noexcept {
-    std::string userList;
-    for (const std::shared_ptr<Client> &user : _users) {
-        userList += (_isOperator(user) ? "@" : "") + user->getNickname() + " ";
-    }
-
-    return userList;
-}
-
 void Channel::_broadcastMessage(const std::string &message,
                                 const std::string &type,
                                 const std::string &userID) const noexcept {
@@ -304,4 +251,52 @@ void Channel::_broadcastMessage(const std::string &message,
         client->appendMessageToQue(
             formatMessage(":", userID, " ", type, " ", _channelName, message));
     }
+}
+
+IRCCodes Channel::_addUser(const std::shared_ptr<Client> &client) noexcept {
+    std::string nickname = client->getNickname();
+    auto it = std::find(_users.begin(), _users.end(), client);
+
+    if (it != _users.end()) {
+        return IRCCodes::USERONCHANNEL;
+    }
+
+    if (_isBannedUser(client)) {
+        return IRCCodes::BANNEDFROMCHAN;
+    }
+
+    if (_usersActive >= _userLimit) {
+        return IRCCodes::CHANNELISFULL;
+    }
+
+    _users.emplace(client);
+    _usersActive = _users.size();
+
+    std::string userList = _allUsersInChannel();
+    std::string joinMessage = ":" + client->getNickname() + "!" +
+                              client->getUsername() + "@" + client->getIP() +
+                              " JOIN " + _channelName;
+    for (const std::shared_ptr<Client> &user : _users) {
+        user->appendMessageToQue(formatMessage(joinMessage));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 332 ",
+                                               nickname, " ", _channelName,
+                                               " :", _topic));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 353 ",
+                                               nickname, " = ", _channelName,
+                                               " :", userList));
+        user->appendMessageToQue(formatMessage(":", _serverName, " 366 ",
+                                               nickname, " ", _channelName,
+                                               " :End of /NAMES list"));
+    }
+
+    return IRCCodes::SUCCES;
+}
+
+std::string Channel::_allUsersInChannel() const noexcept {
+    std::string userList;
+    for (const std::shared_ptr<Client> &user : _users) {
+        userList += (_isOperator(user) ? "@" : "") + user->getNickname() + " ";
+    }
+
+    return userList;
 }
