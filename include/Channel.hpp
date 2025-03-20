@@ -46,30 +46,34 @@ class Channel {
   public:
     void banUser(const std::shared_ptr<Client> &client) noexcept;
     void unbanUser(const std::shared_ptr<Client> &client) noexcept;
-    bool isBannedUser(const std::shared_ptr<Client> &client) const noexcept;
 
   public:
     void addOperator(const std::shared_ptr<Client> &client) noexcept;
     void removeOperator(const std::shared_ptr<Client> &client) noexcept;
-    bool isOperator(const std::shared_ptr<Client> &client) const noexcept;
 
   public:
     size_t usersActive() const noexcept;
     std::string channelName() const noexcept;
-    std::string allUsersInChannel() const noexcept;
 
   public:
-    void broadcastMessage(const std::string &message, const std::string &type,
-                          const std::string &fullID) const noexcept;
-
-  public:
+    void sendMessage(const std::string &message,
+                     const std::string &userID) noexcept;
     IRCCodes setTopic(const std::string &topic,
                       const std::shared_ptr<Client> &client) noexcept;
-    bool inviteOnly() const noexcept;
     IRCCodes kickUser(const std::shared_ptr<Client> &user,
                       const std::shared_ptr<Client> &client) noexcept;
     IRCCodes inviteUser(const std::shared_ptr<Client> &user,
                         const std::shared_ptr<Client> &client) noexcept;
+
+  private:
+    bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
+    bool _isBannedUser(const std::shared_ptr<Client> &user) const noexcept;
+    bool _isInviteOnly() const noexcept;
+    void _broadcastMessage(const std::string &message, const std::string &type,
+                           const std::string &userID) const noexcept;
+
+  private:
+    std::string _allUsersInChannel() const noexcept;
 
   private:
     std::string _serverName;

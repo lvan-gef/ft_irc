@@ -72,7 +72,7 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
         return IRCCodes::USERONCHANNEL;
     }
 
-    if (isBannedUser(client)) {
+    if (_isBannedUser(client)) {
         /*client->appendMessageToQue(_epoll_fd.get(), ", nickname, " ",*/
         /*                           _channelName, " :Cannot join channel
          * (+b)");*/
@@ -86,14 +86,14 @@ IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
         return IRCCodes::CHANNELISFULL;
     }
 
-    if (_inviteOnly) {
+    if (_isInviteOnly()) {
         return IRCCodes::INVITEONLYCHAN;
     }
 
     _users.emplace(client);
     _usersActive = _users.size();
 
-    std::string userList = allUsersInChannel();
+    std::string userList = _allUsersInChannel();
     std::string joinMessage = ":" + client->getNickname() + "!" +
                               client->getUsername() + "@" + client->getIP() +
                               " JOIN " + _channelName;
@@ -130,7 +130,7 @@ IRCCodes Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
             user->appendMessageToQue(formatMessage(partMessage));
         }
 
-        std::string userList = allUsersInChannel();
+        std::string userList = _allUsersInChannel();
         for (const std::shared_ptr<Client> &user : _users) {
             user->appendMessageToQue(
                 formatMessage(":", _serverName, " 353 ", client->getNickname(),
@@ -170,22 +170,11 @@ void Channel::unbanUser(const std::shared_ptr<Client> &client) noexcept {
     }
 }
 
-bool Channel::isBannedUser(
-    const std::shared_ptr<Client> &client) const noexcept {
-    auto it = std::find(_banned.begin(), _banned.end(), client);
-
-    if (it != _banned.end()) {
-        return true;
-    }
-
-    return false;
-}
-
 void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_operators.begin(), _operators.end(), client);
 
     if (it == _operators.end()) {
-        if (isBannedUser(client)) {
+        if (_isBannedUser(client)) {
             std::cerr << "User: " << client
                       << " is banned from the channel: " << _channelName
                       << '\n';
@@ -223,16 +212,6 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
     }
 }
 
-bool Channel::isOperator(const std::shared_ptr<Client> &client) const noexcept {
-    auto it = std::find(_operators.begin(), _operators.end(), client);
-
-    if (it != _operators.end()) {
-        return true;
-    }
-
-    return false;
-}
-
 size_t Channel::usersActive() const noexcept {
     return _usersActive;
 }
@@ -241,51 +220,30 @@ std::string Channel::channelName() const noexcept {
     return _channelName;
 }
 
-std::string Channel::allUsersInChannel() const noexcept {
-    std::string userList;
-    for (const std::shared_ptr<Client> &user : _users) {
-        userList += (isOperator(user) ? "@" : "") + user->getNickname() + " ";
-    }
-
-    return userList;
-}
-
-void Channel::broadcastMessage(const std::string &message,
-                               const std::string &type,
-                               const std::string &fullID) const noexcept {
-    for (const std::shared_ptr<Client> &client : _users) {
-        if (type == "PRIVMSG") {
-            if (fullID == client->getFullID()) {
-                continue;
-            }
-        }
-        client->appendMessageToQue(formatMessage(":", fullID, " ", type, " ",
-                                                 _channelName, message));
-    }
+void Channel::sendMessage(const std::string &message,
+                          const std::string &userID) noexcept {
+    _broadcastMessage(message, "PRIVMSG", userID);
 }
 
 IRCCodes Channel::setTopic(const std::string &topic,
                            const std::shared_ptr<Client> &client) noexcept {
-    if (isOperator(client)) {
+    if (_isOperator(client)) {
         _topic = topic;
-        broadcastMessage(" :" + topic, "TOPIC", client->getFullID());
+        _broadcastMessage(" :" + topic, "TOPIC", client->getFullID());
         return IRCCodes::SUCCES;
     }
 
     return IRCCodes::CHANOPRIVSNEEDED;
 }
 
-bool Channel::inviteOnly() const noexcept {
-    return _inviteOnly;
-}
-
 IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
                            const std::shared_ptr<Client> &client) noexcept {
-    if (isOperator(client)) {
+    if (_isOperator(client)) {
         if (user == client) {
             return IRCCodes::UNKNOWNCOMMAND;
         }
-        broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ", client->getFullID());
+        _broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ",
+                          client->getFullID());
         removeUser(user);
     }
 
@@ -293,11 +251,57 @@ IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
 }
 
 IRCCodes Channel::inviteUser(const std::shared_ptr<Client> &user,
-                        const std::shared_ptr<Client> &client) noexcept {
+                             const std::shared_ptr<Client> &client) noexcept {
 
-    if (isOperator(client) != true) {
+    if (_isOperator(client) != true) {
         return IRCCodes::CHANOPRIVSNEEDED;
     }
 
     return addUser(user);
+}
+
+bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {
+    auto it = std::find(_operators.begin(), _operators.end(), user);
+
+    if (it != _operators.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool Channel::_isBannedUser(
+    const std::shared_ptr<Client> &client) const noexcept {
+    auto it = std::find(_banned.begin(), _banned.end(), client);
+
+    if (it != _banned.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool Channel::_isInviteOnly() const noexcept {
+    return _inviteOnly;
+}
+
+std::string Channel::_allUsersInChannel() const noexcept {
+    std::string userList;
+    for (const std::shared_ptr<Client> &user : _users) {
+        userList += (_isOperator(user) ? "@" : "") + user->getNickname() + " ";
+    }
+
+    return userList;
+}
+
+void Channel::_broadcastMessage(const std::string &message,
+                                const std::string &type,
+                                const std::string &userID) const noexcept {
+    for (const std::shared_ptr<Client> &client : _users) {
+        if (type == "PRIVMSG" && userID == client->getFullID()) {
+            continue;
+        }
+        client->appendMessageToQue(
+            formatMessage(":", userID, " ", type, " ", _channelName, message));
+    }
 }
