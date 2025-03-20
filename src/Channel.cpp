@@ -188,7 +188,7 @@ size_t Channel::usersActive() const noexcept {
     return _usersActive;
 }
 
-std::string Channel::channelName() const noexcept {
+const std::string &Channel::channelName() const noexcept {
     return _channelName;
 }
 

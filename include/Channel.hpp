@@ -57,7 +57,7 @@ class Channel {
 
   public:
     size_t usersActive() const noexcept;
-    std::string channelName() const noexcept;
+    const std::string &channelName() const noexcept;
 
   public:
     void sendMessage(const std::string &message,
