@@ -70,8 +70,8 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.broadcastMessage(" :" + token.params[1],
-                                                "PRIVMSG", client->getFullID());
+            channel_it->second.sendMessage(" :" + token.params[1],
+                                           client->getFullID());
         } else {
             _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
         }
