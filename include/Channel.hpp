@@ -54,6 +54,8 @@ class Channel {
   public:
     IRCCodes modeI(const std::string &state,
                    const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes modeT(const std::string &state,
+                   const std::shared_ptr<Client> &client) noexcept;
 
   public:
     size_t usersActive() const noexcept;
@@ -62,12 +64,15 @@ class Channel {
   public:
     void sendMessage(const std::string &message,
                      const std::string &userID) noexcept;
-    IRCCodes setTopic(const std::string &topic,
-                      const std::shared_ptr<Client> &client) noexcept;
     IRCCodes kickUser(const std::shared_ptr<Client> &user,
                       const std::shared_ptr<Client> &client) noexcept;
     IRCCodes inviteUser(const std::shared_ptr<Client> &user,
                         const std::shared_ptr<Client> &client) noexcept;
+
+  public:
+    IRCCodes setTopic(const std::string &topic,
+                      const std::shared_ptr<Client> &client) noexcept;
+    const std::string getTopic() const noexcept;
 
   private:
     bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
@@ -89,6 +94,7 @@ class Channel {
 
   private:
     bool _inviteOnly;
+    bool _setTopicMode;
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;

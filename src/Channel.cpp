@@ -24,8 +24,8 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::string &channelTopic,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
-      _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false), _users{},
-      _banned{}, _operators{} {
+      _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
+      _setTopicMode(false), _users{}, _banned{}, _operators{} {
     init(client);
 }
 
@@ -33,8 +33,9 @@ Channel::Channel(Channel &&rhs) noexcept
     : _serverName(std::move(rhs._serverName)),
       _channelName(std::move(rhs._channelName)), _topic(std::move(rhs._topic)),
       _userLimit(rhs._userLimit), _usersActive(rhs._usersActive),
-      _inviteOnly(false), _users(std::move(rhs._users)),
-      _banned(std::move(rhs._banned)), _operators(std::move(rhs._operators)) {
+      _inviteOnly(rhs._inviteOnly), _setTopicMode(rhs._setTopicMode),
+      _users(std::move(rhs._users)), _banned(std::move(rhs._banned)),
+      _operators(std::move(rhs._operators)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -44,6 +45,8 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _topic = std::move(rhs._topic);
         _userLimit = rhs._userLimit;
         _usersActive = rhs._usersActive;
+        _inviteOnly = rhs._inviteOnly;
+        _setTopicMode = rhs._setTopicMode;
         _users = std::move(rhs._users);
         _banned = std::move(rhs._banned);
         _operators = std::move(rhs._operators);
@@ -174,11 +177,25 @@ IRCCodes Channel::modeI(const std::string &state,
         return IRCCodes::CHANOPRIVSNEEDED;
     }
 
-    std::cout << "'" << state[0] << "'" << '\n';
     if (state[0] == '-') {
         _inviteOnly = false;
     } else {
         _inviteOnly = true;
+    }
+
+    return IRCCodes::SUCCES;
+}
+
+IRCCodes Channel::modeT(const std::string &state,
+                        const std::shared_ptr<Client> &client) noexcept {
+    if (_isOperator(client) != true) {
+        return IRCCodes::CHANOPRIVSNEEDED;
+    }
+
+    if (state[0] == '-') {
+        _setTopicMode = false;
+    } else {
+        _setTopicMode = true;
     }
 
     return IRCCodes::SUCCES;
@@ -195,17 +212,6 @@ const std::string &Channel::channelName() const noexcept {
 void Channel::sendMessage(const std::string &message,
                           const std::string &userID) noexcept {
     _broadcastMessage(message, "PRIVMSG", userID);
-}
-
-IRCCodes Channel::setTopic(const std::string &topic,
-                           const std::shared_ptr<Client> &client) noexcept {
-    if (_isOperator(client)) {
-        _topic = topic;
-        _broadcastMessage(" :" + topic, "TOPIC", client->getFullID());
-        return IRCCodes::SUCCES;
-    }
-
-    return IRCCodes::CHANOPRIVSNEEDED;
 }
 
 IRCCodes Channel::kickUser(const std::shared_ptr<Client> &user,
@@ -230,6 +236,21 @@ IRCCodes Channel::inviteUser(const std::shared_ptr<Client> &user,
     }
 
     return _addUser(user);
+}
+
+IRCCodes Channel::setTopic(const std::string &topic,
+                           const std::shared_ptr<Client> &client) noexcept {
+    if (_isOperator(client) || _setTopicMode) {
+        _topic = topic.substr(1);
+        _broadcastMessage(" :" + _topic, "TOPIC", client->getFullID());
+        return IRCCodes::SUCCES;
+    }
+
+    return IRCCodes::CHANOPRIVSNEEDED;
+}
+
+const std::string Channel::getTopic() const noexcept {
+    return _topic;
 }
 
 bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {

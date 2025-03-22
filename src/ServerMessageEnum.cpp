@@ -47,12 +47,17 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::INVITE:
             return _handleInvite(token, client);
         case IRCCommand::MODE:
-            return _handleModeI(token, client);
+            if (token.params.size() < 2) {
+                std::cerr << "We need this now because i'm testing something"
+                          << '\n';
+                return;
+            }
+            return _handleModeT(token, client);
+            break;
         case IRCCommand::MODE_I:
             return _handleModeI(token, client);
         case IRCCommand::MODE_T:
-            std::cerr << "Not impl yet MODE_T" << '\n';
-            break;
+            return _handleModeT(token, client);
         case IRCCommand::MODE_K:
             std::cerr << "Not impl yet MODE_K" << '\n';
             break;
@@ -70,8 +75,8 @@ void Server::_handleMessage(const IRCMessage &token,
                 std::string targetNick = targetClient->getNickname();
 
                 client->appendMessageToQue(formatMessage(
-                    ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
-                    "=-", targetNick, "@", targetClient->getIP()));
+                    ":", _serverName, " 302 ", client->getNickname(), " :",
+                    targetNick, "=-", targetNick, "@", targetClient->getIP()));
             } else {
                 std::cerr << "Server internal error: Could not found target "
                              "user for USERHOST"

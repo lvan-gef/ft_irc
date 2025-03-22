@@ -109,11 +109,20 @@ void Server::_handleJoin(const IRCMessage &token,
     }
 }
 
+// need to make a case to view the topic
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
+        if (token.params.size() < 2) {
+            client->appendMessageToQue(
+                formatMessage(":", _serverName, " 332 ", client->getNickname(),
+                              " ", channel_it->second.channelName(), " :",
+                              channel_it->second.getTopic()));
+            return;
+        }
+
         IRCCodes result = channel_it->second.setTopic(token.params[1], client);
         if (result != IRCCodes::SUCCES) {
             _handleError(formatError(token, result), client);
@@ -204,18 +213,26 @@ void Server::_handleModeI(const IRCMessage &token,
         return;
     }
 
-    if (token.params.size() < 2) {
-        std::cerr << "We need this now because i'm testing something" << '\n';
-        return;
-    }
-
     IRCCodes result = channel_it->second.modeI(token.params[1], client);
     if (result != IRCCodes::SUCCES) {
         _handleError(formatError(token, result), client);
         return;
     }
+}
 
-    // send message to channel that it is invite only?
+void Server::_handleModeT(const IRCMessage &token,
+                          const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
+        return;
+    }
+
+    IRCCodes result = channel_it->second.modeT(token.params[1], client);
+    if (result != IRCCodes::SUCCES) {
+        _handleError(formatError(token, result), client);
+        return;
+    }
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCodes newCode) {
