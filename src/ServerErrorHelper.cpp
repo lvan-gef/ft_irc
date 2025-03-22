@@ -152,11 +152,6 @@ void Server::_handleError(IRCMessage token,
                 formatMessage(":", _serverName, " ", errnoAsString,
                               token.params[1], " :Cannot join channel (+i)"));
             break;
-        case IRCCodes::BANNEDFROMCHAN:
-            client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
-                              token.params[1], " :Cannot join channel (+b)"));
-            break;
         case IRCCodes::BADCHANNELKEY:
             client->appendMessageToQue(
                 formatMessage(":", _serverName, " ", errnoAsString, " ",

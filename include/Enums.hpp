@@ -87,7 +87,6 @@ enum class IRCCodes : std::int16_t {
     CHANNELISFULL = 471,
     UNKNOWMODE = 472,
     INVITEONLYCHAN = 473,
-    BANNEDFROMCHAN = 474,
     BADCHANNELKEY = 475,
     /*BADCHANMASK = 476,  // can not found it in the rfc*/
     NOPRIVILEGES = 481,

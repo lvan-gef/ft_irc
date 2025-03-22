@@ -25,7 +25,7 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
       _password(""), _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
-      _setTopicMode(false), _passwordProtected(false), _users{}, _banned{},
+      _setTopicMode(false), _passwordProtected(false), _users{},
       _operators{} {
     init(client);
 }
@@ -37,7 +37,7 @@ Channel::Channel(Channel &&rhs) noexcept
       _usersActive(rhs._usersActive), _inviteOnly(rhs._inviteOnly),
       _setTopicMode(rhs._setTopicMode),
       _passwordProtected(rhs._passwordProtected), _users(std::move(rhs._users)),
-      _banned(std::move(rhs._banned)), _operators(std::move(rhs._operators)) {
+       _operators(std::move(rhs._operators)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -51,7 +51,6 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _inviteOnly = rhs._inviteOnly;
         _setTopicMode = rhs._setTopicMode;
         _users = std::move(rhs._users);
-        _banned = std::move(rhs._banned);
         _operators = std::move(rhs._operators);
     }
 
@@ -76,7 +75,7 @@ IRCCodes Channel::addUser(const std::string &password, const std::shared_ptr<Cli
 
     if (_passwordProtected) {
         if (_checkPassword(password) != true) {
-            return IRCCodes::PASSWDMISMATCH;
+            return IRCCodes::BADCHANNELKEY;
         }
     }
 
@@ -113,43 +112,10 @@ IRCCodes Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
     return IRCCodes::USERNOTINCHANNEL;
 }
 
-void Channel::banUser(const std::shared_ptr<Client> &client) noexcept {
-    auto it = std::find(_banned.begin(), _banned.end(), client);
-
-    if (it != _banned.end()) {
-        // check if user is in channel
-        std::cout << "Add user to the ban list" << '\n';
-    } else {
-        std::cerr
-            << "User already in banned from channel. send error code back??"
-            << '\n';
-    }
-}
-
-void Channel::unbanUser(const std::shared_ptr<Client> &client) noexcept {
-    auto it = std::find(_banned.begin(), _banned.end(), client);
-
-    if (it != _banned.end()) {
-        std::cout << "Remove user from the ban list" << '\n';
-    } else {
-        std::cerr << "User was not in the ban list of the channel. send error "
-                     "code back?? "
-                  << '\n';
-    }
-}
-
 void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_operators.begin(), _operators.end(), client);
 
     if (it == _operators.end()) {
-        if (_isBannedUser(client)) {
-            std::cerr << "User: " << client
-                      << " is banned from the channel: " << _channelName
-                      << '\n';
-            // send back erro code??
-            return;
-        }
-
         _operators.emplace(client);
         client->appendMessageToQue(formatMessage(
             ":", _serverName, " NOTICE ", client->getNickname(), " ",
@@ -291,17 +257,6 @@ bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {
     return false;
 }
 
-bool Channel::_isBannedUser(
-    const std::shared_ptr<Client> &client) const noexcept {
-    auto it = std::find(_banned.begin(), _banned.end(), client);
-
-    if (it != _banned.end()) {
-        return true;
-    }
-
-    return false;
-}
-
 bool Channel::_isInviteOnly() const noexcept {
     return _inviteOnly;
 }
@@ -324,10 +279,6 @@ IRCCodes Channel::_addUser(const std::shared_ptr<Client> &client) noexcept {
 
     if (it != _users.end()) {
         return IRCCodes::USERONCHANNEL;
-    }
-
-    if (_isBannedUser(client)) {
-        return IRCCodes::BANNEDFROMCHAN;
     }
 
     if (_usersActive >= _userLimit) {

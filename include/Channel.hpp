@@ -45,10 +45,6 @@ class Channel {
     IRCCodes removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:
-    void banUser(const std::shared_ptr<Client> &client) noexcept;
-    void unbanUser(const std::shared_ptr<Client> &client) noexcept;
-
-  public:
     void addOperator(const std::shared_ptr<Client> &client) noexcept;
     void removeOperator(const std::shared_ptr<Client> &client) noexcept;
 
@@ -83,7 +79,6 @@ class Channel {
 
   private:
     bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
-    bool _isBannedUser(const std::shared_ptr<Client> &user) const noexcept;
     bool _isInviteOnly() const noexcept;
     void _broadcastMessage(const std::string &message, const std::string &type,
                            const std::string &userID) const noexcept;
@@ -107,7 +102,6 @@ class Channel {
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;
-    std::unordered_set<std::shared_ptr<Client>> _banned;
     std::unordered_set<std::shared_ptr<Client>> _operators;
 };
 
