@@ -101,7 +101,9 @@ void Server::_handleJoin(const IRCMessage &token,
         _channels.emplace(token.params[0],
                           Channel(_serverName, token.params[0], topic, client));
     } else {
-        IRCCodes result = channel_it->second.addUser(client);
+        const std::string password =
+            token.params.size() > 1 ? token.params[1] : "";
+        IRCCodes result = channel_it->second.addUser(password, client);
 
         if (result != IRCCodes::SUCCES) {
             _handleError(formatError(token, result), client);
@@ -229,6 +231,21 @@ void Server::_handleModeT(const IRCMessage &token,
     }
 
     IRCCodes result = channel_it->second.modeT(token.params[1], client);
+    if (result != IRCCodes::SUCCES) {
+        _handleError(formatError(token, result), client);
+        return;
+    }
+}
+
+void Server::_handleModeK(const IRCMessage &token,
+                          const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        _handleError(formatError(token, IRCCodes::NOSUCHCHANNEL), client);
+        return;
+    }
+
+    IRCCodes result = channel_it->second.modeK(token.params[1], client, token.params[2]);
     if (result != IRCCodes::SUCCES) {
         _handleError(formatError(token, result), client);
         return;

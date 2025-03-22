@@ -42,7 +42,7 @@ void Server::_handleMessage(const IRCMessage &token,
             break;
         case IRCCommand::PING:
             return _handlePing(token, client);
-        case IRCCommand::KICK:
+        case IRCCommand::KICK: // send a message to operator what should not do
             return _handleKick(token, client);
         case IRCCommand::INVITE:
             return _handleInvite(token, client);
@@ -52,15 +52,13 @@ void Server::_handleMessage(const IRCMessage &token,
                           << '\n';
                 return;
             }
-            return _handleModeT(token, client);
             break;
         case IRCCommand::MODE_I:
             return _handleModeI(token, client);
         case IRCCommand::MODE_T:
             return _handleModeT(token, client);
         case IRCCommand::MODE_K:
-            std::cerr << "Not impl yet MODE_K" << '\n';
-            break;
+            return _handleModeK(token, client);
         case IRCCommand::MODE_O:
             std::cerr << "Not impl yet MODE_O" << '\n';
             break;

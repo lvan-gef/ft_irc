@@ -40,7 +40,8 @@ class Channel {
     void init(const std::shared_ptr<Client> &client);
 
   public:
-    IRCCodes addUser(const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes addUser(const std::string &password,
+                     const std::shared_ptr<Client> &client) noexcept;
     IRCCodes removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:
@@ -56,6 +57,9 @@ class Channel {
                    const std::shared_ptr<Client> &client) noexcept;
     IRCCodes modeT(const std::string &state,
                    const std::shared_ptr<Client> &client) noexcept;
+    IRCCodes modeK(const std::string &state,
+                   const std::shared_ptr<Client> &client,
+                   const std::string &password) noexcept;
 
   public:
     size_t usersActive() const noexcept;
@@ -75,6 +79,9 @@ class Channel {
     const std::string getTopic() const noexcept;
 
   private:
+    bool _checkPassword(const std::string &password) noexcept;
+
+  private:
     bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
     bool _isBannedUser(const std::shared_ptr<Client> &user) const noexcept;
     bool _isInviteOnly() const noexcept;
@@ -89,12 +96,14 @@ class Channel {
     std::string _serverName;
     std::string _channelName;
     std::string _topic;
+    std::string _password;
     size_t _userLimit;
     size_t _usersActive;
 
   private:
     bool _inviteOnly;
     bool _setTopicMode;
+    bool _passwordProtected;
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;

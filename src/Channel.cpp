@@ -24,18 +24,20 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::string &channelTopic,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
-      _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
-      _setTopicMode(false), _users{}, _banned{}, _operators{} {
+      _password(""), _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
+      _setTopicMode(false), _passwordProtected(false), _users{}, _banned{},
+      _operators{} {
     init(client);
 }
 
 Channel::Channel(Channel &&rhs) noexcept
     : _serverName(std::move(rhs._serverName)),
       _channelName(std::move(rhs._channelName)), _topic(std::move(rhs._topic)),
-      _userLimit(rhs._userLimit), _usersActive(rhs._usersActive),
-      _inviteOnly(rhs._inviteOnly), _setTopicMode(rhs._setTopicMode),
-      _users(std::move(rhs._users)), _banned(std::move(rhs._banned)),
-      _operators(std::move(rhs._operators)) {
+      _password(std::move(rhs._password)), _userLimit(rhs._userLimit),
+      _usersActive(rhs._usersActive), _inviteOnly(rhs._inviteOnly),
+      _setTopicMode(rhs._setTopicMode),
+      _passwordProtected(rhs._passwordProtected), _users(std::move(rhs._users)),
+      _banned(std::move(rhs._banned)), _operators(std::move(rhs._operators)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -43,6 +45,7 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _serverName = std::move(rhs._serverName);
         _channelName = std::move(rhs._channelName);
         _topic = std::move(rhs._topic);
+        _password = std::move(rhs._password);
         _userLimit = rhs._userLimit;
         _usersActive = rhs._usersActive;
         _inviteOnly = rhs._inviteOnly;
@@ -62,13 +65,19 @@ Channel::~Channel() {
 
 void Channel::init(const std::shared_ptr<Client> &client) {
     addOperator(client);
-    addUser(client);
+    addUser(_password, client);
 }
 
-IRCCodes Channel::addUser(const std::shared_ptr<Client> &client) noexcept {
+IRCCodes Channel::addUser(const std::string &password, const std::shared_ptr<Client> &client) noexcept {
 
     if (_isInviteOnly()) {
         return IRCCodes::INVITEONLYCHAN;
+    }
+
+    if (_passwordProtected) {
+        if (_checkPassword(password) != true) {
+            return IRCCodes::PASSWDMISMATCH;
+        }
     }
 
     return _addUser(client);
@@ -201,6 +210,21 @@ IRCCodes Channel::modeT(const std::string &state,
     return IRCCodes::SUCCES;
 }
 
+IRCCodes Channel::modeK(const std::string &state, const std::shared_ptr<Client> &client, const std::string &password) noexcept {
+    if (_isOperator(client) != true) {
+        return IRCCodes::CHANOPRIVSNEEDED;
+    }
+
+    if (state[0] == '-') {
+        _passwordProtected = false;
+    } else {
+        _passwordProtected = true;
+        _password = password;
+    }
+
+    return IRCCodes::SUCCES;
+}
+
 size_t Channel::usersActive() const noexcept {
     return _usersActive;
 }
@@ -251,6 +275,10 @@ IRCCodes Channel::setTopic(const std::string &topic,
 
 const std::string Channel::getTopic() const noexcept {
     return _topic;
+}
+
+bool Channel::_checkPassword(const std::string &password) noexcept {
+    return _password == password;
 }
 
 bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {
