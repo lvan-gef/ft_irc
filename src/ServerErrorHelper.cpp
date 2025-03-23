@@ -137,7 +137,7 @@ void Server::_handleError(IRCMessage token,
                               token.params[1], " :Channel key already set"));
             break;
         case IRCCode::CHANNELISFULL: // checken if channel is 1 index of the
-                                      // params
+                                     // params
             client->appendMessageToQue(
                 formatMessage(":", _serverName, " ", errnoAsString,
                               token.params[1], " :Cannot join channel (+l)"));

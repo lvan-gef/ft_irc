@@ -177,8 +177,7 @@ void Server::_handleKick(const IRCMessage &token,
                 _handleError(formatError(token, result), client);
             }
         } else {
-            _handleError(formatError(token, IRCCode::USERNOTINCHANNEL),
-                         client);
+            _handleError(formatError(token, IRCCode::USERNOTINCHANNEL), client);
         }
     } else {
         _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
@@ -245,7 +244,8 @@ void Server::_handleModeK(const IRCMessage &token,
         return;
     }
 
-    IRCCode result = channel_it->second.modeK(token.params[1], client, token.params[2]);
+    IRCCode result =
+        channel_it->second.modeK(token.params[1], client, token.params[2]);
     if (result != IRCCode::SUCCES) {
         _handleError(formatError(token, result), client);
         return;

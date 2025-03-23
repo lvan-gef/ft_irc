@@ -25,8 +25,7 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
       _password(""), _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
-      _setTopicMode(false), _passwordProtected(false), _users{},
-      _operators{} {
+      _setTopicMode(false), _passwordProtected(false), _users{}, _operators{} {
     init(client);
 }
 
@@ -37,7 +36,7 @@ Channel::Channel(Channel &&rhs) noexcept
       _usersActive(rhs._usersActive), _inviteOnly(rhs._inviteOnly),
       _setTopicMode(rhs._setTopicMode),
       _passwordProtected(rhs._passwordProtected), _users(std::move(rhs._users)),
-       _operators(std::move(rhs._operators)) {
+      _operators(std::move(rhs._operators)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -67,7 +66,8 @@ void Channel::init(const std::shared_ptr<Client> &client) {
     addUser(_password, client);
 }
 
-IRCCode Channel::addUser(const std::string &password, const std::shared_ptr<Client> &client) noexcept {
+IRCCode Channel::addUser(const std::string &password,
+                         const std::shared_ptr<Client> &client) noexcept {
 
     if (_isInviteOnly()) {
         return IRCCode::INVITEONLYCHAN;
@@ -147,7 +147,7 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
 }
 
 IRCCode Channel::modeI(const std::string &state,
-                        const std::shared_ptr<Client> &client) noexcept {
+                       const std::shared_ptr<Client> &client) noexcept {
     if (_isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
@@ -162,7 +162,7 @@ IRCCode Channel::modeI(const std::string &state,
 }
 
 IRCCode Channel::modeT(const std::string &state,
-                        const std::shared_ptr<Client> &client) noexcept {
+                       const std::shared_ptr<Client> &client) noexcept {
     if (_isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
@@ -176,7 +176,9 @@ IRCCode Channel::modeT(const std::string &state,
     return IRCCode::SUCCES;
 }
 
-IRCCode Channel::modeK(const std::string &state, const std::shared_ptr<Client> &client, const std::string &password) noexcept {
+IRCCode Channel::modeK(const std::string &state,
+                       const std::shared_ptr<Client> &client,
+                       const std::string &password) noexcept {
     if (_isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
@@ -205,7 +207,7 @@ void Channel::sendMessage(const std::string &message,
 }
 
 IRCCode Channel::kickUser(const std::shared_ptr<Client> &user,
-                           const std::shared_ptr<Client> &client) noexcept {
+                          const std::shared_ptr<Client> &client) noexcept {
     if (_isOperator(client)) {
         if (user == client) {
             return IRCCode::UNKNOWNCOMMAND;
@@ -219,7 +221,7 @@ IRCCode Channel::kickUser(const std::shared_ptr<Client> &user,
 }
 
 IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
-                             const std::shared_ptr<Client> &client) noexcept {
+                            const std::shared_ptr<Client> &client) noexcept {
 
     if (_isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
@@ -229,7 +231,7 @@ IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
 }
 
 IRCCode Channel::setTopic(const std::string &topic,
-                           const std::shared_ptr<Client> &client) noexcept {
+                          const std::shared_ptr<Client> &client) noexcept {
     if (_isOperator(client) || _setTopicMode) {
         _topic = topic.substr(1);
         _broadcastMessage(" :" + _topic, "TOPIC", client->getFullID());

@@ -41,7 +41,7 @@ class Channel {
 
   public:
     IRCCode addUser(const std::string &password,
-                     const std::shared_ptr<Client> &client) noexcept;
+                    const std::shared_ptr<Client> &client) noexcept;
     IRCCode removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:
@@ -50,12 +50,12 @@ class Channel {
 
   public:
     IRCCode modeI(const std::string &state,
-                   const std::shared_ptr<Client> &client) noexcept;
+                  const std::shared_ptr<Client> &client) noexcept;
     IRCCode modeT(const std::string &state,
-                   const std::shared_ptr<Client> &client) noexcept;
+                  const std::shared_ptr<Client> &client) noexcept;
     IRCCode modeK(const std::string &state,
-                   const std::shared_ptr<Client> &client,
-                   const std::string &password) noexcept;
+                  const std::shared_ptr<Client> &client,
+                  const std::string &password) noexcept;
 
   public:
     size_t usersActive() const noexcept;
@@ -65,13 +65,13 @@ class Channel {
     void sendMessage(const std::string &message,
                      const std::string &userID) noexcept;
     IRCCode kickUser(const std::shared_ptr<Client> &user,
-                      const std::shared_ptr<Client> &client) noexcept;
+                     const std::shared_ptr<Client> &client) noexcept;
     IRCCode inviteUser(const std::shared_ptr<Client> &user,
-                        const std::shared_ptr<Client> &client) noexcept;
+                       const std::shared_ptr<Client> &client) noexcept;
 
   public:
     IRCCode setTopic(const std::string &topic,
-                      const std::shared_ptr<Client> &client) noexcept;
+                     const std::shared_ptr<Client> &client) noexcept;
     const std::string getTopic() const noexcept;
 
   private:
