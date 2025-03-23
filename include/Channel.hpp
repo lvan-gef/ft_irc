@@ -40,20 +40,20 @@ class Channel {
     void init(const std::shared_ptr<Client> &client);
 
   public:
-    IRCCodes addUser(const std::string &password,
+    IRCCode addUser(const std::string &password,
                      const std::shared_ptr<Client> &client) noexcept;
-    IRCCodes removeUser(const std::shared_ptr<Client> &client) noexcept;
+    IRCCode removeUser(const std::shared_ptr<Client> &client) noexcept;
 
   public:
     void addOperator(const std::shared_ptr<Client> &client) noexcept;
     void removeOperator(const std::shared_ptr<Client> &client) noexcept;
 
   public:
-    IRCCodes modeI(const std::string &state,
+    IRCCode modeI(const std::string &state,
                    const std::shared_ptr<Client> &client) noexcept;
-    IRCCodes modeT(const std::string &state,
+    IRCCode modeT(const std::string &state,
                    const std::shared_ptr<Client> &client) noexcept;
-    IRCCodes modeK(const std::string &state,
+    IRCCode modeK(const std::string &state,
                    const std::shared_ptr<Client> &client,
                    const std::string &password) noexcept;
 
@@ -64,13 +64,13 @@ class Channel {
   public:
     void sendMessage(const std::string &message,
                      const std::string &userID) noexcept;
-    IRCCodes kickUser(const std::shared_ptr<Client> &user,
+    IRCCode kickUser(const std::shared_ptr<Client> &user,
                       const std::shared_ptr<Client> &client) noexcept;
-    IRCCodes inviteUser(const std::shared_ptr<Client> &user,
+    IRCCode inviteUser(const std::shared_ptr<Client> &user,
                         const std::shared_ptr<Client> &client) noexcept;
 
   public:
-    IRCCodes setTopic(const std::string &topic,
+    IRCCode setTopic(const std::string &topic,
                       const std::shared_ptr<Client> &client) noexcept;
     const std::string getTopic() const noexcept;
 
@@ -82,7 +82,7 @@ class Channel {
     bool _isInviteOnly() const noexcept;
     void _broadcastMessage(const std::string &message, const std::string &type,
                            const std::string &userID) const noexcept;
-    IRCCodes _addUser(const std::shared_ptr<Client> &client) noexcept;
+    IRCCode _addUser(const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::string _allUsersInChannel() const noexcept;
