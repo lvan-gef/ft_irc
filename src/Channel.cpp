@@ -233,16 +233,17 @@ void Channel::sendMessage(const std::string &message,
 
 IRCCode Channel::kickUser(const std::shared_ptr<Client> &user,
                           const std::shared_ptr<Client> &client) noexcept {
-    if (_isOperator(client)) {
-        if (user == client) {
-            return IRCCode::UNKNOWNCOMMAND;
-        }
-        _broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ",
-                          client->getFullID());
-        removeUser(user);
+    if (_isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
     }
 
-    return IRCCode::CHANOPRIVSNEEDED;
+    if (user == client) {
+        return IRCCode::UNKNOWNCOMMAND;
+    }
+
+    _broadcastMessage(" " + user->getNickname() + " :Bye", "KICK ",
+                      client->getFullID());
+    return removeUser(user);
 }
 
 IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,

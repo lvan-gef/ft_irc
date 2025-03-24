@@ -156,30 +156,19 @@ void Server::_handlePing(const IRCMessage &token,
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    }
 
-    if (channel_it != _channels.end()) {
-        auto userToKick = _nick_to_client.find(token.params[1]);
-        if (userToKick != _nick_to_client.end()) {
-            IRCCode result =
-                channel_it->second.kickUser(userToKick->second, client);
+    auto userToKick = _nick_to_client.find(token.params[1]);
+    if (userToKick == _nick_to_client.end()) {
+        return _handleError(formatError(token, IRCCode::USERNOTINCHANNEL),
+                            client);
+    }
 
-            if (result != IRCCode::SUCCES) {
-                if (result == IRCCode::UNKNOWNCOMMAND) {
-                    // when it trys to kick himself
-                    // does not show up in channel, only in global
-                    client->appendMessageToQue(formatMessage(
-                        _serverName, " NOTICE ", client->getNickname(), " ",
-                        channel_it->second.channelName(),
-                        " :You cannot kick yourself from the channel"));
-                    return;
-                }
-                _handleError(formatError(token, result), client);
-            }
-        } else {
-            _handleError(formatError(token, IRCCode::USERNOTINCHANNEL), client);
-        }
-    } else {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    IRCCode result = channel_it->second.kickUser(userToKick->second, client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
     }
 }
 
