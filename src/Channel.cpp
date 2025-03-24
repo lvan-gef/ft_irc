@@ -87,26 +87,11 @@ IRCCode Channel::removeUser(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_users.begin(), _users.end(), client);
 
     if (it != _users.end()) {
+        _broadcastMessage("", "PART", client->getFullID());
         _users.erase(client);
         _usersActive = _users.size();
         removeOperator(client);
 
-        std::string partMessage = ":" + client->getNickname() + "!" +
-                                  client->getUsername() + "@" +
-                                  client->getIP() + " PART " + _channelName;
-        for (const std::shared_ptr<Client> &user : _users) {
-            user->appendMessageToQue(formatMessage(partMessage));
-        }
-
-        std::string userList = _allUsersInChannel();
-        for (const std::shared_ptr<Client> &user : _users) {
-            user->appendMessageToQue(
-                formatMessage(":", _serverName, " 353 ", client->getNickname(),
-                              " = ", _channelName, " :", userList));
-            user->appendMessageToQue(
-                formatMessage(":", _serverName, " 366 ", client->getNickname(),
-                              " ", _channelName, " :End of /NAMES list"));
-        }
         return IRCCode::SUCCES;
     }
 
