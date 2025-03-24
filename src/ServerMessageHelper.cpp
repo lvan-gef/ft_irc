@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 #include "../include/Channel.hpp"
@@ -67,7 +66,7 @@ void Server::_handlePassword(const IRCMessage &token,
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
 
-    if (token.params[0][0] == '#') {
+    if (token.params[0][0] == '#' or token.params[0][0] == '&') {
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
@@ -256,7 +255,8 @@ void Server::_handleModeO(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        // check for code for user not on channel
+        _handleError(formatError(token, IRCCode::CANNOTSENDTOCHAN), client);
         return;
     }
 
