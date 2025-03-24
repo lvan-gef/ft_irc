@@ -19,6 +19,7 @@
 #define BASE 10
 
 std::uint16_t toUint16(const std::string &str);
+std::size_t toSizeT(const std::string &str);
 
 template <typename... Args>
 std::string formatMessage(const Args &...args) noexcept;

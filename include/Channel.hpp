@@ -58,6 +58,8 @@ class Channel {
                   const std::string &password) noexcept;
     IRCCode modeO(const std::string &state, const std::shared_ptr<Client> &user,
                   const std::shared_ptr<Client> &client) noexcept;
+    IRCCode modeL(const std::string &state, size_t limit,
+                  const std::shared_ptr<Client> &client) noexcept;
 
   public:
     size_t usersActive() const noexcept;
@@ -94,12 +96,13 @@ class Channel {
     std::string _channelName;
     std::string _topic;
     std::string _password;
-    size_t _userLimit;
-    size_t _usersActive;
+    std::size_t _userLimit;
+    std::size_t _usersActive;
 
   private:
     bool _inviteOnly;
     bool _setTopicMode;
+    bool _limitMode;
     bool _passwordProtected;
 
   private:

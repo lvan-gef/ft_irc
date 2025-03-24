@@ -25,7 +25,8 @@ Channel::Channel(const std::string &serverName, const std::string &channelName,
                  const std::shared_ptr<Client> &client)
     : _serverName(serverName), _channelName(channelName), _topic(channelTopic),
       _password(""), _userLimit(USERLIMIT), _usersActive(1), _inviteOnly(false),
-      _setTopicMode(false), _passwordProtected(false), _users{}, _operators{} {
+      _setTopicMode(false), _limitMode(false), _passwordProtected(false),
+      _users{}, _operators{} {
     init(client);
 }
 
@@ -34,7 +35,7 @@ Channel::Channel(Channel &&rhs) noexcept
       _channelName(std::move(rhs._channelName)), _topic(std::move(rhs._topic)),
       _password(std::move(rhs._password)), _userLimit(rhs._userLimit),
       _usersActive(rhs._usersActive), _inviteOnly(rhs._inviteOnly),
-      _setTopicMode(rhs._setTopicMode),
+      _setTopicMode(rhs._setTopicMode), _limitMode(rhs._limitMode),
       _passwordProtected(rhs._passwordProtected), _users(std::move(rhs._users)),
       _operators(std::move(rhs._operators)) {
 }
@@ -223,6 +224,27 @@ IRCCode Channel::modeO(const std::string &state,
     return IRCCode::SUCCES;
 }
 
+IRCCode Channel::modeL(const std::string &state, size_t limit,
+                       const std::shared_ptr<Client> &client) noexcept {
+    if (_isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    if (limit < 1) {
+        // need to send a error code i guess;
+        return IRCCode::UMODEUNKNOWNFLAG; // need to change
+    }
+
+    if (state[0] == '-') {
+        _limitMode = false;
+    } else {
+        _userLimit = limit;
+        _limitMode = true;
+    }
+
+    return IRCCode::SUCCES;
+}
+
 size_t Channel::usersActive() const noexcept {
     return _usersActive;
 }
@@ -313,7 +335,7 @@ IRCCode Channel::_addUser(const std::shared_ptr<Client> &client) noexcept {
         return IRCCode::USERONCHANNEL;
     }
 
-    if (_usersActive >= _userLimit) {
+    if (_usersActive >= _userLimit && _limitMode) {
         return IRCCode::CHANNELISFULL;
     }
 

@@ -32,3 +32,15 @@ std::uint16_t toUint16(const std::string &str) {
 
     return static_cast<uint16_t>(value);
 }
+
+std::size_t toSizeT(const std::string &str) {
+    char *endptr = nullptr;
+    unsigned long int value = strtoul(str.c_str(), &endptr, BASE);
+
+    if (endptr == str || *endptr != '\0') {
+        errno = EINVAL;
+        return 0;
+    }
+
+    return static_cast<size_t>(value);
+}

@@ -52,7 +52,7 @@ void Server::_handleMessage(const IRCMessage &token,
                           << '\n';
                 return;
             }
-            return _handleModeO(token, client);
+            return _handleModeL(token, client);
             break;
         case IRCCommand::MODE_I:
             return _handleModeI(token, client);
@@ -63,8 +63,7 @@ void Server::_handleMessage(const IRCMessage &token,
         case IRCCommand::MODE_O:
             return _handleModeO(token, client);
         case IRCCommand::MODE_L:
-            std::cerr << "Not impl yet MODE_L" << '\n';
-            break;
+            return _handleModeL(token, client);
         case IRCCommand::USERHOST: {
             auto it = _nick_to_client.find(token.params[0]);
 
