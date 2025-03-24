@@ -103,13 +103,7 @@ void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
 
     if (it == _operators.end()) {
         _operators.emplace(client);
-        client->appendMessageToQue(formatMessage(
-            ":", _serverName, " NOTICE ", client->getNickname(), " ",
-            _channelName, " :Channel created. You are the operator"));
         _broadcastMessage(" +o " + client->getNickname(), "MODE", _serverName);
-
-        std::cout << "User: " << client->getNickname()
-                  << " is now a operator of channel: " << _channelName << '\n';
     } else {
         std::cerr << "User: " << client
                   << " is already a operator of channel: " << _channelName
@@ -188,11 +182,6 @@ IRCCode Channel::modeO(const std::string &state,
                        const std::shared_ptr<Client> &client) noexcept {
     if (_isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
-    }
-
-    if (user == client) {
-        // already operator
-        return IRCCode::SUCCES; // need to replace it
     }
 
     auto user_it = std::find(_users.begin(), _users.end(), user);
@@ -307,6 +296,7 @@ void Channel::_broadcastMessage(const std::string &message,
         if (type == "PRIVMSG" && userID == client->getFullID()) {
             continue;
         }
+
         client->appendMessageToQue(
             formatMessage(":", userID, " ", type, " ", _channelName, message));
     }
@@ -328,22 +318,15 @@ IRCCode Channel::_addUser(const std::shared_ptr<Client> &client) noexcept {
     _usersActive = _users.size();
 
     std::string userList = _allUsersInChannel();
-    std::string joinMessage = ":" + client->getNickname() + "!" +
-                              client->getUsername() + "@" + client->getIP() +
-                              " JOIN " + _channelName;
-    for (const std::shared_ptr<Client> &user : _users) {
-        user->appendMessageToQue(formatMessage(joinMessage));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 332 ",
-                                               nickname, " ", _channelName,
-                                               " :", _topic));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 353 ",
-                                               nickname, " = ", _channelName,
-                                               " :", userList));
-        user->appendMessageToQue(formatMessage(":", _serverName, " 366 ",
-                                               nickname, " ", _channelName,
-                                               " :End of /NAMES list"));
-    }
-
+    _broadcastMessage("", "JOIN", client->getFullID());
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 332 ", nickname, " ", _channelName, " :", _topic));
+    client->appendMessageToQue(formatMessage(":", _serverName, " 353 ",
+                                             nickname, " = ", _channelName,
+                                             " :", userList));
+    client->appendMessageToQue(formatMessage(":", _serverName, " 366 ",
+                                             nickname, " ", _channelName,
+                                             " :End of /NAMES list"));
     return IRCCode::SUCCES;
 }
 
