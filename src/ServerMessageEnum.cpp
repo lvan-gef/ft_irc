@@ -52,7 +52,6 @@ void Server::_handleMessage(const IRCMessage &token,
                           << '\n';
                 return;
             }
-            return _handleModeL(token, client);
             break;
         case IRCCommand::MODE_I:
             return _handleModeI(token, client);
