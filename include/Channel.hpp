@@ -56,6 +56,8 @@ class Channel {
     IRCCode modeK(const std::string &state,
                   const std::shared_ptr<Client> &client,
                   const std::string &password) noexcept;
+    IRCCode modeO(const std::string &state, const std::shared_ptr<Client> &user,
+                  const std::shared_ptr<Client> &client) noexcept;
 
   public:
     size_t usersActive() const noexcept;

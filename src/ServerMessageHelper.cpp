@@ -252,6 +252,28 @@ void Server::_handleModeK(const IRCMessage &token,
     }
 }
 
+void Server::_handleModeO(const IRCMessage &token,
+                          const std::shared_ptr<Client> &client) {
+    auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        return;
+    }
+
+    auto user_it = _nick_to_client.find(token.params[2]);
+    if (user_it == _nick_to_client.end()) {
+        _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
+        return;
+    }
+
+    IRCCode result =
+        channel_it->second.modeO(token.params[1], user_it->second, client);
+    if (result != IRCCode::SUCCES) {
+        _handleError(formatError(token, result), client);
+        return;
+    }
+}
+
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
     IRCMessage newToken = token;
 

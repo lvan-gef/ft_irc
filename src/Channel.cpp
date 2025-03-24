@@ -120,6 +120,8 @@ void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
         client->appendMessageToQue(formatMessage(
             ":", _serverName, " NOTICE ", client->getNickname(), " ",
             _channelName, " :Channel created. You are the operator"));
+        _broadcastMessage(" +o " + client->getNickname(), "MODE", _serverName);
+
         std::cout << "User: " << client->getNickname()
                   << " is now a operator of channel: " << _channelName << '\n';
     } else {
@@ -136,6 +138,8 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
     if (it != _operators.end()) {
         std::cout << "Remove user as operator" << " " << _usersActive << '\n';
         _operators.erase(client);
+        _broadcastMessage(" -o " + client->getNickname(), "MODE", _serverName);
+
         if (!_users.empty() && _operators.empty()) {
             std::shared_ptr<Client> newOperator = *_users.begin();
             addOperator(newOperator);
@@ -188,6 +192,32 @@ IRCCode Channel::modeK(const std::string &state,
     } else {
         _passwordProtected = true;
         _password = password;
+    }
+
+    return IRCCode::SUCCES;
+}
+
+IRCCode Channel::modeO(const std::string &state,
+                       const std::shared_ptr<Client> &user,
+                       const std::shared_ptr<Client> &client) noexcept {
+    if (_isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    if (user == client) {
+        // already operator
+        return IRCCode::SUCCES; // need to replace it
+    }
+
+    auto user_it = std::find(_users.begin(), _users.end(), user);
+    if (user_it == _users.end()) {
+        return IRCCode::NOSUCHNICK;
+    }
+
+    if (state[0] == '-') {
+        removeOperator(user);
+    } else {
+        addOperator(user);
     }
 
     return IRCCode::SUCCES;
