@@ -129,10 +129,10 @@ IRCCode Channel::modeI(const std::string &state,
 
     if (state[0] == '-') {
         _inviteOnly = false;
-        _broadcastMessage("-", "MODE", _serverName);
+        _broadcastMessage("-i", "MODE", _serverName);
     } else {
-        _broadcastMessage("+", "MODE", _serverName);
         _inviteOnly = true;
+        _broadcastMessage("+i", "MODE", _serverName);
     }
 
     return IRCCode::SUCCES;
@@ -146,8 +146,10 @@ IRCCode Channel::modeT(const std::string &state,
 
     if (state[0] == '-') {
         _setTopicMode = false;
+        _broadcastMessage("-t", "MODE", _serverName);
     } else {
         _setTopicMode = true;
+        _broadcastMessage("+t", "MODE", _serverName);
     }
 
     return IRCCode::SUCCES;
@@ -162,9 +164,11 @@ IRCCode Channel::modeK(const std::string &state,
 
     if (state[0] == '-') {
         _passwordProtected = false;
+        _broadcastMessage("-k", "MODE", _serverName);
     } else {
         _passwordProtected = true;
         _password = password;
+        _broadcastMessage("-k", "MODE", _serverName);
     }
 
     return IRCCode::SUCCES;
@@ -204,9 +208,11 @@ IRCCode Channel::modeL(const std::string &state, size_t limit,
 
     if (state[0] == '-') {
         _limitMode = false;
+        _broadcastMessage("-l", "MODE", _serverName);
     } else {
         _userLimit = limit;
         _limitMode = true;
+        _broadcastMessage("-+", "MODE", _serverName);
     }
 
     return IRCCode::SUCCES;
