@@ -104,11 +104,6 @@ void Channel::addOperator(const std::shared_ptr<Client> &client) noexcept {
     if (it == _operators.end()) {
         _operators.emplace(client);
         _broadcastMessage(" +o " + client->getNickname(), "MODE", _serverName);
-    } else {
-        std::cerr << "User: " << client
-                  << " is already a operator of channel: " << _channelName
-                  << '\n';
-        // send error code back??;
     }
 }
 
@@ -116,7 +111,6 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
     auto it = std::find(_operators.begin(), _operators.end(), client);
 
     if (it != _operators.end()) {
-        std::cout << "Remove user as operator" << " " << _usersActive << '\n';
         _operators.erase(client);
         _broadcastMessage(" -o " + client->getNickname(), "MODE", _serverName);
 
@@ -124,9 +118,6 @@ void Channel::removeOperator(const std::shared_ptr<Client> &client) noexcept {
             std::shared_ptr<Client> newOperator = *_users.begin();
             addOperator(newOperator);
         }
-    } else {
-        std::cerr << "User was never a operator. send error code back??"
-                  << '\n';
     }
 }
 
@@ -138,7 +129,9 @@ IRCCode Channel::modeI(const std::string &state,
 
     if (state[0] == '-') {
         _inviteOnly = false;
+        _broadcastMessage("-", "MODE", _serverName);
     } else {
+        _broadcastMessage("+", "MODE", _serverName);
         _inviteOnly = true;
     }
 
