@@ -7,7 +7,7 @@ WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion 
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
-DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address
+DEBUG_FLAGS := -g3 -DDEBUG
 RELEASE_FLAGS := -DNDEBUG
 
 SRCDIR := src/

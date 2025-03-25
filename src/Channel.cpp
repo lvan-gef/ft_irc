@@ -267,7 +267,7 @@ IRCCode Channel::setTopic(const std::string &topic,
     return IRCCode::CHANOPRIVSNEEDED;
 }
 
-const std::string Channel::getTopic() const noexcept {
+const std::string &Channel::getTopic() const noexcept {
     return _topic;
 }
 

@@ -76,7 +76,7 @@ class Channel {
   public:
     IRCCode setTopic(const std::string &topic,
                      const std::shared_ptr<Client> &client) noexcept;
-    const std::string getTopic() const noexcept;
+    const std::string &getTopic() const noexcept;
 
   private:
     bool _checkPassword(const std::string &password) noexcept;
