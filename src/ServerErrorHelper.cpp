@@ -178,5 +178,11 @@ void Server::_handleError(IRCMessage token,
                 formatMessage(":", _serverName, " ", errnoAsString,
                               " :Cant change mode for other users"));
             break;
+        case IRCCode::INVALIDMODEPARAM:
+            client->appendMessageToQue(formatMessage(
+                ":", _serverName, " ", errnoAsString, " ",
+                client->getNickname(), " ", token.params[0], " ",
+                token.params[1], " :Invalid value: '", token.params[2], "'"));
+            break;
     }
 }

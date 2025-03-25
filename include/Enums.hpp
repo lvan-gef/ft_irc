@@ -94,6 +94,7 @@ enum class IRCCode : std::int16_t {
     /*CANTKILLSERVER = 483,  // not sure if we need to impl it*/
     UMODEUNKNOWNFLAG = 501,
     USERSDONTMATCH = 502,
+    INVALIDMODEPARAM = 696  // Not in IRC but in unrealircd
 };
 
 #endif // ENUMS_HPP
