@@ -15,7 +15,6 @@
 
 #include <memory>
 #include <string>
-#include <unistd.h>
 #include <unordered_set>
 
 #include "../include/Client.hpp"
@@ -23,13 +22,11 @@
 
 class Channel {
   public:
-    explicit Channel(const std::string &serverName,
-                     const std::string &channelName,
-                     const std::string &channelTopic,
-                     const std::shared_ptr<Client> &client);
+    explicit Channel(const std::string &name, const std::string &topic,
+                     const std::shared_ptr<Client> &founder);
 
-    Channel(const Channel &rhs) = delete;
-    Channel &operator=(const Channel &rhs) = delete;
+    Channel(const Channel &) = delete;
+    Channel &operator=(const Channel &) = delete;
 
     Channel(Channel &&rhs) noexcept;
     Channel &operator=(Channel &&rhs) noexcept;
@@ -37,77 +34,61 @@ class Channel {
     ~Channel();
 
   public:
-    void init(const std::shared_ptr<Client> &client);
+    enum Mode {
+        INVITE_ONLY = 1 << 0,
+        TOPIC_PROTECTED = 1 << 1,
+        PASSWORD_PROTECTED = 1 << 2,
+        USER_LIMIT = 1 << 3
+    };
 
   public:
     IRCCode addUser(const std::string &password,
-                    const std::shared_ptr<Client> &client) noexcept;
-    IRCCode removeUser(const std::shared_ptr<Client> &client) noexcept;
-
-  public:
-    void addOperator(const std::shared_ptr<Client> &client) noexcept;
-    void removeOperator(const std::shared_ptr<Client> &client) noexcept;
-
-  public:
-    IRCCode modeI(const std::string &state,
-                  const std::shared_ptr<Client> &client) noexcept;
-    IRCCode modeT(const std::string &state,
-                  const std::shared_ptr<Client> &client) noexcept;
-    IRCCode modeK(const std::string &state,
-                  const std::shared_ptr<Client> &client,
-                  const std::string &password) noexcept;
-    IRCCode modeO(const std::string &state, const std::shared_ptr<Client> &user,
-                  const std::shared_ptr<Client> &client) noexcept;
-    IRCCode modeL(const std::string &state, size_t limit,
-                  const std::shared_ptr<Client> &client) noexcept;
-
-  public:
-    size_t usersActive() const noexcept;
-    const std::string &channelName() const noexcept;
-
-  public:
-    void sendMessage(const std::string &message,
-                     const std::string &userID) noexcept;
-    IRCCode kickUser(const std::shared_ptr<Client> &user,
-                     const std::shared_ptr<Client> &client) noexcept;
+                    const std::shared_ptr<Client> &client);
+    IRCCode removeUser(const std::shared_ptr<Client> &client);
+    IRCCode kickUser(const std::shared_ptr<Client> &target,
+                     const std::shared_ptr<Client> &client);
     IRCCode inviteUser(const std::shared_ptr<Client> &user,
-                       const std::shared_ptr<Client> &client) noexcept;
+                       const std::shared_ptr<Client> &client);
 
   public:
+    IRCCode setMode(Mode mode, bool state,
+                    const std::shared_ptr<Client> &client);
+    IRCCode setPassword(const std::string &password,
+                        const std::shared_ptr<Client> &client);
+    IRCCode setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
     IRCCode setTopic(const std::string &topic,
-                     const std::shared_ptr<Client> &client) noexcept;
+                     const std::shared_ptr<Client> &client);
+
+  public:
+    void addOperator(const std::shared_ptr<Client> &client);
+    void removeOperator(const std::shared_ptr<Client> &client);
+
+  public:
+    const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
+    size_t getUserCount() const noexcept;
+    bool isOperator(const std::shared_ptr<Client> &client) const noexcept;
+    bool hasPassword() const noexcept;
+
+  public:
+    void broadcast(const std::string &message,
+                   const std::string &senderPrefix = "") const;
 
   private:
-    bool _checkPassword(const std::string &password) noexcept;
+    bool checkPassword(const std::string &attempt) const noexcept;
+    void sendJoinNotifications(const std::shared_ptr<Client> &client) const;
+    std::string getUserList() const noexcept;
 
   private:
-    bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
-    bool _isInviteOnly() const noexcept;
-    void _broadcastMessage(const std::string &message, const std::string &type,
-                           const std::string &userID) const noexcept;
-    IRCCode _addUser(const std::shared_ptr<Client> &client) noexcept;
+    std::string name_;
+    std::string topic_;
+    std::string password_;
+    size_t userLimit_;
+    uint8_t modes_;
 
   private:
-    std::string _allUsersInChannel() const noexcept;
-
-  private:
-    std::string _serverName;
-    std::string _channelName;
-    std::string _topic;
-    std::string _password;
-    std::size_t _userLimit;
-    std::size_t _usersActive;
-
-  private:
-    bool _inviteOnly;
-    bool _setTopicMode;
-    bool _limitMode;
-    bool _passwordProtected;
-
-  private:
-    std::unordered_set<std::shared_ptr<Client>> _users;
-    std::unordered_set<std::shared_ptr<Client>> _operators;
+    std::unordered_set<std::shared_ptr<Client>> users_;
+    std::unordered_set<std::shared_ptr<Client>> operators_;
 };
 
-#endif // !CHANNEL_HPP
+#endif // CHANNEL_HPP
