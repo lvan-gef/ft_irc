@@ -178,5 +178,8 @@ void Server::_handleError(IRCMessage token,
                 formatMessage(":", _serverName, " ", errnoAsString, " ",
                               " :Cant change mode for other users"));
             break;
+        default:
+            std::cerr << "Unkown Error Token: ";
+            token.print();
     }
 }

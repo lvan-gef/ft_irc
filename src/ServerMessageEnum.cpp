@@ -74,14 +74,18 @@ void Server::_handleMessage(const IRCMessage &token,
                     ":", _serverName, " 302 ", client->getNickname(), " :",
                     targetNick, "=-", targetNick, "@", targetClient->getIP()));
             } else {
-                std::cerr << "Server internal error: Could not found target "
-                             "user for USERHOST"
-                          << '\n';
+                IRCMessage newToken = token;
+
+                newToken.setIRCCode(IRCCode::NOSUCHNICK);
+                return _handleError(newToken, client);
             }
             break;
         }
         case IRCCommand::UNKNOW:
             std::cerr << "Not impl yet UNKNOW" << '\n';
             break;
+        default:
+            std::cerr << "Unkown Token: ";
+            token.print();
     }
 }
