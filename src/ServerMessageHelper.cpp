@@ -254,7 +254,7 @@ void Server::_handleModeI(const IRCMessage &token,
     const bool state = true ? token.params[1][0] == '+' : false;
 
     IRCCode result = channel_it->second.setMode(
-        channel_it->second.Mode::INVITE_ONLY, state, "", client);
+        Mode::INVITE_ONLY, state, "", client);
     if (result != IRCCode::SUCCES) {
         return _handleError(formatError(token, result), client);
     }
@@ -274,7 +274,7 @@ void Server::_handleModeT(const IRCMessage &token,
     const bool state = true ? token.params[1][0] == '+' : false;
 
     IRCCode result = channel_it->second.setMode(
-        channel_it->second.Mode::TOPIC_PROTECTED, state, "", client);
+        Mode::TOPIC_PROTECTED, state, "", client);
     if (result != IRCCode::SUCCES) {
         _handleError(formatError(token, result), client);
         return;
