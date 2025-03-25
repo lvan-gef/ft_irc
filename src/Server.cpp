@@ -305,7 +305,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     client->appendMessageToQue(formatMessage(
         ":", _serverName, " 001 ", nick,
-        " :Welcome to the Internet Relay Network ", nick, "!", user, "@", ip));
+        " :Welcome to the Internet Relay Network ", client->getFullID()));
 
     client->appendMessageToQue(
         formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
