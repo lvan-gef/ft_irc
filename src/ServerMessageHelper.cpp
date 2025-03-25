@@ -19,14 +19,14 @@
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
 
-static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode);
+static IRCMessage IRCErrorMsg(const IRCMessage &token, const IRCCode newCode);
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
 
     // sould also handle setting of nickname when user is on server
     if (client->isRegistered()) {
-        _handleError(formatError(token, IRCCode::ALREADYREGISTERED), client);
+        _handleError(IRCErrorMsg(token, IRCCode::ALREADYREGISTERED), client);
         return;
     }
 
@@ -35,14 +35,14 @@ void Server::_handleNickname(const IRCMessage &token,
         client->setNickname(nickname);
         _clientAccepted(client);
     } else {
-        _handleError(formatError(token, IRCCode::NICKINUSE), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NICKINUSE), client);
     }
 }
 
 void Server::_handleUsername(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
     if (client->isRegistered()) {
-        _handleError(formatError(token, IRCCode::ALREADYREGISTERED), client);
+        _handleError(IRCErrorMsg(token, IRCCode::ALREADYREGISTERED), client);
     } else {
         client->setUsername(token.params[0]);
         _clientAccepted(client);
@@ -52,13 +52,13 @@ void Server::_handleUsername(const IRCMessage &token,
 void Server::_handlePassword(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
     if (client->isRegistered()) {
-        _handleError(formatError(token, IRCCode::ALREADYREGISTERED), client);
+        _handleError(IRCErrorMsg(token, IRCCode::ALREADYREGISTERED), client);
     } else {
         if (token.params[0] == _password) {
             client->setPasswordBit();
         } else {
             // we should dissconnect the client
-            _handleError(formatError(token, IRCCode::PASSWDMISMATCH), client);
+            _handleError(IRCErrorMsg(token, IRCCode::PASSWDMISMATCH), client);
         }
     }
 }
@@ -73,7 +73,7 @@ void Server::_handlePriv(const IRCMessage &token,
             channel_it->second.sendMessage(" :" + token.params[1],
                                            client->getFullID());
         } else {
-            _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+            _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         }
     } else {
         auto nick_it = _nick_to_client.find(token.params[0]);
@@ -85,7 +85,7 @@ void Server::_handlePriv(const IRCMessage &token,
                 ":", client->getFullID(), " PRIVMSG ",
                 targetClient->getNickname(), " :", token.params[1]));
         } else {
-            _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
+            _handleError(IRCErrorMsg(token, IRCCode::NOSUCHNICK), client);
         }
     }
 }
@@ -105,7 +105,7 @@ void Server::_handleJoin(const IRCMessage &token,
         IRCCode result = channel_it->second.addUser(password, client);
 
         if (result != IRCCode::SUCCES) {
-            _handleError(formatError(token, result), client);
+            _handleError(IRCErrorMsg(token, result), client);
         }
     }
 }
@@ -126,10 +126,10 @@ void Server::_handleTopic(const IRCMessage &token,
 
         IRCCode result = channel_it->second.setTopic(token.params[1], client);
         if (result != IRCCode::SUCCES) {
-            _handleError(formatError(token, result), client);
+            _handleError(IRCErrorMsg(token, result), client);
         }
     } else {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
     }
 }
 
@@ -143,7 +143,7 @@ void Server::_handlePart(const IRCMessage &token,
             _channels.erase(channel_it->second.channelName());
         }
     } else {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
     }
 }
 
@@ -157,18 +157,18 @@ void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        return _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
     }
 
     auto userToKick_it = _nick_to_client.find(token.params[1]);
     if (userToKick_it == _nick_to_client.end()) {
-        return _handleError(formatError(token, IRCCode::USERNOTINCHANNEL),
+        return _handleError(IRCErrorMsg(token, IRCCode::USERNOTINCHANNEL),
                             client);
     }
 
     IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);
     if (result != IRCCode::SUCCES) {
-        return _handleError(formatError(token, result), client);
+        return _handleError(IRCErrorMsg(token, result), client);
     }
 }
 
@@ -177,20 +177,20 @@ void Server::_handleInvite(const IRCMessage &token,
 
     auto targetUser_it = _nick_to_client.find(token.params[0]);
     if (targetUser_it == _nick_to_client.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHNICK), client);
         return;
     }
 
     auto channel_it = _channels.find(token.params[1]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         return;
     }
 
     IRCCode result =
         channel_it->second.inviteUser(targetUser_it->second, client);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
     }
 }
 
@@ -198,13 +198,13 @@ void Server::_handleModeI(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         return;
     }
 
     IRCCode result = channel_it->second.modeI(token.params[1], client);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
         return;
     }
 }
@@ -213,13 +213,13 @@ void Server::_handleModeT(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         return;
     }
 
     IRCCode result = channel_it->second.modeT(token.params[1], client);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
         return;
     }
 }
@@ -228,14 +228,14 @@ void Server::_handleModeK(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         return;
     }
 
     IRCCode result =
         channel_it->second.modeK(token.params[1], client, token.params[2]);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
         return;
     }
 }
@@ -245,20 +245,20 @@ void Server::_handleModeO(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
         // check for code for user not on channel
-        _handleError(formatError(token, IRCCode::CANNOTSENDTOCHAN), client);
+        _handleError(IRCErrorMsg(token, IRCCode::CANNOTSENDTOCHAN), client);
         return;
     }
 
     auto user_it = _nick_to_client.find(token.params[2]);
     if (user_it == _nick_to_client.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHNICK), client);
         return;
     }
 
     IRCCode result =
         channel_it->second.modeO(token.params[1], user_it->second, client);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
         return;
     }
 }
@@ -267,19 +267,19 @@ void Server::_handleModeL(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        _handleError(IRCErrorMsg(token, IRCCode::NOSUCHCHANNEL), client);
         return;
     }
 
     IRCCode result = channel_it->second.modeL(token.params[1],
                                               toSizeT(token.params[2]), client);
     if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
+        _handleError(IRCErrorMsg(token, result), client);
         return;
     }
 }
 
-static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
+static IRCMessage IRCErrorMsg(const IRCMessage &token, const IRCCode newCode) {
     IRCMessage newToken = token;
 
     newToken.setIRCCode(newCode);
