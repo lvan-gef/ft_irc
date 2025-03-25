@@ -43,7 +43,7 @@ class Channel {
 
   public:
     IRCCode addUser(const std::string &password,
-                    const std::shared_ptr<Client> &client);
+                    const std::shared_ptr<Client> &user);
     IRCCode removeUser(const std::shared_ptr<Client> &client);
     IRCCode kickUser(const std::shared_ptr<Client> &target,
                      const std::shared_ptr<Client> &client);
@@ -60,24 +60,24 @@ class Channel {
                      const std::shared_ptr<Client> &client);
 
   public:
-    void addOperator(const std::shared_ptr<Client> &client);
-    void removeOperator(const std::shared_ptr<Client> &client);
+    void addOperator(const std::shared_ptr<Client> &user);
+    void removeOperator(const std::shared_ptr<Client> &user);
 
   public:
     const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
-    size_t getUserCount() const noexcept;
+    size_t activeUsers() const noexcept;
     bool isOperator(const std::shared_ptr<Client> &client) const noexcept;
     bool hasPassword() const noexcept;
 
   public:
-    void broadcast(const std::string &message,
-                   const std::string &senderPrefix = "") const;
+    void broadcast(const std::string &senderPrefix,
+                   const std::string &message) const;
 
   private:
-    bool checkPassword(const std::string &attempt) const noexcept;
-    void sendJoinNotifications(const std::shared_ptr<Client> &client) const;
-    std::string getUserList() const noexcept;
+    bool _checkPassword(const std::string &password) const noexcept;
+    void _sendJoinNotifications(const std::shared_ptr<Client> &client) const;
+    std::string _getUserList() const noexcept;
 
   private:
     std::string name_;
