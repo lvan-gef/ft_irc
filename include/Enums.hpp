@@ -29,7 +29,14 @@ enum Defaults {
     USERLIMIT = std::numeric_limits<size_t>::max()
 };
 
-enum class IRCCommand : std::uint16_t {
+enum Mode : std::uint8_t {
+    INVITE_ONLY = 1 << 0,
+    TOPIC_PROTECTED = 1 << 1,
+    PASSWORD_PROTECTED = 1 << 2,
+    USER_LIMIT = 1 << 3
+};
+
+enum class IRCCommand : std::uint8_t {
     NICK,
     USER,
     PASS,
@@ -94,7 +101,7 @@ enum class IRCCode : std::int16_t {
     /*CANTKILLSERVER = 483,  // not sure if we need to impl it*/
     UMODEUNKNOWNFLAG = 501,
     USERSDONTMATCH = 502,
-    INVALIDMODEPARAM = 696  // Not in IRC but in unrealircd
+    INVALIDMODEPARAM = 696 // Not in IRC but in unrealircd
 };
 
 #endif // ENUMS_HPP
