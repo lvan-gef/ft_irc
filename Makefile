@@ -1,10 +1,18 @@
 NAME := ircserv
 NAME_DEBUG := $(NAME)_debug
 
+NUM_CORES := 1
+ifeq ($(shell uname -s), Linux)
+	NUM_CORES := $(shell grep -c ^processor /proc/cpuinfo)
+else ifeq ($(shell uname -s),Darwin)
+	NUM_CORES := $(shell sysctl -n hw.ncpu)
+endif
+MAKEFLAGS += -j$(NUM_CORES)
+
 CXX := c++
 BASE_FLAGS := -std=c++11
-WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wpedantic
-CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
+WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wswitch-default -Wlogical-op -Wpedantic
+CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS) -fsanitize=address
 DEP_FLAGS := -MMD -MP
 
 DEBUG_FLAGS := -g3 -DDEBUG
