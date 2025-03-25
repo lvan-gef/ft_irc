@@ -49,27 +49,27 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCode::CANNOTSENDTOCHAN:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[0], " :Cannot send to channel"));
             break;
         case IRCCode::TOMANYCHANNELS:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, token.params[0],
+                ":", _serverName, " ", errnoAsString, " ", token.params[0],
                 " :You have joined too many channels"));
             break;
         case IRCCode::NORECIPIENT:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, token.params[0],
+                ":", _serverName, " ", errnoAsString, " ", token.params[0],
                 " :No recipient given ", token.command));
             break;
         case IRCCode::NOTEXTTOSEND:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[0], " :No text to send"));
             break;
         case IRCCode::UNKNOWNCOMMAND:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.command, " :Unknow command"));
             break;
         case IRCCode::FILEERROR:
@@ -90,9 +90,9 @@ void Server::_handleError(IRCMessage token,
             if (client->getNickname() != "") {
                 clientNick = " " + client->getNickname() + " ";
             }
-            client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString, clientNick,
-                              token.params[0], " :Nickname is already in use"));
+            client->appendMessageToQue(formatMessage(
+                ":", _serverName, " ", errnoAsString, " ", clientNick,
+                token.params[0], " :Nickname is already in use"));
             break;
         }
         case IRCCode::USERNOTINCHANNEL:
@@ -103,27 +103,27 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCode::NOTOCHANNEL:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[0], " :You're not on that channel"));
             break;
         case IRCCode::USERONCHANNEL:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString, token.params[0], " ",
+                ":", _serverName, " ", errnoAsString, " ", token.params[0], " ",
                 token.params[1], " :is already in channel"));
             break;
         case IRCCode::NOTREGISTERED:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               " :You have not registered"));
             break;
         case IRCCode::NEEDMOREPARAMS:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.command, " :Not enough parameters"));
             break;
         case IRCCode::ALREADYREGISTERED:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               " :You may not reregister"));
             break;
         case IRCCode::PASSWDMISMATCH:
@@ -133,23 +133,23 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCode::KEYSET: // checken if channel is 1 index of the params
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[1], " :Channel key already set"));
             break;
         case IRCCode::CHANNELISFULL: // checken if channel is 1 index of the
                                      // params
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[1], " :Cannot join channel (+l)"));
             break;
         case IRCCode::UNKNOWMODE: // checken if char is 2 index of the params
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[2], " :is unknown mode char to me"));
             break;
         case IRCCode::INVITEONLYCHAN:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               token.params[1], " :Cannot join channel (+i)"));
             break;
         case IRCCode::BADCHANNELKEY:
@@ -160,7 +160,7 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCode::NOPRIVILEGES:
             client->appendMessageToQue(formatMessage(
-                ":", _serverName, " ", errnoAsString,
+                ":", _serverName, " ", errnoAsString, " ",
                 " :Permission Denied- You're not an IRC operator"));
             break;
         case IRCCode::CHANOPRIVSNEEDED:
@@ -175,7 +175,7 @@ void Server::_handleError(IRCMessage token,
             break;
         case IRCCode::USERSDONTMATCH:
             client->appendMessageToQue(
-                formatMessage(":", _serverName, " ", errnoAsString,
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
                               " :Cant change mode for other users"));
             break;
     }
