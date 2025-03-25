@@ -300,8 +300,6 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
-    std::string user = client->getUsername();
-    std::string ip = client->getIP();
 
     client->appendMessageToQue(formatMessage(
         ":", _serverName, " 001 ", nick,
