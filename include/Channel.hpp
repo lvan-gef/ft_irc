@@ -85,6 +85,7 @@ class Channel {
     bool _checkPassword(const std::string &password) const noexcept;
     bool _hasUserLimit() const noexcept;
     bool _hasInvite() const noexcept;
+    bool _hasTopic() const noexcept;
 
   private:
     bool _userOnChannel(const std::shared_ptr<Client> &user);

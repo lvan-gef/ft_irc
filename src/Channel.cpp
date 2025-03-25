@@ -156,9 +156,10 @@ IRCCode Channel::setMode(Mode mode, bool state,
 
 IRCCode Channel::setTopic(const std::string &topic,
                           const std::shared_ptr<Client> &client) {
-    // check if is operator
+    if (_hasInvite() && isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
 
-    (void)client;
     _topic = topic;
     return IRCCode::SUCCES;
 }
@@ -242,6 +243,10 @@ bool Channel::_hasUserLimit() const noexcept {
 
 bool Channel::_hasInvite() const noexcept {
     return _modes & Mode::INVITE_ONLY;
+}
+
+bool Channel::_hasTopic() const noexcept {
+    return _modes & Mode::TOPIC_PROTECTED;
 }
 
 bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
