@@ -144,7 +144,7 @@ IRCCode Channel::setMode(Mode mode, bool state, const std::string &value,
         case Mode::USER_LIMIT:
             if (state) {
                 _modes |= Mode::USER_LIMIT;
-                return setUserLimit(0, client);
+                return setUserLimit(Defaults::USERLIMIT, client);
             } else {
                 _modes &= ~Mode::USER_LIMIT;
                 return setUserLimit(toSizeT(value), client);
