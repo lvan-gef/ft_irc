@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:57:07 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:46:16 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ void Server::_handleCommand(const IRCMessage &token,
                           << '\n';
                 return;
             }
+            return _handleModeI(token, client);
             break;
         case IRCCommand::MODE_I:
             return _handleModeI(token, client);

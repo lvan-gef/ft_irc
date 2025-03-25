@@ -6,19 +6,20 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 21:33:12 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:56:12 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
+#include "../include/Optional.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
-#include "../include/Optional.hpp"
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode);
 
@@ -247,23 +248,27 @@ void Server::_handleModeI(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
-        return;
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
 
-    /*IRCCode result = channel_it->second.modeI(token.params[1], client);*/
-    /*if (result != IRCCode::SUCCES) {*/
-    /*    _handleError(formatError(token, result), client);*/
-    /*    return;*/
-    /*}*/
+    bool state = true ? token.params[1][0] == '+' : false;
+    std::cout << state << " " << token.params[1][0] << '\n';
+    IRCCode result = channel_it->second.setMode(
+        channel_it->second.Mode::INVITE_ONLY, state, client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
+
+    channel_it->second.broadcast(_serverName, "MODE " +
+                                                  channel_it->second.getName() +
+                                                  " " + token.params[1]);
 }
 
 void Server::_handleModeT(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
-        return;
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
 
     /*IRCCode result = channel_it->second.modeT(token.params[1], client);*/

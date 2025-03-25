@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 21:24:29 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:57:14 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,32 @@ IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
     }
 
     return _addUser(user);
+}
+
+
+IRCCode Channel::setMode(Mode mode, bool state,
+                    const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    switch (mode) {
+        case Mode::INVITE_ONLY:
+            if (state) {
+                _modes |= Mode::INVITE_ONLY;
+            } else {
+                _modes &= ~Mode::INVITE_ONLY;
+            }
+            break;
+        case Mode::TOPIC_PROTECTED:
+            break;
+        case Mode::PASSWORD_PROTECTED:
+            break;
+        case Mode::USER_LIMIT:
+            break;
+    }
+
+    return IRCCode::SUCCES;
 }
 
 IRCCode Channel::setTopic(const std::string &topic,
