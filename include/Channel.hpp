@@ -6,13 +6,14 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 19:27:08 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 17:33:18 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -22,8 +23,8 @@
 
 class Channel {
   public:
-    explicit Channel(const std::string &name, const std::string &topic,
-                     const std::shared_ptr<Client> &founder);
+    explicit Channel(std::string name, std::string topic,
+                     const std::shared_ptr<Client> &client);
 
     Channel(const Channel &) = delete;
     Channel &operator=(const Channel &) = delete;
@@ -34,7 +35,7 @@ class Channel {
     ~Channel();
 
   public:
-    enum Mode {
+    enum Mode : std::uint8_t {
         INVITE_ONLY = 1 << 0,
         TOPIC_PROTECTED = 1 << 1,
         PASSWORD_PROTECTED = 1 << 2,
@@ -67,28 +68,37 @@ class Channel {
     const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
     size_t activeUsers() const noexcept;
-    bool isOperator(const std::shared_ptr<Client> &client) const noexcept;
-    bool hasPassword() const noexcept;
 
   public:
     void broadcast(const std::string &senderPrefix,
                    const std::string &message) const;
+    std::string getUserList() const noexcept;
 
   private:
+    bool _hasPassword() const noexcept;
     bool _checkPassword(const std::string &password) const noexcept;
-    void _sendJoinNotifications(const std::shared_ptr<Client> &client) const;
-    std::string _getUserList() const noexcept;
+    bool _hasUserLimit() const noexcept;
+    bool _hasInvite() const noexcept;
 
   private:
-    std::string name_;
-    std::string topic_;
-    std::string password_;
-    size_t userLimit_;
-    uint8_t modes_;
 
   private:
-    std::unordered_set<std::shared_ptr<Client>> users_;
-    std::unordered_set<std::shared_ptr<Client>> operators_;
+    bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
+    bool _userOnChannel(const std::shared_ptr<Client> &user);
+
+  private:
+    IRCCode _addUser(const std::shared_ptr<Client> &user);
+
+  private:
+    std::string _name;
+    std::string _topic;
+    std::string _password;
+    size_t _userLimit;
+    uint8_t _modes;
+
+  private:
+    std::unordered_set<std::shared_ptr<Client>> _users;
+    std::unordered_set<std::shared_ptr<Client>> _operators;
 };
 
 #endif // CHANNEL_HPP

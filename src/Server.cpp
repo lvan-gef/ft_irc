@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 19:04:33 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 16:55:30 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,13 +425,13 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             _nick_to_client.erase(nick_it);
         }
 
-        std::vector<std::string> channels = client->allChannels();
-        for (const std::string &channel : channels) {
-            auto it = _channels.find(channel);
-            if (it != _channels.end()) {
-                it->second.removeUser(client);
-            }
-        }
+        /*std::vector<std::string> channels = client->allChannels();*/
+        /*for (const std::string &channel : channels) {*/
+        /*    auto it = _channels.find(channel);*/
+        /*    if (it != _channels.end()) {*/
+        /*        it->second.removeUser(client);*/
+        /*    }*/
+        /*}*/
 
         std::cout << "Client disconnected - FD: " << fd << " Nickname: '"
                   << nickname << "' - " << '\n';

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 20:50:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 17:26:28 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,8 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            channel_it->second.sendMessage(" :" + token.params[1],
-                                           client->getFullID());
+            /*channel_it->second.sendMessage(" :" + token.params[1],*/
+            /*                               client->getFullID());*/
         } else {
             _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
         }
@@ -98,7 +98,7 @@ void Server::_handleJoin(const IRCMessage &token,
         std::string topic =
             token.params.size() > 1 ? token.params[1] : "Default";
         _channels.emplace(token.params[0],
-                          Channel(_serverName, token.params[0], topic, client));
+                          Channel(token.params[0], topic, client));
     } else {
         const std::string password =
             token.params.size() > 1 ? token.params[1] : "";
@@ -106,8 +106,26 @@ void Server::_handleJoin(const IRCMessage &token,
 
         if (result != IRCCode::SUCCES) {
             _handleError(formatError(token, result), client);
+            return;
         }
     }
+
+    channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    }
+
+    client->appendMessageToQue(
+        formatMessage(":", _serverName, " 332 ", client->getNickname(),
+                      " ", channel_it->second.getName(), " :",
+                      channel_it->second.getTopic()));
+    client->appendMessageToQue(
+        formatMessage(":", _serverName, " 353 ", client->getNickname(),
+                      " = ", channel_it->second.getName(), " :",
+                      channel_it->second.getUserList()));
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 366 ", client->getNickname(), " ",
+        channel_it->second.getName(), " :End of /NAMES list"));
 }
 
 // need to make a case to view the topic
@@ -117,10 +135,10 @@ void Server::_handleTopic(const IRCMessage &token,
 
     if (channel_it != _channels.end()) {
         if (token.params.size() < 2) {
-            client->appendMessageToQue(
-                formatMessage(":", _serverName, " 332 ", client->getNickname(),
-                              " ", channel_it->second.channelName(), " :",
-                              channel_it->second.getTopic()));
+            /*client->appendMessageToQue(*/
+            /*    formatMessage(":", _serverName, " 332 ", client->getNickname(),*/
+            /*                  " ", channel_it->second.channelName(), " :",*/
+            /*                  channel_it->second.getTopic()));*/
             return;
         }
 
@@ -138,10 +156,10 @@ void Server::_handlePart(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
-        channel_it->second.removeUser(client);
-        if (channel_it->second.usersActive() == 0) {
-            _channels.erase(channel_it->second.channelName());
-        }
+        /*channel_it->second.removeUser(client);*/
+        /*if (channel_it->second.usersActive() == 0) {*/
+        /*    _channels.erase(channel_it->second.channelName());*/
+        /*}*/
     } else {
         _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
@@ -166,10 +184,10 @@ void Server::_handleKick(const IRCMessage &token,
                             client);
     }
 
-    IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);
-    if (result != IRCCode::SUCCES) {
-        return _handleError(formatError(token, result), client);
-    }
+    /*IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    return _handleError(formatError(token, result), client);*/
+    /*}*/
 }
 
 void Server::_handleInvite(const IRCMessage &token,
@@ -187,11 +205,11 @@ void Server::_handleInvite(const IRCMessage &token,
         return;
     }
 
-    IRCCode result =
-        channel_it->second.inviteUser(targetUser_it->second, client);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-    }
+    /*IRCCode result =*/
+    /*    channel_it->second.inviteUser(targetUser_it->second, client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*}*/
 }
 
 void Server::_handleModeI(const IRCMessage &token,
@@ -202,11 +220,11 @@ void Server::_handleModeI(const IRCMessage &token,
         return;
     }
 
-    IRCCode result = channel_it->second.modeI(token.params[1], client);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-        return;
-    }
+    /*IRCCode result = channel_it->second.modeI(token.params[1], client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*    return;*/
+    /*}*/
 }
 
 void Server::_handleModeT(const IRCMessage &token,
@@ -217,11 +235,11 @@ void Server::_handleModeT(const IRCMessage &token,
         return;
     }
 
-    IRCCode result = channel_it->second.modeT(token.params[1], client);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-        return;
-    }
+    /*IRCCode result = channel_it->second.modeT(token.params[1], client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*    return;*/
+    /*}*/
 }
 
 void Server::_handleModeK(const IRCMessage &token,
@@ -232,12 +250,12 @@ void Server::_handleModeK(const IRCMessage &token,
         return;
     }
 
-    IRCCode result =
-        channel_it->second.modeK(token.params[1], client, token.params[2]);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-        return;
-    }
+    /*IRCCode result =*/
+    /*    channel_it->second.modeK(token.params[1], client, token.params[2]);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*    return;*/
+    /*}*/
 }
 
 void Server::_handleModeO(const IRCMessage &token,
@@ -255,12 +273,12 @@ void Server::_handleModeO(const IRCMessage &token,
         return;
     }
 
-    IRCCode result =
-        channel_it->second.modeO(token.params[1], user_it->second, client);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-        return;
-    }
+    /*IRCCode result =*/
+    /*    channel_it->second.modeO(token.params[1], user_it->second, client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*    return;*/
+    /*}*/
 }
 
 void Server::_handleModeL(const IRCMessage &token,
@@ -271,12 +289,12 @@ void Server::_handleModeL(const IRCMessage &token,
         return;
     }
 
-    IRCCode result = channel_it->second.modeL(token.params[1],
-                                              toSizeT(token.params[2]), client);
-    if (result != IRCCode::SUCCES) {
-        _handleError(formatError(token, result), client);
-        return;
-    }
+    /*IRCCode result = channel_it->second.modeL(token.params[1],*/
+    /*                                          toSizeT(token.params[2]), client);*/
+    /*if (result != IRCCode::SUCCES) {*/
+    /*    _handleError(formatError(token, result), client);*/
+    /*    return;*/
+    /*}*/
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
