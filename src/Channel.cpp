@@ -112,41 +112,41 @@ IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
     return _addUser(user);
 }
 
-IRCCode Channel::setMode(Mode mode, bool state, const std::string &value,
+IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                          const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
 
     switch (mode) {
-        case Mode::INVITE_ONLY:
+        case ChannelMode::INVITE_ONLY:
             if (state) {
-                _modes |= Mode::INVITE_ONLY;
+                _modes |= ChannelMode::INVITE_ONLY;
             } else {
-                _modes &= ~Mode::INVITE_ONLY;
+                _modes &= ~ChannelMode::INVITE_ONLY;
             }
             break;
-        case Mode::TOPIC_PROTECTED:
+        case ChannelMode::TOPIC_PROTECTED:
             if (state) {
-                _modes |= Mode::TOPIC_PROTECTED;
+                _modes |= ChannelMode::TOPIC_PROTECTED;
             } else {
-                _modes &= ~Mode::TOPIC_PROTECTED;
+                _modes &= ~ChannelMode::TOPIC_PROTECTED;
             }
             break;
-        case Mode::PASSWORD_PROTECTED:
+        case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
-                _modes |= Mode::PASSWORD_PROTECTED;
+                _modes |= ChannelMode::PASSWORD_PROTECTED;
                 return setPassword(value, client);
             } else {
-                _modes &= ~Mode::PASSWORD_PROTECTED;
+                _modes &= ~ChannelMode::PASSWORD_PROTECTED;
                 return setPassword("", client);
             }
-        case Mode::USER_LIMIT:
+        case ChannelMode::USER_LIMIT:
             if (state) {
-                _modes |= Mode::USER_LIMIT;
+                _modes |= ChannelMode::USER_LIMIT;
                 return setUserLimit(Defaults::USERLIMIT, client);
             } else {
-                _modes &= ~Mode::USER_LIMIT;
+                _modes &= ~ChannelMode::USER_LIMIT;
                 return setUserLimit(toSizeT(value), client);
             }
     }
@@ -250,7 +250,7 @@ std::string Channel::getUserList() const noexcept {
 }
 
 bool Channel::_hasPassword() const noexcept {
-    return _modes & Mode::PASSWORD_PROTECTED;
+    return _modes & ChannelMode::PASSWORD_PROTECTED;
 }
 
 bool Channel::_checkPassword(const std::string &password) const noexcept {
@@ -258,15 +258,15 @@ bool Channel::_checkPassword(const std::string &password) const noexcept {
 }
 
 bool Channel::_hasUserLimit() const noexcept {
-    return _modes & Mode::USER_LIMIT;
+    return _modes & ChannelMode::USER_LIMIT;
 }
 
 bool Channel::_hasInvite() const noexcept {
-    return _modes & Mode::INVITE_ONLY;
+    return _modes & ChannelMode::INVITE_ONLY;
 }
 
 bool Channel::_hasTopic() const noexcept {
-    return _modes & Mode::TOPIC_PROTECTED;
+    return _modes & ChannelMode::TOPIC_PROTECTED;
 }
 
 bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {

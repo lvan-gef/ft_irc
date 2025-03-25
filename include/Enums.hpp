@@ -29,12 +29,13 @@ enum Defaults {
     USERLIMIT = std::numeric_limits<size_t>::max()
 };
 
-enum Mode : std::uint8_t {
+enum ChannelMode : std::uint8_t {
     INVITE_ONLY = 1 << 0,
     TOPIC_PROTECTED = 1 << 1,
     PASSWORD_PROTECTED = 1 << 2,
     USER_LIMIT = 1 << 3
 };
+
 
 enum class IRCCommand : std::uint8_t {
     NICK,
