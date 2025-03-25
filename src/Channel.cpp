@@ -10,13 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Channel.hpp"
-#include "Enums.hpp"
-#include "Optional.hpp"
-#include "utils.hpp"
 #include <algorithm>
 #include <iostream>
 #include <memory>
+
+#include "../include/Channel.hpp"
+#include "../include/Enums.hpp"
+#include "../include/Optional.hpp"
+#include "../include/utils.hpp"
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
@@ -111,9 +112,8 @@ IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
     return _addUser(user);
 }
 
-
 IRCCode Channel::setMode(Mode mode, bool state,
-                    const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
