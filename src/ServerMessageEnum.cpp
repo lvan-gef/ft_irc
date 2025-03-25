@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 19:17:37 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 20:57:07 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
 
-void Server::_handleMessage(const IRCMessage &token,
+void Server::_handleCommand(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
 
     switch (token.type) {

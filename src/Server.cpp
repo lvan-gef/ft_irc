@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 16:55:30 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ static void signalHandler(int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
-      _serverName("codamirc.local"), _serverVersion("0.1.0"),
+      _serverName("codamirc.local"), _serverVersion("0.2.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
       _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{},
       _channels{} {
@@ -454,7 +454,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         if (!token.success) {
             _handleError(token, client);
         } else {
-            _handleMessage(token, client);
+            _handleCommand(token, client);
         }
     }
 

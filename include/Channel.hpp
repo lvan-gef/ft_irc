@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 17:33:18 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 18:07:09 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
+#include "Optional.hpp"
 
 class Channel {
   public:
@@ -45,7 +46,7 @@ class Channel {
   public:
     IRCCode addUser(const std::string &password,
                     const std::shared_ptr<Client> &user);
-    IRCCode removeUser(const std::shared_ptr<Client> &client);
+    IRCCode removeUser(const std::shared_ptr<Client> &user);
     IRCCode kickUser(const std::shared_ptr<Client> &target,
                      const std::shared_ptr<Client> &client);
     IRCCode inviteUser(const std::shared_ptr<Client> &user,
@@ -61,8 +62,10 @@ class Channel {
                      const std::shared_ptr<Client> &client);
 
   public:
-    void addOperator(const std::shared_ptr<Client> &user);
-    void removeOperator(const std::shared_ptr<Client> &user);
+    Optional<std::shared_ptr<Client>>
+    addOperator(const std::shared_ptr<Client> &user);
+    Optional<std::shared_ptr<Client>>
+    removeOperator(const std::shared_ptr<Client> &user);
 
   public:
     const std::string &getName() const noexcept;
@@ -74,6 +77,9 @@ class Channel {
                    const std::string &message) const;
     std::string getUserList() const noexcept;
 
+  public:
+    bool isOperator(const std::shared_ptr<Client> &user) const noexcept;
+
   private:
     bool _hasPassword() const noexcept;
     bool _checkPassword(const std::string &password) const noexcept;
@@ -81,9 +87,6 @@ class Channel {
     bool _hasInvite() const noexcept;
 
   private:
-
-  private:
-    bool _isOperator(const std::shared_ptr<Client> &user) const noexcept;
     bool _userOnChannel(const std::shared_ptr<Client> &user);
 
   private:

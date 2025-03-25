@@ -6,15 +6,17 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 17:35:38 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 20:47:35 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Channel.hpp"
 #include "Enums.hpp"
+#include "Optional.hpp"
 #include "utils.hpp"
 #include <algorithm>
 #include <iostream>
+#include <memory>
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
@@ -68,6 +70,19 @@ IRCCode Channel::addUser(const std::string &password,
     return _addUser(user);
 }
 
+IRCCode Channel::removeUser(const std::shared_ptr<Client> &user) {
+    auto it = std::find(_users.begin(), _users.end(), user);
+
+    if (it != _users.end()) {
+        broadcast(user->getFullID(), "PART " + getName());
+        _users.erase(user);
+
+        return IRCCode::SUCCES;
+    }
+
+    return IRCCode::USERNOTINCHANNEL;
+}
+
 IRCCode Channel::setTopic(const std::string &topic,
                           const std::shared_ptr<Client> &client) {
     // check if is operator
@@ -77,12 +92,35 @@ IRCCode Channel::setTopic(const std::string &topic,
     return IRCCode::SUCCES;
 }
 
-void Channel::addOperator(const std::shared_ptr<Client> &user) {
+Optional<std::shared_ptr<Client>>
+Channel::addOperator(const std::shared_ptr<Client> &user) {
     auto it = std::find(_operators.begin(), _operators.end(), user);
+    Optional<std::shared_ptr<Client>> client;
 
     if (it == _operators.end()) {
         _operators.emplace(user);
+        client.set_value(user);
     }
+
+    return client;
+}
+
+Optional<std::shared_ptr<Client>>
+Channel::removeOperator(const std::shared_ptr<Client> &user) {
+    auto it = std::find(_operators.begin(), _operators.end(), user);
+    Optional<std::shared_ptr<Client>> client;
+
+    if (it != _operators.end()) {
+        _operators.erase(user);
+
+        if (!_users.empty() && _operators.empty()) {
+            std::shared_ptr<Client> newOperator = *_users.begin();
+            addOperator(newOperator);
+            client.set_value(newOperator);
+        }
+    }
+
+    return client;
 }
 
 const std::string &Channel::getName() const noexcept {
@@ -99,8 +137,13 @@ std::size_t Channel::activeUsers() const noexcept {
 
 void Channel::broadcast(const std::string &senderPrefix,
                         const std::string &message) const {
-    for (const std::shared_ptr<Client> &client : _users) {
-        client->appendMessageToQue(
+    for (const std::shared_ptr<Client> &user : _users) {
+        if (message.find("PRIVMSG") != std::string::npos &&
+            senderPrefix.find(user->getFullID()) != std::string::npos) {
+            continue;
+        }
+
+        user->appendMessageToQue(
             formatMessage(":", senderPrefix, " ", message));
     }
 }
@@ -108,7 +151,7 @@ void Channel::broadcast(const std::string &senderPrefix,
 std::string Channel::getUserList() const noexcept {
     std::string userList;
     for (const std::shared_ptr<Client> &user : _users) {
-        userList += (_isOperator(user) ? "@" : "") + user->getNickname() + " ";
+        userList += (isOperator(user) ? "@" : "") + user->getNickname() + " ";
     }
 
     return userList;
@@ -130,7 +173,7 @@ bool Channel::_hasInvite() const noexcept {
     return _modes & Mode::INVITE_ONLY;
 }
 
-bool Channel::_isOperator(const std::shared_ptr<Client> &user) const noexcept {
+bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
     auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it != _operators.end()) {

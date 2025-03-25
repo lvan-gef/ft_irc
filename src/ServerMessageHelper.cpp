@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 17:26:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
+#include "Optional.hpp"
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode);
 
@@ -70,8 +71,9 @@ void Server::_handlePriv(const IRCMessage &token,
         auto channel_it = _channels.find(token.params[0]);
 
         if (channel_it != _channels.end()) {
-            /*channel_it->second.sendMessage(" :" + token.params[1],*/
-            /*                               client->getFullID());*/
+            channel_it->second.broadcast(
+                client->getFullID(), "PRIVMSG " + channel_it->second.getName() +
+                                         " :" + token.params[1]);
         } else {
             _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
         }
@@ -115,17 +117,15 @@ void Server::_handleJoin(const IRCMessage &token,
         return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
 
-    client->appendMessageToQue(
-        formatMessage(":", _serverName, " 332 ", client->getNickname(),
-                      " ", channel_it->second.getName(), " :",
-                      channel_it->second.getTopic()));
-    client->appendMessageToQue(
-        formatMessage(":", _serverName, " 353 ", client->getNickname(),
-                      " = ", channel_it->second.getName(), " :",
-                      channel_it->second.getUserList()));
     client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 366 ", client->getNickname(), " ",
-        channel_it->second.getName(), " :End of /NAMES list"));
+        ":", _serverName, " 332 ", client->getNickname(), " ",
+        channel_it->second.getName(), " :", channel_it->second.getTopic()));
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 353 ", client->getNickname(), " = ",
+        channel_it->second.getName(), " :", channel_it->second.getUserList()));
+    client->appendMessageToQue(
+        formatMessage(":", _serverName, " 366 ", client->getNickname(), " ",
+                      channel_it->second.getName(), " :End of /NAMES list"));
 }
 
 // need to make a case to view the topic
@@ -135,10 +135,10 @@ void Server::_handleTopic(const IRCMessage &token,
 
     if (channel_it != _channels.end()) {
         if (token.params.size() < 2) {
-            /*client->appendMessageToQue(*/
-            /*    formatMessage(":", _serverName, " 332 ", client->getNickname(),*/
-            /*                  " ", channel_it->second.channelName(), " :",*/
-            /*                  channel_it->second.getTopic()));*/
+            client->appendMessageToQue(
+                formatMessage(":", _serverName, " 332 ", client->getNickname(),
+                              " ", channel_it->second.getName(), " :",
+                              channel_it->second.getTopic()));
             return;
         }
 
@@ -156,12 +156,33 @@ void Server::_handlePart(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
-        /*channel_it->second.removeUser(client);*/
-        /*if (channel_it->second.usersActive() == 0) {*/
-        /*    _channels.erase(channel_it->second.channelName());*/
-        /*}*/
+        Channel channel = std::move(channel_it->second);
+
+        IRCCode result = channel.removeUser(client);
+        if (result != IRCCode::SUCCES) {
+            return _handleError(formatError(token, result), client);
+        }
+
+        if (channel.isOperator(client) == true) {
+            channel.broadcast(_serverName, " MODE " + channel.getName() +
+                                               " -o " + client->getNickname());
+
+            Optional<std::shared_ptr<Client>> newOperator =
+                channel.removeOperator(client);
+            if (newOperator.has_value()) {
+                const std::shared_ptr<Client> &newClient =
+                    newOperator.get_value();
+                channel.broadcast(_serverName, " MODE " + channel.getName() +
+                                                   " +o " +
+                                                   newClient->getNickname());
+            }
+        }
+
+        if (channel.activeUsers() == 0) {
+            _channels.erase(channel.getName());
+        }
     } else {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
 }
 
@@ -184,7 +205,8 @@ void Server::_handleKick(const IRCMessage &token,
                             client);
     }
 
-    /*IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);*/
+    /*IRCCode result = channel_it->second.kickUser(userToKick_it->second,
+     * client);*/
     /*if (result != IRCCode::SUCCES) {*/
     /*    return _handleError(formatError(token, result), client);*/
     /*}*/
@@ -290,7 +312,8 @@ void Server::_handleModeL(const IRCMessage &token,
     }
 
     /*IRCCode result = channel_it->second.modeL(token.params[1],*/
-    /*                                          toSizeT(token.params[2]), client);*/
+    /*                                          toSizeT(token.params[2]),
+     * client);*/
     /*if (result != IRCCode::SUCCES) {*/
     /*    _handleError(formatError(token, result), client);*/
     /*    return;*/
