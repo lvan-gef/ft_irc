@@ -93,15 +93,14 @@ std::vector<std::string> split(const std::string &s,
     return lines;
 }
 
-// debugging
 void IRCMessage::print() const {
-    std::cout << "prefix: '" << prefix << "'" << '\n';
-    std::cout << "command: '" << command << "'" << '\n';
-    std::cout << "param: ";
+    std::cerr << "prefix : '" << prefix << "'" << '\n';
+    std::cerr << "command: '" << command << "'" << '\n';
+    std::cerr << "param  : ";
     for (const std::string &param : params) {
-        std::cout << param << ", ";
+        std::cerr << param << ", ";
     }
-    std::cout << '\n';
+    std::cerr << '\n';
 }
 
 void IRCMessage::setIRCCode(const IRCCode &code) noexcept {
