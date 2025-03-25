@@ -55,7 +55,8 @@ class Server {
   private:
     void _newConnection() noexcept;
     void _clientAccepted(const std::shared_ptr<Client> &client) noexcept;
-    void _clientMessage(int fd) noexcept;
+    void _clientRecv(int fd) noexcept;
+    void _clientSend(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
 
   private:

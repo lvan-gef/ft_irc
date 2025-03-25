@@ -160,13 +160,13 @@ void Server::_handleKick(const IRCMessage &token,
         return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
 
-    auto userToKick = _nick_to_client.find(token.params[1]);
-    if (userToKick == _nick_to_client.end()) {
+    auto userToKick_it = _nick_to_client.find(token.params[1]);
+    if (userToKick_it == _nick_to_client.end()) {
         return _handleError(formatError(token, IRCCode::USERNOTINCHANNEL),
                             client);
     }
 
-    IRCCode result = channel_it->second.kickUser(userToKick->second, client);
+    IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);
     if (result != IRCCode::SUCCES) {
         return _handleError(formatError(token, result), client);
     }

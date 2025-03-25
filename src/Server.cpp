@@ -208,52 +208,15 @@ void Server::_run() {
             throw ServerException();
         }
 
-        for (size_t index = 0; index < static_cast<size_t>(nfds); ++index) {
-            const auto &event = events[index];
+        for (int index = 0; index < nfds; ++index) {
+            const auto &event = events[static_cast<size_t>(index)];
 
             if (event.data.fd == _server_fd.get()) {
                 _newConnection();
             } else if (event.events & EPOLLIN) {
-                _clientMessage(event.data.fd);
+                _clientRecv(event.data.fd);
             } else if (event.events & EPOLLOUT) {
-                std::shared_ptr<Client> client = _fd_to_client[event.data.fd];
-                while (client->haveMessagesToSend()) {
-                    std::string msg = client->getMessage();
-
-                    size_t offset = client->getOffset();
-                    std::cout << "send: " << msg.c_str() << '\n';
-                    ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
-                                         msg.length() - offset, MSG_DONTWAIT);
-
-                    if (bytes < 0) {
-                        if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                            break;
-                        } else {
-                            std::cerr
-                                << "Error while sending: " << strerror(errno)
-                                << '\n';
-                            _removeClient(client);
-                            break;
-                        }
-                    }
-                    client->setOffset(static_cast<size_t>(bytes));
-                    if (client->getOffset() >= msg.length()) {
-                        client->removeMessage();
-                    } else {
-                        break;
-                    }
-                }
-
-                epoll_event ev = client->getEvent();
-                if (client->haveMessagesToSend() != true) {
-                    ev.events = EPOLLIN;
-                }
-                if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(),
-                              &ev) == -1) {
-                    std::cerr
-                        << "Failed to update epoll event: " << strerror(errno)
-                        << '\n';
-                }
+                _clientSend(event.data.fd);
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
                 auto it = _fd_to_client.find(event.data.fd);
                 if (it != _fd_to_client.end()) {
@@ -375,7 +338,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
 }
 
-void Server::_clientMessage(int fd) noexcept {
+void Server::_clientRecv(int fd) noexcept {
     std::shared_ptr<Client> client = _fd_to_client[fd];
     if (!client) {
         return;
@@ -398,6 +361,46 @@ void Server::_clientMessage(int fd) noexcept {
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
     _processMessage(client);
+}
+
+void Server::_clientSend(int fd) noexcept {
+    std::shared_ptr<Client> client = _fd_to_client[fd];
+
+    while (client->haveMessagesToSend()) {
+        std::string msg = client->getMessage();
+
+        size_t offset = client->getOffset();
+        std::cout << "send: " << msg.c_str() << '\n';
+        ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
+                             msg.length() - offset, MSG_DONTWAIT);
+
+        if (0 > bytes) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                break;
+            } else {
+                std::cerr << "Error while sending: " << strerror(errno) << '\n';
+                _removeClient(client);
+                break;
+            }
+        }
+
+        client->setOffset(static_cast<size_t>(bytes));
+        if (client->getOffset() >= msg.length()) {
+            client->removeMessage();
+        } else {
+            break;
+        }
+    }
+
+    epoll_event ev = client->getEvent();
+    if (client->haveMessagesToSend() != true) {
+        ev.events = EPOLLIN;
+        if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, client->getFD(), &ev) ==
+            -1) {
+            std::cerr << "Failed to update epoll event: " << strerror(errno)
+                      << '\n';
+        }
+    }
 }
 
 void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
