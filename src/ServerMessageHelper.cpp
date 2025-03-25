@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 21:31:50 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:33:12 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
-#include "Optional.hpp"
+#include "../include/Optional.hpp"
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode);
 
