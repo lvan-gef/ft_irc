@@ -180,6 +180,6 @@ void Server::_handleError(IRCMessage token,
             break;
         default:
             std::cerr << "Unkown Error Token: ";
-            token.print();
+            token.debug();
     }
 }

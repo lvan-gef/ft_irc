@@ -93,7 +93,7 @@ std::vector<std::string> split(const std::string &s,
     return lines;
 }
 
-void IRCMessage::print() const {
+void IRCMessage::debug() const {
     std::cerr << "prefix : '" << prefix << "'" << '\n';
     std::cerr << "command: '" << command << "'" << '\n';
     std::cerr << "param  : ";

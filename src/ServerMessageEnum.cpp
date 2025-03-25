@@ -86,6 +86,6 @@ void Server::_handleMessage(const IRCMessage &token,
             break;
         default:
             std::cerr << "Unkown Token: ";
-            token.print();
+            token.debug();
     }
 }

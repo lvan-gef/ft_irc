@@ -28,7 +28,7 @@ struct IRCMessage {
     Optional<IRCCode> err;
     IRCCommand type;
 
-    void print() const;
+    void debug() const;
     void setIRCCode(const IRCCode &code) noexcept;
 };
 
