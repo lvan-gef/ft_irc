@@ -252,9 +252,9 @@ void Server::_handleModeI(const IRCMessage &token,
     }
 
     bool state = true ? token.params[1][0] == '+' : false;
-    std::cout << state << " " << token.params[1][0] << '\n';
+    const std::string value = token.params[2] ? token.params.size() > 2 : "";
     IRCCode result = channel_it->second.setMode(
-        channel_it->second.Mode::INVITE_ONLY, state, client);
+        channel_it->second.Mode::INVITE_ONLY, state, value, client);
     if (result != IRCCode::SUCCES) {
         return _handleError(formatError(token, result), client);
     }

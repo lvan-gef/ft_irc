@@ -53,7 +53,7 @@ class Channel {
                        const std::shared_ptr<Client> &client);
 
   public:
-    IRCCode setMode(Mode mode, bool state,
+    IRCCode setMode(Mode mode, bool state, const std::string &value,
                     const std::shared_ptr<Client> &client);
     IRCCode setPassword(const std::string &password,
                         const std::shared_ptr<Client> &client);

@@ -112,7 +112,7 @@ IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
     return _addUser(user);
 }
 
-IRCCode Channel::setMode(Mode mode, bool state,
+IRCCode Channel::setMode(Mode mode, bool state, const std::string &value,
                          const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
@@ -136,7 +136,7 @@ IRCCode Channel::setMode(Mode mode, bool state,
         case Mode::PASSWORD_PROTECTED:
             if (state) {
                 _modes |= Mode::PASSWORD_PROTECTED;
-                return setPassword("", client);
+                return setPassword(value, client);
             } else {
                 _modes &= ~Mode::PASSWORD_PROTECTED;
                 return setPassword("", client);
@@ -147,7 +147,7 @@ IRCCode Channel::setMode(Mode mode, bool state,
                 return setUserLimit(0, client);
             } else {
                 _modes &= ~Mode::USER_LIMIT;
-                return setUserLimit(0, client);
+                return setUserLimit(toSizeT(value), client);
             }
     }
 
