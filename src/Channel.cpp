@@ -127,11 +127,28 @@ IRCCode Channel::setMode(Mode mode, bool state,
             }
             break;
         case Mode::TOPIC_PROTECTED:
+            if (state) {
+                _modes |= Mode::TOPIC_PROTECTED;
+            } else {
+                _modes &= ~Mode::TOPIC_PROTECTED;
+            }
             break;
         case Mode::PASSWORD_PROTECTED:
-            break;
+            if (state) {
+                _modes |= Mode::PASSWORD_PROTECTED;
+                return setPassword("", client);
+            } else {
+                _modes &= ~Mode::PASSWORD_PROTECTED;
+                return setPassword("", client);
+            }
         case Mode::USER_LIMIT:
-            break;
+            if (state) {
+                _modes |= Mode::USER_LIMIT;
+                return setUserLimit(0, client);
+            } else {
+                _modes &= ~Mode::USER_LIMIT;
+                return setUserLimit(0, client);
+            }
     }
 
     return IRCCode::SUCCES;
