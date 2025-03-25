@@ -319,7 +319,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     client->appendMessageToQue(formatMessage(
         ":", _serverName, " 005 ", nick,
-        " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
+        " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=#& PREFIX=(o)@ ",
         "PING USERHOST :are supported by this server"));
 
     client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick,
@@ -345,7 +345,7 @@ void Server::_clientRecv(int fd) noexcept {
     char buffer[READ_SIZE] = {0};
     ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN) {
             return;
         }
     }
@@ -373,7 +373,7 @@ void Server::_clientSend(int fd) noexcept {
                              msg.length() - offset, MSG_DONTWAIT);
 
         if (0 > bytes) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (errno == EAGAIN) {
                 break;
             } else {
                 std::cerr << "Error while sending: " << strerror(errno) << '\n';
