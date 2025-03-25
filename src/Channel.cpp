@@ -154,6 +154,26 @@ IRCCode Channel::setMode(Mode mode, bool state, const std::string &value,
     return IRCCode::SUCCES;
 }
 
+IRCCode Channel::setPassword(const std::string &password,
+        const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    _password = password;
+    return IRCCode::SUCCES;
+}
+
+IRCCode Channel::setUserLimit(size_t limit,
+        const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    _userLimit = limit;
+    return IRCCode::SUCCES;
+}
+
 IRCCode Channel::setTopic(const std::string &topic,
                           const std::shared_ptr<Client> &client) {
     if (_hasInvite() && isOperator(client) != true) {
