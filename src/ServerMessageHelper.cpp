@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:31:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,21 +205,14 @@ void Server::_handleKick(const IRCMessage &token,
                             client);
     }
 
-    /*IRCCode result = channel_it->second.kickUser(userToKick_it->second,
-     * client);*/
-    /*if (result != IRCCode::SUCCES) {*/
-    /*    return _handleError(formatError(token, result), client);*/
-    /*}*/
+    IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
 }
 
 void Server::_handleInvite(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) {
-
-    auto targetUser_it = _nick_to_client.find(token.params[0]);
-    if (targetUser_it == _nick_to_client.end()) {
-        _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
-        return;
-    }
 
     auto channel_it = _channels.find(token.params[1]);
     if (channel_it == _channels.end()) {
@@ -227,11 +220,27 @@ void Server::_handleInvite(const IRCMessage &token,
         return;
     }
 
-    /*IRCCode result =*/
-    /*    channel_it->second.inviteUser(targetUser_it->second, client);*/
-    /*if (result != IRCCode::SUCCES) {*/
-    /*    _handleError(formatError(token, result), client);*/
-    /*}*/
+    auto targetUser_it = _nick_to_client.find(token.params[0]);
+    if (targetUser_it == _nick_to_client.end()) {
+        _handleError(formatError(token, IRCCode::USERNOTINCHANNEL), client);
+        return;
+    }
+
+    IRCCode result =
+        channel_it->second.inviteUser(targetUser_it->second, client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
+
+    targetUser_it->second->appendMessageToQue(formatMessage(
+        ":", _serverName, " 332 ", targetUser_it->second->getNickname(), " ",
+        channel_it->second.getName(), " :", channel_it->second.getTopic()));
+    targetUser_it->second->appendMessageToQue(formatMessage(
+        ":", _serverName, " 353 ", targetUser_it->second->getNickname(), " = ",
+        channel_it->second.getName(), " :", channel_it->second.getUserList()));
+    targetUser_it->second->appendMessageToQue(formatMessage(
+        ":", _serverName, " 366 ", targetUser_it->second->getNickname(), " ",
+        channel_it->second.getName(), " :End of /NAMES list"));
 }
 
 void Server::_handleModeI(const IRCMessage &token,

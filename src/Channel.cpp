@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:47:35 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/25 21:24:29 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,34 @@ IRCCode Channel::removeUser(const std::shared_ptr<Client> &user) {
     }
 
     return IRCCode::USERNOTINCHANNEL;
+}
+
+IRCCode Channel::kickUser(const std::shared_ptr<Client> &target,
+                          const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    if (target == client) {
+        return IRCCode::UNKNOWNCOMMAND;
+    }
+
+    if (_userOnChannel(target)) {
+        broadcast(client->getFullID(),
+                  "KICK " + getName() + " " + target->getNickname() + " :Bye");
+        return removeUser(target);
+    }
+
+    return IRCCode::USERNOTINCHANNEL;
+}
+
+IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
+                            const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return IRCCode::CHANOPRIVSNEEDED;
+    }
+
+    return _addUser(user);
 }
 
 IRCCode Channel::setTopic(const std::string &topic,
