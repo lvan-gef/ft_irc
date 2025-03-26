@@ -171,7 +171,7 @@ void Client::appendMessageToQue(const std::string &msg) noexcept {
 void Client::addChannel(const std::string &channelName) noexcept {
     auto it = std::find(_channels.begin(), _channels.end(), channelName);
 
-    if (it != _channels.end()) {
+    if (it == _channels.end()) {
         _channels.emplace_back(channelName);
     }
 }

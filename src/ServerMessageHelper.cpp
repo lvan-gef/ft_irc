@@ -26,16 +26,30 @@ static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode);
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
 
-    // sould also handle setting of nickname when user is on server
-    if (client->isRegistered()) {
-        _handleError(formatError(token, IRCCode::ALREADYREGISTERED), client);
-        return;
-    }
-
     const std::string nickname = token.params[0];
     if (_nick_to_client.find(nickname) == _nick_to_client.end()) {
+        std::string old_id = client->getFullID();
+        std::string old_nickname = client->getNickname();
         client->setNickname(nickname);
-        _clientAccepted(client);
+
+        if (client->isRegistered() != true) {
+            _clientAccepted(client);
+        } else {
+            client->appendMessageToQue(
+                formatMessage(":", old_id, " NICK ", client->getNickname()));
+            for (const std::string &channelName : client->allChannels()) {
+                std::cout << ">>> walk channels: " << channelName << '\n';
+                for (const auto &channel : _channels) {
+                    if (channel.second.getName() == channelName) {
+                        channel.second.broadcast(
+                            old_id, " NICK " + client->getNickname());
+                        break;
+                    }
+                }
+            }
+            _nick_to_client[client->getNickname()] = client;
+            _nick_to_client.erase(old_nickname);
+        }
     } else {
         _handleError(formatError(token, IRCCode::NICKINUSE), client);
     }
@@ -127,6 +141,7 @@ void Server::_handleJoin(const IRCMessage &token,
     client->appendMessageToQue(
         formatMessage(":", _serverName, " 366 ", client->getNickname(), " ",
                       channel_it->second.getName(), " :End of /NAMES list"));
+    client->addChannel(channel_it->second.getName());
 }
 
 // need to make a case to view the topic
