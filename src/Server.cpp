@@ -351,6 +351,10 @@ void Server::_clientRecv(int fd) noexcept {
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;
+        } else {
+            _removeClient(client);
+            std::cerr << "Error while recv: " << strerror(errno) << '\n';
+            return;
         }
     }
 
