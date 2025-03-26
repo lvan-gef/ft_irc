@@ -161,10 +161,9 @@ void Server::_handleTopic(const IRCMessage &token,
             return _handleError(formatError(token, result), client);
         }
 
-        channel_it->second.broadcast(_serverName,
-                                     "332 " + client->getNickname() + " " +
-                                         channel_it->second.getName() + " :" +
-                                         channel_it->second.getTopic());
+        client->appendMessageToQue(formatMessage(
+            _serverName, "332 ", client->getNickname(), " ",
+            channel_it->second.getName(), " :", channel_it->second.getTopic()));
     } else {
         _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
