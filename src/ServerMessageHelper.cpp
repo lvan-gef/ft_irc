@@ -267,7 +267,6 @@ void Server::_handleMode(const IRCMessage &token,
 
     switch (cmd) {
         case ChannelCommand::MODE_I:
-            std::cout << "Mode change I" << '\n';
             result = channel_it->second.setMode(ChannelMode::INVITE_ONLY, state,
                                                 value, client);
             break;
