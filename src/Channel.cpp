@@ -76,14 +76,15 @@ IRCCode Channel::addUser(const std::string &password,
 IRCCode Channel::removeUser(const std::shared_ptr<Client> &user) {
     auto it = std::find(_users.begin(), _users.end(), user);
 
-    if (it != _users.end()) {
-        broadcast(user->getFullID(), "PART " + getName());
-        _users.erase(user);
-
-        return IRCCode::SUCCES;
+    if (it == _users.end()) {
+        return IRCCode::USERNOTINCHANNEL;
     }
 
-    return IRCCode::USERNOTINCHANNEL;
+    broadcast(user->getFullID(), "PART " + getName());
+    _users.erase(user);
+    removeOperator(user);
+
+    return IRCCode::SUCCES;
 }
 
 IRCCode Channel::kickUser(const std::shared_ptr<Client> &target,
@@ -224,6 +225,10 @@ Channel::removeOperator(const std::shared_ptr<Client> &user) {
 
     if (it != _operators.end()) {
         _operators.erase(user);
+
+        /*if (_operators.empty() && getActiveUsers() > 0) {*/
+        /*    addOperator(*_users.begin());*/
+        /*}*/
 
         if (!_users.empty() && _operators.empty()) {
             std::shared_ptr<Client> newOperator = *_users.begin();

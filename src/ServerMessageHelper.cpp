@@ -173,34 +173,17 @@ void Server::_handlePart(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
 
-    if (channel_it != _channels.end()) {
-
-        IRCCode result = channel_it->second.removeUser(client);
-        if (result != IRCCode::SUCCES) {
-            return _handleError(formatError(token, result), client);
-        }
-
-        if (channel_it->second.isOperator(client) == true) {
-            channel_it->second.broadcast(
-                _serverName, " MODE " + channel_it->second.getName() + " -o " +
-                                 client->getNickname());
-
-            Optional<std::shared_ptr<Client>> newOperator =
-                channel_it->second.removeOperator(client);
-            if (newOperator.has_value()) {
-                const std::shared_ptr<Client> &newClient =
-                    newOperator.get_value();
-                channel_it->second.broadcast(
-                    _serverName, " MODE " + channel_it->second.getName() +
-                                     " +o " + newClient->getNickname());
-            }
-        }
-
-        if (channel_it->second.getActiveUsers() == 0) {
-            _channels.erase(channel_it->second.getName());
-        }
-    } else {
+    if (channel_it == _channels.end()) {
         return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    }
+
+    IRCCode result = channel_it->second.removeUser(client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
+
+    if (channel_it->second.getActiveUsers() == 0) {
+        _channels.erase(channel_it->second.getName());
     }
 }
 
@@ -314,9 +297,9 @@ void Server::_handleMode(const IRCMessage &token,
         return _handleError(formatError(token, result), client);
     }
 
-    channel_it->second.broadcast(_serverName, "MODE " +
-                                                  channel_it->second.getName() +
-                                                  " " + token.params[1] + " " + suffix);
+    channel_it->second.broadcast(_serverName,
+                                 "MODE " + channel_it->second.getName() + " " +
+                                     token.params[1] + " " + suffix);
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
