@@ -37,19 +37,18 @@ void Server::_handleNickname(const IRCMessage &token,
         } else {
             client->appendMessageToQue(
                 formatMessage(":", old_id, " NICK ", client->getNickname()));
+
             for (const std::string &channelName : client->allChannels()) {
-                std::cout << ">>> walk channels: " << channelName << '\n';
-                for (const auto &channel : _channels) {
-                    if (channel.second.getName() == channelName) {
-                        channel.second.broadcast(
-                            old_id, " NICK " + client->getNickname());
-                        break;
-                    }
+                auto it = _channels.find(channelName);
+                if (it != _channels.end()) {
+                    it->second.broadcast(old_id,
+                                         " NICK " + client->getNickname());
+                    break;
                 }
             }
-            _nick_to_client[client->getNickname()] = client;
-            _nick_to_client.erase(old_nickname);
         }
+        _nick_to_client[client->getNickname()] = client;
+        _nick_to_client.erase(old_nickname);
     } else {
         _handleError(formatError(token, IRCCode::NICKINUSE), client);
     }
