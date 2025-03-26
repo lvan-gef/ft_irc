@@ -373,5 +373,3 @@ IRCCode Channel::_addUser(const std::shared_ptr<Client> &user) {
 
     return IRCCode::SUCCES;
 }
-
-/*_broadcastMessage(" +o " + user->getNickname(), "MODE", _serverName);*/

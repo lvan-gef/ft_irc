@@ -240,7 +240,7 @@ void Server::_handleInvite(const IRCMessage &token,
 
     auto targetUser_it = _nick_to_client.find(token.params[0]);
     if (targetUser_it == _nick_to_client.end()) {
-        _handleError(formatError(token, IRCCode::USERNOTINCHANNEL), client);
+        _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
         return;
     }
 
@@ -280,6 +280,7 @@ void Server::_handleMode(const IRCMessage &token,
     const ChannelCommand cmd = static_cast<ChannelCommand>(token.params[1][1]);
     const std::string value = token.params.size() > 2 ? token.params[2] : "";
     IRCCode result = {};
+    std::string suffix = "";
 
     switch (cmd) {
         case ChannelCommand::MODE_I:
@@ -298,10 +299,12 @@ void Server::_handleMode(const IRCMessage &token,
         case ChannelCommand::MODE_O:
             result = channel_it->second.setMode(ChannelMode::OPERATOR, state,
                                                 value, client);
+            suffix = value;
             break;
         case ChannelCommand::MODE_L:
             result = channel_it->second.setMode(ChannelMode::USER_LIMIT, state,
                                                 value, client);
+            suffix = value;
             break;
         default:
             std::cerr << "Unknow channel mode: " << token.params[1][1] << '\n';
@@ -313,7 +316,7 @@ void Server::_handleMode(const IRCMessage &token,
 
     channel_it->second.broadcast(_serverName, "MODE " +
                                                   channel_it->second.getName() +
-                                                  " " + token.params[1]);
+                                                  " " + token.params[1] + " " + suffix);
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {

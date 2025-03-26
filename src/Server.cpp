@@ -376,7 +376,7 @@ void Server::_clientSend(int fd) noexcept {
         std::string msg = client->getMessage();
 
         size_t offset = client->getOffset();
-        std::cout << "send: " << msg.c_str() << '\n';
+        std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str() << '\n';
         ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
                              msg.length() - offset, MSG_DONTWAIT);
 
@@ -453,7 +453,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 
     std::string msg = client->getAndClearBuffer();
-    std::cout << "recv: " << msg << '\n';
+    std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
 
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
