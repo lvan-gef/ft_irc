@@ -52,18 +52,7 @@ void Server::_handleCommand(const IRCMessage &token,
                           << '\n';
                 return;
             }
-            return _handleModeI(token, client);
             break;
-        case IRCCommand::MODE_I:
-            return _handleModeI(token, client);
-        case IRCCommand::MODE_T:
-            return _handleModeT(token, client);
-        case IRCCommand::MODE_K:
-            return _handleModeK(token, client);
-        case IRCCommand::MODE_O:
-            return _handleModeO(token, client);
-        case IRCCommand::MODE_L:
-            return _handleModeL(token, client);
         case IRCCommand::USERHOST: {
             auto it = _nick_to_client.find(token.params[0]);
 

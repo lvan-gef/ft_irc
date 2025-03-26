@@ -58,16 +58,13 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
 
 IRCCommand getCommand(const std::string &command) {
     static const std::unordered_map<std::string, IRCCommand> commandMap = {
-        {"NICK", IRCCommand::NICK},     {"USER", IRCCommand::USER},
-        {"PASS", IRCCommand::PASS},     {"PRIVMSG", IRCCommand::PRIVMSG},
-        {"JOIN", IRCCommand::JOIN},     {"TOPIC", IRCCommand::TOPIC},
-        {"PART", IRCCommand::PART},     {"QUIT", IRCCommand::QUIT},
-        {"PING", IRCCommand::PING},     {"KICK", IRCCommand::KICK},
-        {"INVITE", IRCCommand::INVITE}, {"MODE", IRCCommand::MODE},
-        {"MODE_I", IRCCommand::MODE_I}, {"MODE_T", IRCCommand::MODE_T},
-        {"MODE_K", IRCCommand::MODE_K}, {"MODE_O", IRCCommand::MODE_O},
-        {"MODE_L", IRCCommand::MODE_L}, {"USERHOST", IRCCommand::USERHOST},
-        {"UNKNOW", IRCCommand::UNKNOW}};
+        {"NICK", IRCCommand::NICK},         {"USER", IRCCommand::USER},
+        {"PASS", IRCCommand::PASS},         {"PRIVMSG", IRCCommand::PRIVMSG},
+        {"JOIN", IRCCommand::JOIN},         {"TOPIC", IRCCommand::TOPIC},
+        {"PART", IRCCommand::PART},         {"QUIT", IRCCommand::QUIT},
+        {"PING", IRCCommand::PING},         {"KICK", IRCCommand::KICK},
+        {"INVITE", IRCCommand::INVITE},     {"MODE", IRCCommand::MODE},
+        {"USERHOST", IRCCommand::USERHOST}, {"UNKNOW", IRCCommand::UNKNOW}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {
