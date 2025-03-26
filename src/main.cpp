@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   main.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/02/28 16:45:59 by lvan-gef      #+#    #+#                 */
+/*   Updated: 2025/02/28 16:46:01 by lvan-gef      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <iostream>
 #include <string>
 
@@ -10,9 +22,9 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::string arg1 = argv[1];
-    std::string arg2 = argv[2];
     try {
+        std::string arg1 = argv[1];
+        std::string arg2 = argv[2];
         Server server(arg1, arg2);
 
         if (server.init() != true) {
@@ -20,12 +32,11 @@ int main(int argc, char **argv) {
         }
 
         server.run();
-        std::cout << "Server is succesfully stopped" << '\n';
-
     } catch (const std::exception &e) {
         std::cerr << "Server error: " << e.what() << '\n';
         return 3;
     }
 
+    std::cout << "Server is succesfully stopped" << '\n';
     return 0;
 }

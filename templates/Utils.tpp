@@ -1,29 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   utils.hpp                                          :+:    :+:            */
+/*   Utils.tpp                                          :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 20:54:10 by lvan-gef      ########   odam.nl         */
+/*   Created: 2025/03/07 22:48:34 by lvan-gef      #+#    #+#                 */
+/*   Updated: 2025/03/17 21:24:30 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef UTILS_TPP
+#define UTILS_TPP
 
-#include <cstdint>
+#include <cstring>
+#include <sstream>
 #include <string>
 
-#define BASE 10
-
-std::uint16_t toUint16(const std::string &str);
-std::size_t toSizeT(const std::string &str);
+#include <sys/socket.h>
 
 template <typename... Args>
-std::string formatMessage(const Args &...args) noexcept;
+std::string formatMessage(const Args &...args) noexcept {
+    std::ostringstream oss;
 
-#include "../templates/Utils.tpp"
+    (void)std::initializer_list<int>{(oss << args, 0)...};
+    oss << "\r\n";
 
-#endif // UTILS_HPP
+    return oss.str();
+}
+
+#endif // UTILS_TPP
