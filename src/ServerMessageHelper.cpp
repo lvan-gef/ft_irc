@@ -143,7 +143,6 @@ void Server::_handleJoin(const IRCMessage &token,
     client->addChannel(channel_it->second.getName());
 }
 
-// need to make a case to view the topic
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
@@ -159,8 +158,13 @@ void Server::_handleTopic(const IRCMessage &token,
 
         IRCCode result = channel_it->second.setTopic(token.params[1], client);
         if (result != IRCCode::SUCCES) {
-            _handleError(formatError(token, result), client);
+            return _handleError(formatError(token, result), client);
         }
+
+        channel_it->second.broadcast(_serverName,
+                                     "332 " + client->getNickname() + " " +
+                                         channel_it->second.getName() + " :" +
+                                         channel_it->second.getTopic());
     } else {
         _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }

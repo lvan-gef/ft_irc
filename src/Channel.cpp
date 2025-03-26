@@ -195,11 +195,12 @@ IRCCode Channel::setUserLimit(size_t limit,
 
 IRCCode Channel::setTopic(const std::string &topic,
                           const std::shared_ptr<Client> &client) {
-    if (_hasInvite() && isOperator(client) != true) {
+    if (_hasTopic() && isOperator(client) != true) {
         return IRCCode::CHANOPRIVSNEEDED;
     }
 
     _topic = topic;
+    broadcast(client->getFullID(), "TOPIC " + getName() + " :" + _topic);
     return IRCCode::SUCCES;
 }
 
