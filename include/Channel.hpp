@@ -54,10 +54,8 @@ class Channel {
                      const std::shared_ptr<Client> &client);
 
   public:
-    Optional<std::shared_ptr<Client>>
-    addOperator(const std::shared_ptr<Client> &user);
-    Optional<std::shared_ptr<Client>>
-    removeOperator(const std::shared_ptr<Client> &user);
+    void addOperator(const std::shared_ptr<Client> &user);
+    void removeOperator(const std::shared_ptr<Client> &user);
 
   public:
     const std::string &getName() const noexcept;

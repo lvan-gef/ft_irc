@@ -205,39 +205,24 @@ IRCCode Channel::setTopic(const std::string &topic,
     return IRCCode::SUCCES;
 }
 
-Optional<std::shared_ptr<Client>>
-Channel::addOperator(const std::shared_ptr<Client> &user) {
+void Channel::addOperator(const std::shared_ptr<Client> &user) {
     auto it = std::find(_operators.begin(), _operators.end(), user);
-    Optional<std::shared_ptr<Client>> client;
 
     if (it == _operators.end()) {
         _operators.emplace(user);
-        client.set_value(user);
     }
-
-    return client;
 }
 
-Optional<std::shared_ptr<Client>>
-Channel::removeOperator(const std::shared_ptr<Client> &user) {
+void Channel::removeOperator(const std::shared_ptr<Client> &user) {
     auto it = std::find(_operators.begin(), _operators.end(), user);
-    Optional<std::shared_ptr<Client>> client;
 
     if (it != _operators.end()) {
         _operators.erase(user);
 
-        /*if (_operators.empty() && getActiveUsers() > 0) {*/
-        /*    addOperator(*_users.begin());*/
-        /*}*/
-
         if (!_users.empty() && _operators.empty()) {
-            std::shared_ptr<Client> newOperator = *_users.begin();
-            addOperator(newOperator);
-            client.set_value(newOperator);
+            addOperator(*_users.begin());
         }
     }
-
-    return client;
 }
 
 const std::string &Channel::getName() const noexcept {
