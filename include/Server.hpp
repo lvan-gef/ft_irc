@@ -89,7 +89,7 @@ class Server {
     void _handleInvite(const IRCMessage &token,
                        const std::shared_ptr<Client> &client);
     void _handleMode(const IRCMessage &token,
-                      const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client);
     void _handleUserhost(const IRCMessage &token,
                          const std::shared_ptr<Client> &client);
     void _handleUnknown(const IRCMessage &token,

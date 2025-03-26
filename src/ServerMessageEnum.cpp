@@ -47,6 +47,7 @@ void Server::_handleCommand(const IRCMessage &token,
         case IRCCommand::INVITE:
             return _handleInvite(token, client);
         case IRCCommand::MODE:
+            return _handleMode(token, client);
             if (token.params.size() < 2) {
                 std::cerr << "We need this now because i'm testing something"
                           << '\n';

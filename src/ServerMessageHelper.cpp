@@ -157,30 +157,30 @@ void Server::_handlePart(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it != _channels.end()) {
-        Channel channel = std::move(channel_it->second);
 
-        IRCCode result = channel.removeUser(client);
+        IRCCode result = channel_it->second.removeUser(client);
         if (result != IRCCode::SUCCES) {
             return _handleError(formatError(token, result), client);
         }
 
-        if (channel.isOperator(client) == true) {
-            channel.broadcast(_serverName, " MODE " + channel.getName() +
-                                               " -o " + client->getNickname());
+        if (channel_it->second.isOperator(client) == true) {
+            channel_it->second.broadcast(
+                _serverName, " MODE " + channel_it->second.getName() + " -o " +
+                                 client->getNickname());
 
             Optional<std::shared_ptr<Client>> newOperator =
-                channel.removeOperator(client);
+                channel_it->second.removeOperator(client);
             if (newOperator.has_value()) {
                 const std::shared_ptr<Client> &newClient =
                     newOperator.get_value();
-                channel.broadcast(_serverName, " MODE " + channel.getName() +
-                                                   " +o " +
-                                                   newClient->getNickname());
+                channel_it->second.broadcast(
+                    _serverName, " MODE " + channel_it->second.getName() +
+                                     " +o " + newClient->getNickname());
             }
         }
 
-        if (channel.activeUsers() == 0) {
-            _channels.erase(channel.getName());
+        if (channel_it->second.getActiveUsers() == 0) {
+            _channels.erase(channel_it->second.getName());
         }
     } else {
         return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
@@ -245,10 +245,56 @@ void Server::_handleInvite(const IRCMessage &token,
 }
 
 void Server::_handleMode(const IRCMessage &token,
-                      const std::shared_ptr<Client> &client) {
-    (void)token;
-    (void)client;
+                         const std::shared_ptr<Client> &client) {
 
+    auto channel_it = _channels.find(token.params[0]);
+    if (channel_it == _channels.end()) {
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    }
+
+    if (token.params.size() < 2) {
+        return client->appendMessageToQue(formatMessage(
+            ":", _serverName, " 324 ", client->getNickname(), " ",
+            channel_it->second.getName(), " ", channel_it->second.getModes(),
+            channel_it->second.getModesValues()));
+    }
+
+    const bool state = true ? token.params[1][0] == '+' : false;
+    const ChannelCommand cmd = static_cast<ChannelCommand>(token.params[1][1]);
+    const std::string value = token.params.size() > 2 ? token.params[2] : "";
+    IRCCode result = {};
+
+    switch (cmd) {
+        case ChannelCommand::MODE_I:
+            std::cout << "Mode change I" << '\n';
+            result = channel_it->second.setMode(ChannelMode::INVITE_ONLY, state,
+                                                value, client);
+            break;
+        case ChannelCommand::MODE_T:
+            result = channel_it->second.setMode(ChannelMode::TOPIC_PROTECTED,
+                                                state, value, client);
+            break;
+        case ChannelCommand::MODE_K:
+            result = channel_it->second.setMode(ChannelMode::PASSWORD_PROTECTED,
+                                                state, value, client);
+            break;
+        case ChannelCommand::MODE_O:
+            result = channel_it->second.setMode(ChannelMode::OPERATOR, state,
+                                                value, client);
+            break;
+        case ChannelCommand::MODE_L:
+            result = channel_it->second.setMode(ChannelMode::USER_LIMIT, state,
+                                                value, client);
+            break;
+    }
+
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
+
+    channel_it->second.broadcast(_serverName, "MODE " +
+                                                  channel_it->second.getName() +
+                                                  " " + token.params[1]);
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {

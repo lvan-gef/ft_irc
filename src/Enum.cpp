@@ -22,12 +22,12 @@ bool operator<(std::uint16_t lhs, Defaults rhs) {
     return lhs < static_cast<std::uint16_t>(rhs);
 }
 
-std::uint8_t& operator|=(std::uint8_t& lhs, ChannelMode rhs) {
+std::uint8_t &operator|=(std::uint8_t &lhs, ChannelMode rhs) {
     lhs |= static_cast<std::uint8_t>(rhs);
     return lhs;
 }
 
-std::uint8_t& operator&=(std::uint8_t& lhs, ChannelMode rhs) {
+std::uint8_t &operator&=(std::uint8_t &lhs, ChannelMode rhs) {
     lhs &= ~static_cast<std::uint8_t>(rhs);
     return lhs;
 }

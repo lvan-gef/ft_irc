@@ -14,8 +14,8 @@
 #define ENUMS_HPP
 
 #include <cstdint>
-
 #include <limits>
+
 #include <sys/socket.h>
 
 enum class Defaults : std::uint16_t {
@@ -35,13 +35,57 @@ enum class ChannelMode : std::uint8_t {
     INVITE_ONLY = 1 << 0,
     TOPIC_PROTECTED = 1 << 1,
     PASSWORD_PROTECTED = 1 << 2,
-    USER_LIMIT = 1 << 3
+    OPERATOR = 1 << 3,
+    USER_LIMIT = 1 << 4,
 };
-std::uint8_t& operator|=(std::uint8_t& lhs, ChannelMode rhs);
-std::uint8_t& operator&=(std::uint8_t& lhs, ChannelMode rhs);
+
+/**
+ * @brief Bitwise OR assignment operator for combining flags.
+ *
+ * @param lhs Reference to the target bitmask (std::uint8_t)
+ * @param rhs ChannelMode flag to enable      (ChannelMode)
+ * @return Reference to modified lhs          (std::uint_t)
+ */
+std::uint8_t &operator|=(std::uint8_t &lhs, ChannelMode rhs);
+
+/**
+ * @brief Bitwise AND assignment operator for clearing flags.
+ * @param lhs Reference to the target bitmask (std::uint8_t)
+ * @param rhs ChannelMode flag to disable     (ChannelMode)
+ * @return Reference to modified lhs          (std::uint8_t)
+ */
+std::uint8_t &operator&=(std::uint8_t &lhs, ChannelMode rhs);
+
+/**
+ * @brief Bitwise NOT operator for flag inversion.
+ * @param rhs ChannelMode flag to invert      (ChannelMode)
+ * @return std::uint8_t with all bits flipped (std::uint_8_t)
+ */
 std::uint8_t operator~(ChannelMode rhs);
+
+/**
+ * @brief Bitwise OR operator for combining flags.
+ * @param lhs First ChannelMode flag     (ChannelMode)
+ * @param rhs Second ChannelMode flag    (ChannelMode)
+ * @return std::uint8_t combined bitmask (std::uint8_t)
+ */
 std::uint8_t operator|(ChannelMode lhs, ChannelMode rhs);
+
+/**
+ * @brief Bitwise AND operator for checking flags.
+ * @param lhs Bitmask to check             (std::uint8_t)
+ * @param rhs ChannelMode flag to test     (ChannelMode)
+ * @return std::uint8_t with matching bits
+ */
 std::uint8_t operator&(std::uint8_t lhs, ChannelMode rhs);
+
+enum class ChannelCommand : std::uint8_t {
+    MODE_I = 'i',
+    MODE_T = 't',
+    MODE_K = 'k',
+    MODE_O = 'o',
+    MODE_L = 'l'
+};
 
 enum class IRCCommand : std::uint8_t {
     NICK,

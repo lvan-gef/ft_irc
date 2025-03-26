@@ -30,10 +30,10 @@
 #include <unistd.h>
 
 #include "../include/Client.hpp"
+#include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
-#include "../include/Enums.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -196,9 +196,9 @@ void Server::_run() {
     std::vector<epoll_event> events(static_cast<int>(Defaults::EVENT_SIZE));
 
     while (g_running) {
-        int nfds = epoll_wait(_epoll_fd.get(),
-                              static_cast<epoll_event *>(events.data()),
-                              (int)events.size(), static_cast<int>(Defaults::INTERVAL));
+        int nfds = epoll_wait(
+            _epoll_fd.get(), static_cast<epoll_event *>(events.data()),
+            (int)events.size(), static_cast<int>(Defaults::INTERVAL));
 
         if (0 > nfds) {
             if (errno == EINTR) {
@@ -346,7 +346,8 @@ void Server::_clientRecv(int fd) noexcept {
     }
 
     char buffer[static_cast<int>(Defaults::READ_SIZE)] = {0};
-    ssize_t bytes_read = recv(fd, buffer, static_cast<int>(Defaults::READ_SIZE) - 1, MSG_DONTWAIT);
+    ssize_t bytes_read = recv(
+        fd, buffer, static_cast<int>(Defaults::READ_SIZE) - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;

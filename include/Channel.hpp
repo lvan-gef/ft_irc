@@ -62,7 +62,9 @@ class Channel {
   public:
     const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
-    size_t activeUsers() const noexcept;
+    std::size_t getActiveUsers() const noexcept;
+    std::string getModes() const noexcept;
+    std::string getModesValues() const noexcept;
 
   public:
     void broadcast(const std::string &senderPrefix,
@@ -81,6 +83,8 @@ class Channel {
 
   private:
     bool _userOnChannel(const std::shared_ptr<Client> &user);
+    Optional<std::shared_ptr<Client>>
+    _nick_to_client(const std::string &nickname);
 
   private:
     IRCCode _addUser(const std::shared_ptr<Client> &user);
