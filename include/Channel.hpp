@@ -45,7 +45,7 @@ class Channel {
                        const std::shared_ptr<Client> &client);
 
   public:
-    IRCCode setMode(Mode mode, bool state, const std::string &value,
+    IRCCode setMode(ChannelMode mode, bool state, const std::string &value,
                     const std::shared_ptr<Client> &client);
     IRCCode setPassword(const std::string &password,
                         const std::shared_ptr<Client> &client);
@@ -90,7 +90,7 @@ class Channel {
     std::string _topic;
     std::string _password;
     size_t _userLimit;
-    uint8_t _modes;
+    std::uint8_t _modes;
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;
