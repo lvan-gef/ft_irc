@@ -300,6 +300,8 @@ void Server::_handleMode(const IRCMessage &token,
             result = channel_it->second.setMode(ChannelMode::USER_LIMIT, state,
                                                 value, client);
             break;
+        default:
+            std::cerr << "Unknow channel mode: " << token.params[1][1] << '\n';
     }
 
     if (result != IRCCode::SUCCES) {

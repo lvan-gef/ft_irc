@@ -349,7 +349,7 @@ void Server::_clientRecv(int fd) noexcept {
     ssize_t bytes_read = recv(
         fd, buffer, static_cast<int>(Defaults::READ_SIZE) - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN) {
             return;
         } else {
             _removeClient(client);
@@ -381,7 +381,7 @@ void Server::_clientSend(int fd) noexcept {
                              msg.length() - offset, MSG_DONTWAIT);
 
         if (0 > bytes) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (errno == EAGAIN) {
                 break;
             } else {
                 std::cerr << "Error while sending: " << strerror(errno) << '\n';

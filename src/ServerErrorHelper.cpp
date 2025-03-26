@@ -184,5 +184,7 @@ void Server::_handleError(IRCMessage token,
                 client->getNickname(), " ", token.params[0], " ",
                 token.params[1], " :Invalid value: '", token.params[2], "'"));
             break;
+        default:
+            std::cerr << "Unknow IRCCode: " << errnoAsString << '\n';
     }
 }

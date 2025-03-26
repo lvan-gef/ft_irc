@@ -152,7 +152,7 @@ IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
                                     client);
             }
-        case ChannelMode::OPERATOR:
+        case ChannelMode::OPERATOR: {
             Optional<std::shared_ptr<Client>> _user = _nick_to_client(value);
             if (_user.has_value() != true) {
                 return IRCCode::USERNOTINCHANNEL;
@@ -165,6 +165,9 @@ IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                 removeOperator(user);
             }
             break;
+        }
+        default:
+            return IRCCode::UNKNOWMODE;
     }
 
     return IRCCode::SUCCES;

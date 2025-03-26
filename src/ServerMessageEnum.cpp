@@ -48,12 +48,6 @@ void Server::_handleCommand(const IRCMessage &token,
             return _handleInvite(token, client);
         case IRCCommand::MODE:
             return _handleMode(token, client);
-            if (token.params.size() < 2) {
-                std::cerr << "We need this now because i'm testing something"
-                          << '\n';
-                return;
-            }
-            break;
         case IRCCommand::USERHOST: {
             auto it = _nick_to_client.find(token.params[0]);
 
@@ -74,5 +68,7 @@ void Server::_handleCommand(const IRCMessage &token,
         case IRCCommand::UNKNOW:
             std::cerr << "Not impl yet UNKNOW" << '\n';
             break;
+        default:
+            std::cerr << "Unknow IRCCommand: " << token.command << '\n';
     }
 }
