@@ -25,7 +25,7 @@ Client::Client(int fd)
       _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
-    _channels.reserve(EVENT_SIZE);
+    _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
 }
 
 Client::Client(Client &&rhs) noexcept

@@ -33,6 +33,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
+#include "../include/Enums.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -52,7 +53,7 @@ Server::Server(const std::string &port, std::string &password)
         throw std::invalid_argument("Invalid port");
     }
 
-    if (_port < LOWEST_PORT || _port > HIGHEST_PORT) {
+    if (_port < Defaults::LOWEST_PORT || _port > Defaults::HIGHEST_PORT) {
         throw std::range_error("Port is out of range");
     }
 
@@ -192,12 +193,12 @@ bool Server::_init() noexcept {
 }
 
 void Server::_run() {
-    std::vector<epoll_event> events(EVENT_SIZE);
+    std::vector<epoll_event> events(static_cast<int>(Defaults::EVENT_SIZE));
 
     while (g_running) {
         int nfds = epoll_wait(_epoll_fd.get(),
                               static_cast<epoll_event *>(events.data()),
-                              (int)events.size(), INTERVAL);
+                              (int)events.size(), static_cast<int>(Defaults::INTERVAL));
 
         if (0 > nfds) {
             if (errno == EINTR) {
@@ -344,8 +345,8 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    char buffer[READ_SIZE] = {0};
-    ssize_t bytes_read = recv(fd, buffer, READ_SIZE - 1, MSG_DONTWAIT);
+    char buffer[static_cast<int>(Defaults::READ_SIZE)] = {0};
+    ssize_t bytes_read = recv(fd, buffer, static_cast<int>(Defaults::READ_SIZE) - 1, MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;

@@ -18,7 +18,7 @@
 #include <limits>
 #include <sys/socket.h>
 
-enum Defaults {
+enum class Defaults : std::uint16_t {
     LOWEST_PORT = 1024,
     HIGHEST_PORT = 65535,
     EVENT_SIZE = 2048,
@@ -26,16 +26,22 @@ enum Defaults {
     READ_SIZE = 512,
     INTERVAL = 1000,
     TIMEOUT = 360,
-    USERLIMIT = std::numeric_limits<size_t>::max()
+    USERLIMIT = std::numeric_limits<uint16_t>::max()
 };
+bool operator>(std::uint16_t lhs, Defaults rhs);
+bool operator<(std::uint16_t lhs, Defaults rhs);
 
-enum ChannelMode : std::uint8_t {
+enum class ChannelMode : std::uint8_t {
     INVITE_ONLY = 1 << 0,
     TOPIC_PROTECTED = 1 << 1,
     PASSWORD_PROTECTED = 1 << 2,
     USER_LIMIT = 1 << 3
 };
-
+std::uint8_t& operator|=(std::uint8_t& lhs, ChannelMode rhs);
+std::uint8_t& operator&=(std::uint8_t& lhs, ChannelMode rhs);
+std::uint8_t operator~(ChannelMode rhs);
+std::uint8_t operator|(ChannelMode lhs, ChannelMode rhs);
+std::uint8_t operator&(std::uint8_t lhs, ChannelMode rhs);
 
 enum class IRCCommand : std::uint8_t {
     NICK,
@@ -50,11 +56,6 @@ enum class IRCCommand : std::uint8_t {
     KICK,
     INVITE,
     MODE,
-    MODE_I,
-    MODE_T,
-    MODE_K,
-    MODE_O,
-    MODE_L,
     USERHOST,
     UNKNOW
 };

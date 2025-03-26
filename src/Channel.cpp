@@ -22,7 +22,7 @@
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
-      _userLimit(Defaults::USERLIMIT), _modes(0), _users{}, _operators{} {
+      _userLimit(static_cast<size_t>(Defaults::USERLIMIT)), _modes(0), _users{}, _operators{} {
     std::cout << "Default constructor called for Channel" << '\n';
     addUser(_password, client);
     addOperator(client);
@@ -144,7 +144,7 @@ IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
         case ChannelMode::USER_LIMIT:
             if (state) {
                 _modes |= ChannelMode::USER_LIMIT;
-                return setUserLimit(Defaults::USERLIMIT, client);
+                return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT), client);
             } else {
                 _modes &= ~ChannelMode::USER_LIMIT;
                 return setUserLimit(toSizeT(value), client);
