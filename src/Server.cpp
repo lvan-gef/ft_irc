@@ -45,7 +45,7 @@ static void signalHandler(int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)),
-      _serverName("codamirc.local"), _serverVersion("0.2.0"),
+      _serverName("codamirc.local"), _serverVersion("0.3.0"),
       _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
       _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{},
       _channels{} {
