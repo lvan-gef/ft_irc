@@ -81,8 +81,8 @@ IRCCode Channel::removeUser(const std::shared_ptr<Client> &user) {
     }
 
     broadcast(user->getFullID(), "PART " + getName());
-    _users.erase(user);
     removeOperator(user);
+    _users.erase(user);
 
     return IRCCode::SUCCES;
 }
