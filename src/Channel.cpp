@@ -57,34 +57,33 @@ Channel::~Channel() {
     std::cout << "Destructor is called for Channel: '" << _name << '\n';
 }
 
-IRCCode Channel::addUser(const std::string &password,
-                         const std::shared_ptr<Client> &user) {
+void Channel::addUser(const std::string &password,
+                      const std::shared_ptr<Client> &user) {
 
     if (_hasInvite() == true) {
-        return IRCCode::INVITEONLYCHAN;
+        return handleMsg(IRCCode::INVITEONLYCHAN, user, getName(), "");
     }
 
     if (_hasPassword() == true) {
         if (_checkPassword(password) != true) {
-            return IRCCode::BADCHANNELKEY;
+            return handleMsg(IRCCode::BADCHANNELKEY, user, getName(), "");
         }
     }
 
     return _addUser(user);
 }
 
-IRCCode Channel::removeUser(const std::shared_ptr<Client> &user) {
+void Channel::removeUser(const std::shared_ptr<Client> &user) {
     auto it = std::find(_users.begin(), _users.end(), user);
 
     if (it == _users.end()) {
-        return IRCCode::USERNOTINCHANNEL;
+        return handleMsg(IRCCode::USERNOTINCHANNEL, user, getName(),
+                         user->getNickname());
     }
 
-    broadcast(user->getFullID(), "PART " + getName());
+    broadcast(user->getFullID(), getName(), IRCCode::PART);
     removeOperator(user);
     _users.erase(user);
-
-    return IRCCode::SUCCES;
 }
 
 IRCCode Channel::kickUser(const std::shared_ptr<Client> &target,
@@ -277,15 +276,14 @@ std::string Channel::getModesValues() const noexcept {
 }
 
 void Channel::broadcast(const std::string &senderPrefix,
-                        const std::string &message) const {
+                        const std::string &message, IRCCode code) const {
     for (const std::shared_ptr<Client> &user : _users) {
-        if (message.find("PRIVMSG") != std::string::npos &&
+        if (code == IRCCode::PRIVMSG &&
             senderPrefix.find(user->getFullID()) != std::string::npos) {
             continue;
         }
 
-        user->appendMessageToQue(
-            formatMessage(":", senderPrefix, " ", message));
+        handleMsg(code, user, senderPrefix, message);
     }
 }
 
@@ -338,17 +336,15 @@ bool Channel::_userOnChannel(const std::shared_ptr<Client> &user) {
     return true;
 }
 
-IRCCode Channel::_addUser(const std::shared_ptr<Client> &user) {
+void Channel::_addUser(const std::shared_ptr<Client> &user) {
     if (_userOnChannel(user) == true) {
-        return IRCCode::USERONCHANNEL;
+        return handleMsg(IRCCode::USERONCHANNEL, user, getName(), "");
     }
 
     if (_hasUserLimit() && getActiveUsers() >= _userLimit) {
-        return IRCCode::CHANNELISFULL;
+        return handleMsg(IRCCode::CHANNELISFULL, user, getName(), "");
     }
 
     _users.emplace(user);
-    broadcast(user->getFullID(), "JOIN " + _name);
-
-    return IRCCode::SUCCES;
+    broadcast(user->getFullID(), _name, IRCCode::JOIN);
 }

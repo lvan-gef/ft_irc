@@ -161,7 +161,11 @@ enum class IRCCode : std::int16_t {
     /*CANTKILLSERVER = 483,  // not sure if we need to impl it*/
     UMODEUNKNOWNFLAG = 501,
     USERSDONTMATCH = 502,
-    INVALIDMODEPARAM = 696 // Not in IRC but in unrealircd
+    INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
+    PART = 996,
+    JOIN = 997,
+    NICKCHANGED = 998, // for my own use
+    PRIVMSG = 999,  // for my own use
 };
 
 #endif // ENUMS_HPP

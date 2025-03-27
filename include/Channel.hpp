@@ -35,9 +35,9 @@ class Channel {
     ~Channel();
 
   public:
-    IRCCode addUser(const std::string &password,
+    void addUser(const std::string &password,
                     const std::shared_ptr<Client> &user);
-    IRCCode removeUser(const std::shared_ptr<Client> &user);
+    void removeUser(const std::shared_ptr<Client> &user);
     IRCCode kickUser(const std::shared_ptr<Client> &target,
                      const std::shared_ptr<Client> &client);
     IRCCode inviteUser(const std::shared_ptr<Client> &user,
@@ -65,7 +65,7 @@ class Channel {
 
   public:
     void broadcast(const std::string &senderPrefix,
-                   const std::string &message) const;
+                   const std::string &message, IRCCode code) const;
     std::string getUserList() const noexcept;
 
   public:
@@ -82,7 +82,7 @@ class Channel {
     bool _userOnChannel(const std::shared_ptr<Client> &user);
 
   private:
-    IRCCode _addUser(const std::shared_ptr<Client> &user);
+    void _addUser(const std::shared_ptr<Client> &user);
 
   private:
     std::string _name;
