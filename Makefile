@@ -3,7 +3,7 @@ NAME_DEBUG := $(NAME)_debug
 
 CXX := c++
 BASE_FLAGS := -std=c++11
-WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wswitch-default -Wlogical-op -Wpedantic
+WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wswitch-default -Wpedantic
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
@@ -16,7 +16,7 @@ OBJDIR := obj/
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Channel.cpp Client.cpp Enum.cpp FileDescriptors.cpp main.cpp Server.cpp ServerErrorHelper.cpp ServerMessageEnum.cpp ServerMessageHelper.cpp Token.cpp utils.cpp
+SRCFILES := Channel.cpp Client.cpp Enum.cpp FileDescriptors.cpp main.cpp MessageHelper.cpp ServerCommandEnum.cpp ServerCommandHelper.cpp Server.cpp Token.cpp utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
