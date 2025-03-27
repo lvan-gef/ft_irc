@@ -301,6 +301,24 @@ void Server::_handleMode(const IRCMessage &token,
                                      token.params[1] + " " + suffix);
 }
 
+void Server::_handleUserhost(const IRCMessage &token,
+                             const std::shared_ptr<Client> &client) {
+    auto it = _nick_to_client.find(token.params[0]);
+
+    if (it != _nick_to_client.end()) {
+        std::shared_ptr<Client> targetClient = it->second;
+        std::string targetNick = targetClient->getNickname();
+
+        client->appendMessageToQue(formatMessage(
+            ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
+            "=-", targetNick, "@", targetClient->getIP()));
+    } else {
+        std::cerr << "Server internal error: Could not found target "
+                     "user for USERHOST"
+                  << '\n';
+    }
+}
+
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
     IRCMessage newToken = token;
 
