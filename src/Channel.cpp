@@ -17,7 +17,6 @@
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
-#include "../include/Optional.hpp"
 #include "../include/utils.hpp"
 
 Channel::Channel(std::string name, std::string topic,

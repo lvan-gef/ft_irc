@@ -92,8 +92,6 @@ class Server {
                      const std::shared_ptr<Client> &client);
     void _handleUserhost(const IRCMessage &token,
                          const std::shared_ptr<Client> &client);
-    void _handleUnknown(const IRCMessage &token,
-                        const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;

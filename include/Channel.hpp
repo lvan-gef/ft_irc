@@ -20,7 +20,6 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "Optional.hpp"
 
 class Channel {
   public:
