@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 21:24:57 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 21:41:51 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -304,32 +304,16 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
-    IRCMessage newToken = {};
 
-    newToken.setIRCCode(IRCCode::WELCOME);
-    handleMsg(newToken, client, "", "");
-
-    newToken.setIRCCode(IRCCode::YOURHOST);
-    handleMsg(newToken, client, "", "");
-
-    newToken.setIRCCode(IRCCode::CREATED);
-    handleMsg(newToken, client, "", _serverStared);
-
-    newToken.setIRCCode(IRCCode::MYINFO);
-    handleMsg(newToken, client, "", "o i,t,k,o,l k,l,o");
-
-    newToken.setIRCCode(IRCCode::ISUPPORT);
-    handleMsg(newToken, client, "", "are supported by this server");
-
-    newToken.setIRCCode(IRCCode::MOTDSTART);
-    handleMsg(newToken, client, "", "");
-
-    newToken.setIRCCode(IRCCode::MOTD);
-    handleMsg(newToken, client, "", "- Welcome to my IRC server!");
-    handleMsg(newToken, client, "", "- Try not to spam us too much please!");
-
-    newToken.setIRCCode(IRCCode::ENDOFMOTD);
-    handleMsg(newToken, client, "", "");
+    handleMsg(IRCCode::WELCOME, client, "", "");
+    handleMsg(IRCCode::YOURHOST, client, "", "");
+    handleMsg(IRCCode::CREATED, client, "", _serverStared);
+    handleMsg(IRCCode::MYINFO, client, "", "o i,t,k,o,l k,l,o");
+    handleMsg(IRCCode::ISUPPORT, client, "", "are supported by this server");
+    handleMsg(IRCCode::MOTDSTART, client, "", "");
+    handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
+    handleMsg(IRCCode::MOTD, client, "", "- Try not to spam us too much please!");
+    handleMsg(IRCCode::ENDOFMOTD, client, "", "");
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';

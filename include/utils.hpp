@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 20:31:29 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 21:43:36 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ std::size_t toSizeT(const std::string &str);
 template <typename... Args>
 std::string formatMessage(const Args &...args) noexcept;
 
-void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
-               const std::string &channelName, const std::string &msg);
+void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
+               const std::string &value, const std::string &msg);
 
 #include "../templates/Utils.tpp"
 
