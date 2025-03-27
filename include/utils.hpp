@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:10:18 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 20:31:29 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "../include/Token.hpp"
 
 #define BASE 10
+#define NAME "codamirc"
 #define serverName "codamirc.local"
 #define serverVersion "0.4.0"
 #define serverCreated "Mon Feb 19 2025 at 10:00:00 UTC"

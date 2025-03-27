@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:44:26 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 21:23:43 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@ void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
     try {
         error = token.err.get_value();
         errnoAsString = std::to_string(static_cast<std::uint16_t>(error));
+        if (errnoAsString.length() < 3) {
+            errnoAsString.insert(0, 3 - errnoAsString.length(), '0');
+        }
     } catch (std::runtime_error &e) {
         std::cerr << e.what() << '\n';
         return;
@@ -34,10 +37,38 @@ void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
     switch (error) {
         case IRCCode::SUCCES:
             break;
-        case IRCCode::USERHOST:
+        case IRCCode::WELCOME:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
-                " :", msg));
+                " :Welcome to the IRCCodam Network ", client->getFullID()));
+            break;
+        case IRCCode::YOURHOST:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", errnoAsString, " ",
+                              client->getNickname(), " :Your host is ",
+                              serverName, ", running version ", serverVersion));
+            break;
+        case IRCCode::CREATED:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString, " ", client->getNickname(),
+                " :This server was created ", msg));
+            break;
+        case IRCCode::MYINFO:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString, " ", client->getNickname(),
+                " ", serverName, " ", serverVersion, " ", msg));
+            break;
+        case IRCCode::ISUPPORT:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString, " ", client->getNickname(),
+                " CHANMODES=i,t,k,o,l CHANTYPES=# PREFIX=(o)@ STATUSMSG=@ ",
+                "NICKLEN=9 NETWORK=", NAME, " PING USERHOST :", msg));
+                /*"NICKLEN=", Defaults::NICKLEN, " NETWORK=", NAME, " PING USERHOST :", msg));*/
+            break;
+        case IRCCode::USERHOST:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", errnoAsString, " ",
+                              client->getNickname(), " :", msg));
             break;
         case IRCCode::CHANNELMODEIS:
             client->appendMessageToQue(formatMessage(
@@ -58,6 +89,21 @@ void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
                 "  ", channelName, " :End of /NAMES list"));
+            break;
+        case IRCCode::MOTD:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString,
+                " :", msg));
+            break;
+        case IRCCode::MOTDSTART:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString,
+                " :Message of the Day -"));
+            break;
+        case IRCCode::ENDOFMOTD:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString,
+                " :End of /MOTD command"));
             break;
         case IRCCode::NOSUCHNICK:
             client->appendMessageToQue(formatMessage(

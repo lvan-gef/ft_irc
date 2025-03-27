@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:44:26 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 21:21:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ enum class Defaults : std::uint16_t {
     READ_SIZE = 512,
     INTERVAL = 1000,
     TIMEOUT = 360,
-    USERLIMIT = std::numeric_limits<uint16_t>::max()
+    USERLIMIT = std::numeric_limits<uint16_t>::max(),
+    NICKLEN = 9,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
@@ -106,11 +107,19 @@ enum class IRCCommand : std::uint8_t {
 
 enum class IRCCode : std::int16_t {
     SUCCES = 0, // For my own use
+    WELCOME = 1,
+    YOURHOST = 2,
+    CREATED = 3,
+    MYINFO = 4,
+    ISUPPORT = 5,
     USERHOST = 302,
     CHANNELMODEIS = 324,
     TOPIC = 332,
     NAMREPLY = 353,
     ENDOFNAMES = 366,
+    MOTD = 372,
+    MOTDSTART = 375,
+    ENDOFMOTD = 376,
     NOSUCHNICK = 401,
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,

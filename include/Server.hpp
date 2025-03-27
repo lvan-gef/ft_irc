@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 15:44:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 17:15:45 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,7 @@ class Server {
   private:
     std::uint16_t _port;
     std::string _password;
+    std::string _serverStared;
 
   private:
     FileDescriptors _server_fd;
