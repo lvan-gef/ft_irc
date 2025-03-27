@@ -73,6 +73,7 @@ void Channel::addUser(const std::string &password,
     return _addUser(user);
 }
 
+// it wrong i think
 void Channel::removeUser(const std::shared_ptr<Client> &user) {
     auto it = std::find(_users.begin(), _users.end(), user);
 
