@@ -376,7 +376,8 @@ void Server::_clientSend(int fd) noexcept {
         std::string msg = client->getMessage();
 
         size_t offset = client->getOffset();
-        std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str() << '\n';
+        std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
+                  << '\n';
         ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
                              msg.length() - offset, MSG_DONTWAIT);
 
