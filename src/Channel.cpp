@@ -154,19 +154,20 @@ IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                                     client);
             }
         case ChannelMode::OPERATOR: {
-            Optional<std::shared_ptr<Client>> _user = _nick_to_client(value);
-            if (_user.has_value() != true) {
-                return IRCCode::USERNOTINCHANNEL;
-            }
-
-            const std::shared_ptr<Client> user = std::move(_user.get_value());
-            if (state) {
-                addOperator(user);
-            } else {
-                removeOperator(user);
+            for (const std::shared_ptr<Client> &user : _users) {
+                if (user->getNickname() == value) {
+                    if (state) {
+                        addOperator(user);
+                        break;
+                    } else {
+                        removeOperator(user);
+                        break;
+                    }
+                }
             }
             break;
         }
+
         default:
             return IRCCode::UNKNOWMODE;
     }
@@ -333,20 +334,6 @@ bool Channel::_userOnChannel(const std::shared_ptr<Client> &user) {
     }
 
     return true;
-}
-
-Optional<std::shared_ptr<Client>>
-Channel::_nick_to_client(const std::string &nickname) {
-    Optional<std::shared_ptr<Client>> client;
-
-    for (const std::shared_ptr<Client> &user : _users) {
-        if (user->getNickname() == nickname) {
-            client.set_value(user);
-            break;
-        }
-    }
-
-    return client;
 }
 
 IRCCode Channel::_addUser(const std::shared_ptr<Client> &user) {

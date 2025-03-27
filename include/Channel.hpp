@@ -81,8 +81,6 @@ class Channel {
 
   private:
     bool _userOnChannel(const std::shared_ptr<Client> &user);
-    Optional<std::shared_ptr<Client>>
-    _nick_to_client(const std::string &nickname);
 
   private:
     IRCCode _addUser(const std::shared_ptr<Client> &user);
