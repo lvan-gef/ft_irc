@@ -16,7 +16,6 @@
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
-#include "../include/Optional.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
@@ -27,31 +26,31 @@ void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
 
     const std::string nickname = token.params[0];
-    if (_nick_to_client.find(nickname) == _nick_to_client.end()) {
-        std::string old_id = client->getFullID();
-        std::string old_nickname = client->getNickname();
-        client->setNickname(nickname);
+    if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
+        return _handleError(formatError(token, IRCCode::NICKINUSE), client);
+    }
 
-        if (client->isRegistered() != true) {
-            _clientAccepted(client);
-        } else {
-            client->appendMessageToQue(
-                formatMessage(":", old_id, " NICK ", client->getNickname()));
+    std::string old_id = client->getFullID();
+    std::string old_nickname = client->getNickname();
+    client->setNickname(nickname);
 
-            for (const std::string &channelName : client->allChannels()) {
-                auto it = _channels.find(channelName);
-                if (it != _channels.end()) {
-                    it->second.broadcast(old_id,
-                                         " NICK " + client->getNickname());
-                    break;
-                }
+    if (client->isRegistered() != true) {
+        _clientAccepted(client);
+    } else {
+        client->appendMessageToQue(
+            formatMessage(":", old_id, " NICK ", client->getNickname()));
+
+        for (const std::string &channelName : client->allChannels()) {
+            auto it = _channels.find(channelName);
+            if (it != _channels.end()) {
+                it->second.broadcast(old_id, " NICK " + client->getNickname());
+                break;
             }
         }
-        _nick_to_client[client->getNickname()] = client;
-        _nick_to_client.erase(old_nickname);
-    } else {
-        _handleError(formatError(token, IRCCode::NICKINUSE), client);
     }
+
+    _nick_to_client[client->getNickname()] = client;
+    _nick_to_client.erase(old_nickname);
 }
 
 void Server::_handleUsername(const IRCMessage &token,
@@ -81,28 +80,26 @@ void Server::_handlePassword(const IRCMessage &token,
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
 
-    if (token.params[0][0] == '#' or token.params[0][0] == '&') {
+    if (token.params[0][0] == '#') {
         auto channel_it = _channels.find(token.params[0]);
-
-        if (channel_it != _channels.end()) {
-            channel_it->second.broadcast(
-                client->getFullID(), "PRIVMSG " + channel_it->second.getName() +
-                                         " :" + token.params[1]);
-        } else {
-            _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+        if (channel_it == _channels.end()) {
+            return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL),
+                                client);
         }
+
+        channel_it->second.broadcast(client->getFullID(),
+                                     "PRIVMSG " + channel_it->second.getName() +
+                                         " :" + token.params[1]);
     } else {
         auto nick_it = _nick_to_client.find(token.params[0]);
-
-        if (nick_it != _nick_to_client.end()) {
-            std::shared_ptr<Client> targetClient = nick_it->second;
-
-            targetClient->appendMessageToQue(formatMessage(
-                ":", client->getFullID(), " PRIVMSG ",
-                targetClient->getNickname(), " :", token.params[1]));
-        } else {
-            _handleError(formatError(token, IRCCode::NOSUCHNICK), client);
+        if (nick_it == _nick_to_client.end()) {
+            return _handleError(formatError(token, IRCCode::NOSUCHNICK),
+                                client);
         }
+
+        nick_it->second->appendMessageToQue(formatMessage(
+            ":", client->getFullID(), " PRIVMSG ",
+            nick_it->second->getNickname(), " :", token.params[1]));
     }
 }
 
@@ -121,8 +118,7 @@ void Server::_handleJoin(const IRCMessage &token,
         IRCCode result = channel_it->second.addUser(password, client);
 
         if (result != IRCCode::SUCCES) {
-            _handleError(formatError(token, result), client);
-            return;
+            return _handleError(formatError(token, result), client);
         }
     }
 
@@ -146,27 +142,25 @@ void Server::_handleJoin(const IRCMessage &token,
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
-
-    if (channel_it != _channels.end()) {
-        if (token.params.size() < 2) {
-            client->appendMessageToQue(
-                formatMessage(":", _serverName, " 332 ", client->getNickname(),
-                              " ", channel_it->second.getName(), " :",
-                              channel_it->second.getTopic()));
-            return;
-        }
-
-        IRCCode result = channel_it->second.setTopic(token.params[1], client);
-        if (result != IRCCode::SUCCES) {
-            return _handleError(formatError(token, result), client);
-        }
-
-        client->appendMessageToQue(formatMessage(
-            _serverName, "332 ", client->getNickname(), " ",
-            channel_it->second.getName(), " :", channel_it->second.getTopic()));
-    } else {
-        _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
+    if (channel_it == _channels.end()) {
+        return _handleError(formatError(token, IRCCode::NOSUCHCHANNEL), client);
     }
+
+    if (token.params.size() < 2) {
+        client->appendMessageToQue(formatMessage(
+            ":", _serverName, " 332 ", client->getNickname(), " ",
+            channel_it->second.getName(), " :", channel_it->second.getTopic()));
+        return;
+    }
+
+    IRCCode result = channel_it->second.setTopic(token.params[1], client);
+    if (result != IRCCode::SUCCES) {
+        return _handleError(formatError(token, result), client);
+    }
+
+    client->appendMessageToQue(formatMessage(
+        _serverName, "332 ", client->getNickname(), " ",
+        channel_it->second.getName(), " :", channel_it->second.getTopic()));
 }
 
 void Server::_handlePart(const IRCMessage &token,
@@ -304,19 +298,19 @@ void Server::_handleMode(const IRCMessage &token,
 void Server::_handleUserhost(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
     auto it = _nick_to_client.find(token.params[0]);
-
-    if (it != _nick_to_client.end()) {
-        std::shared_ptr<Client> targetClient = it->second;
-        std::string targetNick = targetClient->getNickname();
-
-        client->appendMessageToQue(formatMessage(
-            ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
-            "=-", targetNick, "@", targetClient->getIP()));
-    } else {
+    if (it == _nick_to_client.end()) {
         std::cerr << "Server internal error: Could not found target "
                      "user for USERHOST"
                   << '\n';
+        return;
     }
+
+    std::shared_ptr<Client> targetClient = it->second;
+    std::string targetNick = targetClient->getNickname();
+
+    client->appendMessageToQue(formatMessage(
+        ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
+        "=-", targetNick, "@", targetClient->getIP()));
 }
 
 static IRCMessage formatError(const IRCMessage &token, const IRCCode newCode) {
