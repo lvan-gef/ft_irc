@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:08:39 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:43:44 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,15 +206,14 @@ IRCCode Channel::setTopic(const std::string &topic,
     return IRCCode::SUCCES;
 }
 
-IRCCode Channel::addOperator(const std::shared_ptr<Client> &user) {
+void Channel::addOperator(const std::shared_ptr<Client> &user) {
     auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it == _operators.end()) {
         _operators.emplace(user);
-        return IRCCode::YOUREOPER;
     }
 
-    return IRCCode::SUCCES;
+    return;
 }
 
 void Channel::removeOperator(const std::shared_ptr<Client> &user) {
@@ -224,12 +223,7 @@ void Channel::removeOperator(const std::shared_ptr<Client> &user) {
         _operators.erase(user);
 
         if (!_users.empty() && _operators.empty()) {
-            std::shared_ptr<Client> newClient = *_users.begin();
-            addOperator(newClient);
-
-            IRCMessage newToken = {};
-            newToken.setIRCCode(IRCCode::YOUREOPER);
-            handleMsg(newToken, newClient, getName(), "");
+            addOperator(*_users.begin());
         }
     }
 }

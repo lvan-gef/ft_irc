@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 15:52:16 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:17:34 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ class Channel {
                      const std::shared_ptr<Client> &client);
 
   public:
-    IRCCode addOperator(const std::shared_ptr<Client> &user);
+    void addOperator(const std::shared_ptr<Client> &user);
     void removeOperator(const std::shared_ptr<Client> &user);
 
   public:

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:10:49 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:44:26 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,11 @@ void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
     switch (error) {
         case IRCCode::SUCCES:
             break;
+        case IRCCode::USERHOST:
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString, " ", client->getNickname(),
+                " :", msg));
+            break;
         case IRCCode::CHANNELMODEIS:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
@@ -54,12 +59,6 @@ void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
                 "  ", channelName, " :End of /NAMES list"));
             break;
-        case IRCCode::YOUREOPER:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", errnoAsString, " ", client->getNickname(),
-                "  ", channelName, " :You are now an IRC operator"));
-            break;
-
         case IRCCode::NOSUCHNICK:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),

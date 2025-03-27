@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:11:05 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:36:53 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,10 +306,8 @@ void Server::_handleUserhost(const IRCMessage &token,
 
     std::shared_ptr<Client> targetClient = it->second;
     std::string targetNick = targetClient->getNickname();
-
-    client->appendMessageToQue(formatMessage(
-        ":", serverName, " 302 ", client->getNickname(), " :", targetNick, "=-",
-        targetNick, "@", targetClient->getIP()));
+    handleMsg(setCode(token, IRCCode::USERHOST), client, "",
+              targetNick + "=-" + client->getFullID());
 }
 
 static IRCMessage setCode(const IRCMessage &token, const IRCCode newCode) {

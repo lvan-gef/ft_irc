@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:42 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:44:26 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,11 +106,11 @@ enum class IRCCommand : std::uint8_t {
 
 enum class IRCCode : std::int16_t {
     SUCCES = 0, // For my own use
+    USERHOST = 302,
     CHANNELMODEIS = 324,
     TOPIC = 332,
     NAMREPLY = 353,
     ENDOFNAMES = 366,
-    YOUREOPER = 381,
     NOSUCHNICK = 401,
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,
