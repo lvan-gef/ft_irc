@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 20:54:10 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:10:18 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,25 @@
 #define UTILS_HPP
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
+#include "../include/Client.hpp"
+#include "../include/Token.hpp"
+
 #define BASE 10
+#define serverName "codamirc.local"
+#define serverVersion "0.4.0"
+#define serverCreated "Mon Feb 19 2025 at 10:00:00 UTC"
 
 std::uint16_t toUint16(const std::string &str);
 std::size_t toSizeT(const std::string &str);
 
 template <typename... Args>
 std::string formatMessage(const Args &...args) noexcept;
+
+void handleMsg(IRCMessage token, const std::shared_ptr<Client> &client,
+               const std::string &channelName, const std::string &msg);
 
 #include "../templates/Utils.tpp"
 

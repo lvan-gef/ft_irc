@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 15:44:28 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,6 @@ class Server {
 
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
-    void _handleMessage(IRCMessage token, const std::shared_ptr<Client> &client,
-                        const std::string &channelName, const std::string &msg);
     void _handleCommand(const IRCMessage &token,
                         const std::shared_ptr<Client> &client);
 
@@ -97,9 +95,6 @@ class Server {
   private:
     std::uint16_t _port;
     std::string _password;
-    std::string _serverName;
-    std::string _serverVersion;
-    std::string _serverCreated;
 
   private:
     FileDescriptors _server_fd;

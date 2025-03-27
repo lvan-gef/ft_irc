@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 21:57:14 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:08:39 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@
 #include <string>
 
 #include "../include/Channel.hpp"
-#include "../include/Server.hpp"
 #include "../include/Enums.hpp"
 #include "../include/utils.hpp"
+#include "Token.hpp"
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
@@ -224,8 +224,12 @@ void Channel::removeOperator(const std::shared_ptr<Client> &user) {
         _operators.erase(user);
 
         if (!_users.empty() && _operators.empty()) {
-            addOperator(*_users.begin());
-            _handleMessage();
+            std::shared_ptr<Client> newClient = *_users.begin();
+            addOperator(newClient);
+
+            IRCMessage newToken = {};
+            newToken.setIRCCode(IRCCode::YOUREOPER);
+            handleMsg(newToken, newClient, getName(), "");
         }
     }
 }

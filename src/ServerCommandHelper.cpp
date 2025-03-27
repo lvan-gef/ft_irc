@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ServerMessageHelper.cpp                            :+:    :+:            */
+/*   ServerCommandHelper.cpp                            :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 21:56:12 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:11:05 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void Server::_handleNickname(const IRCMessage &token,
 
     const std::string nickname = token.params[0];
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
-        return _handleMessage(setCode(token, IRCCode::NICKINUSE), client);
+        return handleMsg(setCode(token, IRCCode::NICKINUSE), client, "", "");
     }
 
     std::string old_id = client->getFullID();
@@ -56,7 +56,7 @@ void Server::_handleNickname(const IRCMessage &token,
 void Server::_handleUsername(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
     if (client->isRegistered()) {
-        _handleMessage(setCode(token, IRCCode::ALREADYREGISTERED), client);
+        handleMsg(setCode(token, IRCCode::ALREADYREGISTERED), client, "", "");
     } else {
         client->setUsername(token.params[0]);
         _clientAccepted(client);
@@ -66,13 +66,13 @@ void Server::_handleUsername(const IRCMessage &token,
 void Server::_handlePassword(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
     if (client->isRegistered()) {
-        _handleMessage(setCode(token, IRCCode::ALREADYREGISTERED), client);
+        handleMsg(setCode(token, IRCCode::ALREADYREGISTERED), client, "", "");
     } else {
         if (token.params[0] == _password) {
             client->setPasswordBit();
         } else {
             // we should dissconnect the client
-            _handleMessage(setCode(token, IRCCode::PASSWDMISMATCH), client);
+            handleMsg(setCode(token, IRCCode::PASSWDMISMATCH), client, "", "");
         }
     }
 }
@@ -83,8 +83,8 @@ void Server::_handlePriv(const IRCMessage &token,
     if (token.params[0][0] == '#') {
         auto channel_it = _channels.find(token.params[0]);
         if (channel_it == _channels.end()) {
-            return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL),
-                                  client);
+            return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                             "");
         }
 
         channel_it->second.broadcast(client->getFullID(),
@@ -93,7 +93,8 @@ void Server::_handlePriv(const IRCMessage &token,
     } else {
         auto nick_it = _nick_to_client.find(token.params[0]);
         if (nick_it == _nick_to_client.end()) {
-            return _handleMessage(setCode(token, IRCCode::NOSUCHNICK), client);
+            return handleMsg(setCode(token, IRCCode::NOSUCHNICK), client, "",
+                             "");
         }
 
         nick_it->second->appendMessageToQue(formatMessage(
@@ -117,22 +118,22 @@ void Server::_handleJoin(const IRCMessage &token,
         IRCCode result = channel_it->second.addUser(password, client);
 
         if (result != IRCCode::SUCCES) {
-            return _handleMessage(setCode(token, result), client);
+            return handleMsg(setCode(token, result), client, "", "");
         }
     }
 
     channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                         "");
     }
 
-    _handleMessage(setCode(token, IRCCode::TOPIC), client,
-                   channel_it->second.getName(), channel_it->second.getTopic());
-    _handleMessage(setCode(token, IRCCode::NAMREPLY), client,
-                   channel_it->second.getName(),
-                   channel_it->second.getUserList());
-    _handleMessage(setCode(token, IRCCode::ENDOFNAMES), client,
-                   channel_it->second.getName(), "");
+    handleMsg(setCode(token, IRCCode::TOPIC), client,
+              channel_it->second.getName(), channel_it->second.getTopic());
+    handleMsg(setCode(token, IRCCode::NAMREPLY), client,
+              channel_it->second.getName(), channel_it->second.getUserList());
+    handleMsg(setCode(token, IRCCode::ENDOFNAMES), client,
+              channel_it->second.getName(), "");
     client->addChannel(channel_it->second.getName());
 }
 
@@ -140,23 +141,23 @@ void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                         "");
     }
 
     if (token.params.size() < 2) {
-        _handleMessage(setCode(token, IRCCode::TOPIC), client,
-                       channel_it->second.getName(),
-                       channel_it->second.getTopic());
+        handleMsg(setCode(token, IRCCode::TOPIC), client,
+                  channel_it->second.getName(), channel_it->second.getTopic());
         return;
     }
 
     IRCCode result = channel_it->second.setTopic(token.params[1], client);
     if (result != IRCCode::SUCCES) {
-        return _handleMessage(setCode(token, result), client);
+        return handleMsg(setCode(token, result), client, "", "");
     }
 
-    _handleMessage(setCode(token, IRCCode::TOPIC), client,
-                   channel_it->second.getName(), channel_it->second.getTopic());
+    handleMsg(setCode(token, IRCCode::TOPIC), client,
+              channel_it->second.getName(), channel_it->second.getTopic());
 }
 
 void Server::_handlePart(const IRCMessage &token,
@@ -164,12 +165,13 @@ void Server::_handlePart(const IRCMessage &token,
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it == _channels.end()) {
-        return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                         "");
     }
 
     IRCCode result = channel_it->second.removeUser(client);
     if (result != IRCCode::SUCCES) {
-        return _handleMessage(setCode(token, result), client);
+        return handleMsg(setCode(token, result), client, "", "");
     }
 
     if (channel_it->second.getActiveUsers() == 0) {
@@ -180,25 +182,26 @@ void Server::_handlePart(const IRCMessage &token,
 void Server::_handlePing(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
     client->appendMessageToQue(formatMessage(
-        ":", _serverName, " PONG ", _serverName, " :" + token.params[0]));
+        ":", serverName, " PONG ", serverName, " :" + token.params[0]));
 }
 
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                         "");
     }
 
     auto userToKick_it = _nick_to_client.find(token.params[1]);
     if (userToKick_it == _nick_to_client.end()) {
-        return _handleMessage(setCode(token, IRCCode::USERNOTINCHANNEL),
-                              client);
+        return handleMsg(setCode(token, IRCCode::USERNOTINCHANNEL), client, "",
+                         "");
     }
 
     IRCCode result = channel_it->second.kickUser(userToKick_it->second, client);
     if (result != IRCCode::SUCCES) {
-        return _handleMessage(setCode(token, result), client);
+        return handleMsg(setCode(token, result), client, "", "");
     }
 }
 
@@ -207,29 +210,28 @@ void Server::_handleInvite(const IRCMessage &token,
 
     auto channel_it = _channels.find(token.params[1]);
     if (channel_it == _channels.end()) {
-        _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "", "");
         return;
     }
 
     auto targetUser_it = _nick_to_client.find(token.params[0]);
     if (targetUser_it == _nick_to_client.end()) {
-        _handleMessage(setCode(token, IRCCode::NOSUCHNICK), client);
+        handleMsg(setCode(token, IRCCode::NOSUCHNICK), client, "", "");
         return;
     }
 
     IRCCode result =
         channel_it->second.inviteUser(targetUser_it->second, client);
     if (result != IRCCode::SUCCES) {
-        return _handleMessage(setCode(token, result), client);
+        return handleMsg(setCode(token, result), client, "", "");
     }
 
-    _handleMessage(setCode(token, IRCCode::TOPIC), client,
-                   channel_it->second.getName(), channel_it->second.getTopic());
-    _handleMessage(setCode(token, IRCCode::NAMREPLY), client,
-                   channel_it->second.getName(),
-                   channel_it->second.getUserList());
-    _handleMessage(setCode(token, IRCCode::ENDOFNAMES), client,
-                   channel_it->second.getName(), "");
+    handleMsg(setCode(token, IRCCode::TOPIC), client,
+              channel_it->second.getName(), channel_it->second.getTopic());
+    handleMsg(setCode(token, IRCCode::NAMREPLY), client,
+              channel_it->second.getName(), channel_it->second.getUserList());
+    handleMsg(setCode(token, IRCCode::ENDOFNAMES), client,
+              channel_it->second.getName(), "");
 }
 
 void Server::_handleMode(const IRCMessage &token,
@@ -237,14 +239,15 @@ void Server::_handleMode(const IRCMessage &token,
 
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
-        return _handleMessage(setCode(token, IRCCode::NOSUCHCHANNEL), client);
+        return handleMsg(setCode(token, IRCCode::NOSUCHCHANNEL), client, "",
+                         "");
     }
 
     if (token.params.size() < 2) {
-        _handleMessage(setCode(token, IRCCode::CHANNELMODEIS), client,
-                       channel_it->second->getName(),
-                       channel_it->second.getModes() +
-                           channel_it->second.getModesValues());
+        handleMsg(setCode(token, IRCCode::CHANNELMODEIS), client,
+                  channel_it->second.getName(),
+                  channel_it->second.getModes() +
+                      channel_it->second.getModesValues());
         return;
     }
 
@@ -283,10 +286,10 @@ void Server::_handleMode(const IRCMessage &token,
     }
 
     if (result != IRCCode::SUCCES) {
-        return _handleMessage(setCode(token, result), client);
+        return handleMsg(setCode(token, result), client, "", "");
     }
 
-    channel_it->second.broadcast(_serverName,
+    channel_it->second.broadcast(serverName,
                                  "MODE " + channel_it->second.getName() + " " +
                                      token.params[1] + " " + suffix);
 }
@@ -305,8 +308,8 @@ void Server::_handleUserhost(const IRCMessage &token,
     std::string targetNick = targetClient->getNickname();
 
     client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 302 ", client->getNickname(), " :", targetNick,
-        "=-", targetNick, "@", targetClient->getIP()));
+        ":", serverName, " 302 ", client->getNickname(), " :", targetNick, "=-",
+        targetNick, "@", targetClient->getIP()));
 }
 
 static IRCMessage setCode(const IRCMessage &token, const IRCCode newCode) {

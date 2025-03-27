@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 16:08:39 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,7 @@ static void signalHandler(int signum) {
 }
 
 Server::Server(const std::string &port, std::string &password)
-    : _port(toUint16(port)), _password(std::move(password)),
-      _serverName("codamirc.local"), _serverVersion("0.4.0"),
-      _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
+    : _port(toUint16(port)), _password(std::move(password)), _server_fd(-1),
       _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{},
       _channels{} {
     if (errno != 0) {
@@ -64,9 +62,6 @@ Server::Server(const std::string &port, std::string &password)
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _serverName(std::move(rhs._serverName)),
-      _serverVersion(std::move(rhs._serverVersion)),
-      _serverCreated(std::move(rhs._serverCreated)),
       _server_fd(std::move(rhs._server_fd)),
       _epoll_fd(std::move(rhs._epoll_fd)), _connections(rhs._connections),
       _fd_to_client(std::move(rhs._fd_to_client)),
@@ -78,9 +73,6 @@ Server &Server::operator=(Server &&rhs) noexcept {
     if (this != &rhs) {
         _port = rhs._port;
         _password = std::move(rhs._password);
-        _serverName = std::move(rhs._serverName);
-        _serverVersion = std::move(rhs._serverVersion);
-        _serverCreated = std::move(rhs._serverCreated);
         _server_fd = std::move(rhs._server_fd);
         _epoll_fd = std::move(rhs._epoll_fd);
         _connections = rhs._connections;
@@ -305,34 +297,34 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::string ip = client->getIP();
 
     client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 001 ", nick,
+        ":", serverName, " 001 ", nick,
         " :Welcome to the Internet Relay Network ", nick, "!", user, "@", ip));
 
     client->appendMessageToQue(
-        formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
-                      _serverName, ", running version ", _serverVersion));
+        formatMessage(":", serverName, " 002 ", nick, " :Your host is ",
+                      serverName, ", running version ", serverVersion));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 003 ", nick,
+    client->appendMessageToQue(formatMessage(":", serverName, " 003 ", nick,
                                              " :This server was created ",
-                                             _serverCreated));
+                                             serverCreated));
 
     client->appendMessageToQue(
-        formatMessage(":", _serverName, " 004 ", nick, " ", _serverName,
+        formatMessage(":", serverName, " 004 ", nick, " ", serverName,
                       " o i,t,k,o,l :are supported by this server"));
 
     client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 005 ", nick,
+        ":", serverName, " 005 ", nick,
         " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
         "PING USERHOST :are supported by this server"));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick,
-                                             " :- ", _serverName,
+    client->appendMessageToQue(formatMessage(":", serverName, " 375 ", nick,
+                                             " :- ", serverName,
                                              " Message of the Day -"));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 372 ", nick,
+    client->appendMessageToQue(formatMessage(":", serverName, " 372 ", nick,
                                              " :- Welcome to my IRC server!"));
 
-    client->appendMessageToQue(formatMessage(":", _serverName, " 376 ", nick,
+    client->appendMessageToQue(formatMessage(":", serverName, " 376 ", nick,
                                              " :End of /MOTD command."));
 
     _nick_to_client[nick] = client;
@@ -459,7 +451,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
         if (!token.success) {
-            _handleError(token, client);
+            handleMsg(token, client, "", "");
         } else {
             _handleCommand(token, client);
         }
