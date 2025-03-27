@@ -19,8 +19,10 @@
 #include "../include/Token.hpp"
 #include "../include/utils.hpp"
 
-void Server::_handleError(IRCMessage token,
-                          const std::shared_ptr<Client> &client) {
+void Server::_handleMessage(IRCMessage token,
+                            const std::shared_ptr<Client> &client,
+                            const std::string &channelName,
+                            const std::string &msg) {
     std::string errnoAsString = {};
     IRCCode error = {};
 
@@ -34,6 +36,27 @@ void Server::_handleError(IRCMessage token,
 
     switch (error) {
         case IRCCode::SUCCES:
+            break;
+        case IRCCode::CHANNELMODEIS:
+            client->appendMessageToQue(formatMessage(
+                ":", _serverName, " ", errnoAsString, " ",
+                client->getNickname(), " ", channelName, " ", msg));
+            break;
+        case IRCCode::TOPIC:
+            client->appendMessageToQue(formatMessage(
+                ":", _serverName, " ", errnoAsString, " ",
+                client->getNickname(), " ", channelName, " :", msg));
+            break;
+        case IRCCode::NAMREPLY:
+            client->appendMessageToQue(formatMessage(
+                ":", _serverName, " ", errnoAsString, " ",
+                client->getNickname(), " = ", channelName, " :", msg));
+            break;
+        case IRCCode::ENDOFNAMES:
+            client->appendMessageToQue(
+                formatMessage(":", _serverName, " ", errnoAsString, " ",
+                              client->getNickname(), "  ", channelName,
+                              " :End of /NAMES list"));
             break;
         case IRCCode::NOSUCHNICK:
             client->appendMessageToQue(

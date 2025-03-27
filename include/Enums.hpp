@@ -106,6 +106,11 @@ enum class IRCCommand : std::uint8_t {
 
 enum class IRCCode : std::int16_t {
     SUCCES = 0, // For my own use
+    CHANNELMODEIS = 324,
+    TOPIC = 332,
+    NAMREPLY = 353,
+    ENDOFNAMES = 366,
+    YOUREOPER = 381,
     NOSUCHNICK = 401,
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,

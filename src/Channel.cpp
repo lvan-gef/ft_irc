@@ -16,6 +16,7 @@
 #include <string>
 
 #include "../include/Channel.hpp"
+#include "../include/Server.hpp"
 #include "../include/Enums.hpp"
 #include "../include/utils.hpp"
 
@@ -205,12 +206,15 @@ IRCCode Channel::setTopic(const std::string &topic,
     return IRCCode::SUCCES;
 }
 
-void Channel::addOperator(const std::shared_ptr<Client> &user) {
+IRCCode Channel::addOperator(const std::shared_ptr<Client> &user) {
     auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it == _operators.end()) {
         _operators.emplace(user);
+        return IRCCode::YOUREOPER;
     }
+
+    return IRCCode::SUCCES;
 }
 
 void Channel::removeOperator(const std::shared_ptr<Client> &user) {
@@ -221,6 +225,7 @@ void Channel::removeOperator(const std::shared_ptr<Client> &user) {
 
         if (!_users.empty() && _operators.empty()) {
             addOperator(*_users.begin());
+            _handleMessage();
         }
     }
 }
