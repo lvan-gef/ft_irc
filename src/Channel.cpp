@@ -87,38 +87,44 @@ void Channel::removeUser(const std::shared_ptr<Client> &user) {
     _users.erase(user);
 }
 
-IRCCode Channel::kickUser(const std::shared_ptr<Client> &target,
-                          const std::shared_ptr<Client> &client) {
+void Channel::kickUser(const std::shared_ptr<Client> &target,
+                       const std::shared_ptr<Client> &client,
+                       const std::string &reason) {
     if (isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
+        return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
     }
 
     if (target == client) {
-        return IRCCode::UNKNOWNCOMMAND;
+        return handleMsg(IRCCode::UNKNOWNCOMMAND, client, getName(),
+                         "Can not kick your self");
     }
 
     if (_userOnChannel(target)) {
         broadcast(client->getFullID(),
-                  "KICK " + getName() + " " + target->getNickname() + " :Bye");
+                  getName() + " " + target->getNickname() + " :" + reason,
+                  IRCCode::KICK);
         return removeUser(target);
     }
 
-    return IRCCode::USERNOTINCHANNEL;
+    return handleMsg(IRCCode::USERNOTINCHANNEL, client, getName(),
+                     target->getNickname());
 }
 
-IRCCode Channel::inviteUser(const std::shared_ptr<Client> &user,
-                            const std::shared_ptr<Client> &client) {
-    if (isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
-    }
-
-    return _addUser(user);
-}
-
-IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
+bool Channel::inviteUser(const std::shared_ptr<Client> &user,
                          const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
+        handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
+        return false;
+    }
+
+    _addUser(user);
+    return true;
+}
+
+void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
+                      const std::shared_ptr<Client> &client) {
+    if (isOperator(client) != true) {
+        return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
     }
 
     switch (mode) {
@@ -153,57 +159,50 @@ IRCCode Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
                                     client);
             }
-        case ChannelMode::OPERATOR: {
+        case ChannelMode::OPERATOR:
             for (const std::shared_ptr<Client> &user : _users) {
                 if (user->getNickname() == value) {
                     if (state) {
-                        addOperator(user);
-                        break;
+                        return addOperator(user);
                     } else {
-                        removeOperator(user);
-                        break;
+                        return removeOperator(user);
                     }
                 }
             }
             break;
-        }
-
         default:
-            return IRCCode::UNKNOWMODE;
+            // need to see how to get the value out of it
+            return handleMsg(IRCCode::UNKNOWMODE, client, "mode", "");
+            /*return handleMsg(IRCCode::UNKNOWMODE, client, mode, "");*/
     }
-
-    return IRCCode::SUCCES;
 }
 
-IRCCode Channel::setPassword(const std::string &password,
-                             const std::shared_ptr<Client> &client) {
+void Channel::setPassword(const std::string &password,
+                          const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
+        return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
     }
 
     _password = password;
-    return IRCCode::SUCCES;
 }
 
-IRCCode Channel::setUserLimit(size_t limit,
-                              const std::shared_ptr<Client> &client) {
+void Channel::setUserLimit(size_t limit,
+                           const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
+        return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
     }
 
     _userLimit = limit;
-    return IRCCode::SUCCES;
 }
 
-IRCCode Channel::setTopic(const std::string &topic,
-                          const std::shared_ptr<Client> &client) {
+void Channel::setTopic(const std::string &topic,
+                       const std::shared_ptr<Client> &client) {
     if (_hasTopic() && isOperator(client) != true) {
-        return IRCCode::CHANOPRIVSNEEDED;
+        return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
     }
 
     _topic = topic;
-    broadcast(client->getFullID(), "TOPIC " + getName() + " :" + _topic);
-    return IRCCode::SUCCES;
+    handleMsg(IRCCode::TOPICNOTICE, client, getName(), getTopic());
 }
 
 void Channel::addOperator(const std::shared_ptr<Client> &user) {

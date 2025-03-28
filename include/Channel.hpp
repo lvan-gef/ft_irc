@@ -36,21 +36,22 @@ class Channel {
 
   public:
     void addUser(const std::string &password,
-                    const std::shared_ptr<Client> &user);
+                 const std::shared_ptr<Client> &user);
     void removeUser(const std::shared_ptr<Client> &user);
-    IRCCode kickUser(const std::shared_ptr<Client> &target,
-                     const std::shared_ptr<Client> &client);
-    IRCCode inviteUser(const std::shared_ptr<Client> &user,
-                       const std::shared_ptr<Client> &client);
+    void kickUser(const std::shared_ptr<Client> &target,
+                  const std::shared_ptr<Client> &client,
+                  const std::string &reason);
+    bool inviteUser(const std::shared_ptr<Client> &user,
+                    const std::shared_ptr<Client> &client);
 
   public:
-    IRCCode setMode(ChannelMode mode, bool state, const std::string &value,
-                    const std::shared_ptr<Client> &client);
-    IRCCode setPassword(const std::string &password,
-                        const std::shared_ptr<Client> &client);
-    IRCCode setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
-    IRCCode setTopic(const std::string &topic,
+    void setMode(ChannelMode mode, bool state, const std::string &value,
+                 const std::shared_ptr<Client> &client);
+    void setPassword(const std::string &password,
                      const std::shared_ptr<Client> &client);
+    void setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
+    void setTopic(const std::string &topic,
+                  const std::shared_ptr<Client> &client);
 
   public:
     void addOperator(const std::shared_ptr<Client> &user);
@@ -64,8 +65,8 @@ class Channel {
     std::string getModesValues() const noexcept;
 
   public:
-    void broadcast(const std::string &senderPrefix,
-                   const std::string &message, IRCCode code) const;
+    void broadcast(const std::string &senderPrefix, const std::string &message,
+                   IRCCode code) const;
     std::string getUserList() const noexcept;
 
   public:

@@ -32,8 +32,6 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
     }
 
     switch (code) {
-        case IRCCode::SUCCES:
-            break;
         case IRCCode::WELCOME:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
@@ -129,9 +127,8 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                                                      " :No text to send"));
             break;
         case IRCCode::UNKNOWNCOMMAND:
-            client->appendMessageToQue(formatMessage(":", serverName, " ",
-                                                     errnoAsString, value,
-                                                     " :Unknow command"));
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", errnoAsString, " ", value, " :", msg));
             break;
         case IRCCode::FILEERROR:
             std::cerr << "Need to impl this" << '\n';
@@ -191,7 +188,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                                                      errnoAsString, " *",
                                                      " :Password incorrect"));
             break;
-        case IRCCode::KEYSET: // checken if channel is 1 index of the params
+        case IRCCode::KEYSET:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", errnoAsString, value,
                               " :Channel key already set"));
@@ -201,7 +198,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 formatMessage(":", serverName, " ", errnoAsString, " ", value,
                               " :Cannot join channel (+l)"));
             break;
-        case IRCCode::UNKNOWMODE: // checken if char is 2 index of the params
+        case IRCCode::UNKNOWMODE:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", errnoAsString, value,
                               " :is unknown mode char to me"));
@@ -240,23 +237,33 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
                 " ", value, " :Invalid value: '", msg, "'"));
             break;
+        case IRCCode::TOPICNOTICE:
+            client->appendMessageToQue(
+                formatMessage(":", value, " TOPIC :", msg));
+            break;
+        case IRCCode::KICK:
+            client->appendMessageToQue(
+                formatMessage(":", value, " KICK ", msg));
+            break;
         case IRCCode::PART:
-            client->appendMessageToQue(formatMessage(
-                ":", value, " PART ", msg));
+            client->appendMessageToQue(
+                formatMessage(":", value, " PART ", msg));
             break;
         case IRCCode::JOIN:
-            client->appendMessageToQue(formatMessage(
-                ":", value, " JOIN ", msg));
+            client->appendMessageToQue(
+                formatMessage(":", value, " JOIN ", msg));
             break;
         case IRCCode::NICKCHANGED:
             client->appendMessageToQue(
                 formatMessage(":", value, " NICK ", msg));
             break;
         case IRCCode::PRIVMSG:
-            client->appendMessageToQue(formatMessage(
-                ":", value, " PRIVMSG ", client->getNickname(), msg));
+            client->appendMessageToQue(
+                formatMessage(":", value, " PRIVMSG ", msg));
             break;
         default:
-            std::cerr << "Unknow IRCCode: " << errnoAsString << '\n';
+            std::cerr << "Unknow IRCCode: " << errnoAsString << " " << value
+                      << '\n';
+            return;
     }
 }
