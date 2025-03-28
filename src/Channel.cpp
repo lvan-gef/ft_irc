@@ -135,8 +135,7 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
-                _modes.set(2)
-                return setPassword(value, client);
+                _modes.set(2) return setPassword(value, client);
             } else {
                 _modes.reset(2);
                 return setPassword("", client);
@@ -154,12 +153,11 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::USER_LIMIT:
             if (state) {
-                _modes.set(4)
-                return setUserLimit(toSizeT(value), client);
+                _modes.set(4) return setUserLimit(toSizeT(value), client);
             } else {
                 _modes.reset(4);
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
-                        client);
+                                    client);
             }
         default:
             // need to see how to get the value out of it
@@ -288,7 +286,7 @@ std::string Channel::getUserList() const noexcept {
 }
 
 bool Channel::_hasPassword() const noexcept {
-    return _modes & ChannelMode::PASSWORD_PROTECTED;
+    return _modes.test(2);
 }
 
 bool Channel::_checkPassword(const std::string &password) const noexcept {
@@ -296,15 +294,15 @@ bool Channel::_checkPassword(const std::string &password) const noexcept {
 }
 
 bool Channel::_hasUserLimit() const noexcept {
-    return _modes & ChannelMode::USER_LIMIT;
+    return _modes.test(4)
 }
 
 bool Channel::_hasInvite() const noexcept {
-    return _modes & ChannelMode::INVITE_ONLY;
+    return _modes.test(0);
 }
 
 bool Channel::_hasTopic() const noexcept {
-    return _modes & ChannelMode::TOPIC_PROTECTED;
+    return _modes.test(1);
 }
 
 bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {

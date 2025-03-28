@@ -91,7 +91,7 @@ class Channel {
     std::string _topic;
     std::string _password;
     size_t _userLimit;
-    std::bitset<5> _modes;  // invite, topic, password, operator, userlimit
+    std::bitset<5> _modes; // invite, topic, password, operator, userlimit
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;

@@ -21,11 +21,11 @@
 
 #include "./Channel.hpp"
 #include "./Client.hpp"
-#include "./EpollNotifier.hpp"
+#include "./EpollInterface.hpp"
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
 
-class Server : public EpollNotifier {
+class Server : public EpollInterface {
   public:
     explicit Server(const std::string &port, std::string &password);
 
