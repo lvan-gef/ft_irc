@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:58:57 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 20:28:22 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,11 @@ bool Server::run() noexcept {
         return false;
     }
     if (sigaction(SIGTERM, &sa, nullptr) == -1) {
+        std::cerr << "Failed to set up SIGTERM handler" << '\n';
+        return false;
+    }
+
+    if (sigaction(SIGPIPE, &sa, nullptr) == -1) {
         std::cerr << "Failed to set up SIGTERM handler" << '\n';
         return false;
     }
@@ -372,7 +377,7 @@ void Server::_clientSend(int fd) noexcept {
         std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
                   << '\n';
         ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
-                             msg.length() - offset, MSG_DONTWAIT);
+                             msg.length() - offset, MSG_DONTWAIT | MSG_NOSIGNAL);
 
         if (0 > bytes) {
             if (errno == EAGAIN) {
