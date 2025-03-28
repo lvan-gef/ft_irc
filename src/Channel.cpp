@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:43:44 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 14:25:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,7 +135,8 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
-                _modes.set(2) return setPassword(value, client);
+                _modes.set(2);
+                return setPassword(value, client);
             } else {
                 _modes.reset(2);
                 return setPassword("", client);
@@ -153,7 +154,8 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::USER_LIMIT:
             if (state) {
-                _modes.set(4) return setUserLimit(toSizeT(value), client);
+                _modes.set(4);
+                return setUserLimit(toSizeT(value), client);
             } else {
                 _modes.reset(4);
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
@@ -294,7 +296,7 @@ bool Channel::_checkPassword(const std::string &password) const noexcept {
 }
 
 bool Channel::_hasUserLimit() const noexcept {
-    return _modes.test(4)
+    return _modes.test(4);
 }
 
 bool Channel::_hasInvite() const noexcept {

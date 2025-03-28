@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 21:21:50 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 14:26:39 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ enum class Defaults : std::uint16_t {
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
-constexpr std::uint16_t getDefaultValue(Defaults rhs);
+std::uint16_t getDefaultValue(Defaults rhs);
 
 enum class ChannelMode : std::uint8_t {
     INVITE_ONLY,
