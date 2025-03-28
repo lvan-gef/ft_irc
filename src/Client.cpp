@@ -60,6 +60,10 @@ Client::~Client() {
     removeAllChannels();
 }
 
+void Client::setEpollNotifier(EpollNotifier *notifier) {
+    _epollNotifier = notifier;
+}
+
 int Client::getFD() const noexcept {
     return _fd.get();
 }
@@ -166,6 +170,10 @@ bool Client::haveMessagesToSend() {
 
 void Client::appendMessageToQue(const std::string &msg) noexcept {
     _messages.emplace(msg);
+
+    if (_epollNotifier) {
+        _epollNotifier->notifyEpollUpdate(_fd.get());
+    }
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {

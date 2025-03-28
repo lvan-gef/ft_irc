@@ -14,7 +14,7 @@
 #include <climits>
 #include <cstdlib>
 
-#include "../include/utils.hpp"
+#include "../include/Utils.hpp"
 
 std::uint16_t toUint16(const std::string &str) {
     char *endptr = nullptr;

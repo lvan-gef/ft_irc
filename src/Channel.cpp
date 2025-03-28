@@ -17,8 +17,7 @@
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
-#include "../include/utils.hpp"
-#include "Token.hpp"
+#include "../include/Utils.hpp"
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)

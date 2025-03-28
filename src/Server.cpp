@@ -35,7 +35,7 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "../include/utils.hpp"
+#include "../include/Utils.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -98,6 +98,19 @@ Server &Server::operator=(Server &&rhs) noexcept {
 
 Server::~Server() {
     _shutdown();
+}
+
+void Server::notifyEpollUpdate(int fd) {
+    auto it = _fd_to_client.find(fd);
+    if (it == _fd_to_client.end()) {
+        return;
+    }
+
+    epoll_event ev = it->second->getEvent();
+    ev.events = EPOLLIN | EPOLLOUT;
+    if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, fd, &ev)) {
+        std::cerr << "Failed to update epoll: " << strerror(errno) << '\n';
+    }
 }
 
 bool Server::init() noexcept {
@@ -284,6 +297,7 @@ void Server::_newConnection() noexcept {
     }
 
     std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
+    client->setEpollNotifier(this);
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, clientFD,
                       &client->getEvent())) {
         std::cerr << "Failed to add client to epoll" << '\n';
@@ -443,18 +457,6 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             handleMsg(token.err.get_value(), client, "", "");
         } else {
             _handleCommand(token, client);
-        }
-    }
-
-    for (const auto &user : _nick_to_client) {
-        if (user.second->haveMessagesToSend()) {
-            epoll_event ev = user.second->getEvent();
-            ev.events = EPOLLIN | EPOLLOUT;
-            if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, user.second->getFD(),
-                          &ev) == -1) {
-                std::cerr << "Failed to update epoll event: " << strerror(errno)
-                          << '\n';
-            }
         }
     }
 }

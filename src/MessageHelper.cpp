@@ -15,7 +15,7 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "../include/utils.hpp"
+#include "../include/Utils.hpp"
 
 void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                const std::string &value, const std::string &msg) {

@@ -18,7 +18,7 @@
 #include <string>
 
 #include "../include/Client.hpp"
-#include "../include/Token.hpp"
+#include "../include/Enums.hpp"
 
 #define BASE 10
 #define NAME "codamirc"

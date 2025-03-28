@@ -23,8 +23,9 @@
 #include "./Client.hpp"
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
+#include "./EpollNotifier.hpp"
 
-class Server {
+class Server : public EpollNotifier {
   public:
     explicit Server(const std::string &port, std::string &password);
 
@@ -34,17 +35,20 @@ class Server {
     Server(Server &&rhs) noexcept;
     Server &operator=(Server &&rhs) noexcept;
 
-    ~Server();
+    ~Server() override;
+
+  public:
+    class ServerException : public std::exception {
+        public:
+            const char *what() const noexcept override;
+    };
+
+  public:
+    void notifyEpollUpdate(int fd) override;
 
   public:
     bool init() noexcept;
     bool run() noexcept;
-
-  public:
-    class ServerException : public std::exception {
-      public:
-        const char *what() const noexcept override;
-    };
 
   private:
     bool _init() noexcept;

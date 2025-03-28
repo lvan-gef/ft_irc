@@ -17,7 +17,7 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "../include/utils.hpp"
+#include "../include/Utils.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) {
