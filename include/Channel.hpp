@@ -13,6 +13,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include <bitset>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -90,7 +91,7 @@ class Channel {
     std::string _topic;
     std::string _password;
     size_t _userLimit;
-    std::uint8_t _modes;
+    std::bitset<5> _modes;  // invite, topic, password, operator, userlimit
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;

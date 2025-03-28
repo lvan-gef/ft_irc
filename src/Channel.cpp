@@ -128,35 +128,18 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
 
     switch (mode) {
         case ChannelMode::INVITE_ONLY:
-            if (state) {
-                _modes |= ChannelMode::INVITE_ONLY;
-            } else {
-                _modes &= ~ChannelMode::INVITE_ONLY;
-            }
+            state ? _modes.set(0) : _modes.reset(0);
             break;
         case ChannelMode::TOPIC_PROTECTED:
-            if (state) {
-                _modes |= ChannelMode::TOPIC_PROTECTED;
-            } else {
-                _modes &= ~ChannelMode::TOPIC_PROTECTED;
-            }
+            state ? _modes.set(1) : _modes.reset(1);
             break;
         case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
-                _modes |= ChannelMode::PASSWORD_PROTECTED;
+                _modes.set(2)
                 return setPassword(value, client);
             } else {
-                _modes &= ~ChannelMode::PASSWORD_PROTECTED;
+                _modes.reset(2);
                 return setPassword("", client);
-            }
-        case ChannelMode::USER_LIMIT:
-            if (state) {
-                _modes |= ChannelMode::USER_LIMIT;
-                return setUserLimit(toSizeT(value), client);
-            } else {
-                _modes &= ~ChannelMode::USER_LIMIT;
-                return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
-                                    client);
             }
         case ChannelMode::OPERATOR:
             for (const std::shared_ptr<Client> &user : _users) {
@@ -169,6 +152,15 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                 }
             }
             break;
+        case ChannelMode::USER_LIMIT:
+            if (state) {
+                _modes.set(4)
+                return setUserLimit(toSizeT(value), client);
+            } else {
+                _modes.reset(4);
+                return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
+                        client);
+            }
         default:
             // need to see how to get the value out of it
             return handleMsg(IRCCode::UNKNOWMODE, client, "mode", "");
