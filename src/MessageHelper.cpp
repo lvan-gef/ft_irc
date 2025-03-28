@@ -57,7 +57,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
                 " CHANMODES=i,t,k,o,l CHANTYPES=# PREFIX=(o)@ STATUSMSG=@ ",
-                "NICKLEN=9 NETWORK=", NAME, " PING USERHOST :", msg));
+                "NICKLEN=", getDefaultValue(Defaults::NICKLEN), " NETWORK=", NAME, " PING USERHOST :", msg));
             break;
         case IRCCode::USERHOST:
             client->appendMessageToQue(
