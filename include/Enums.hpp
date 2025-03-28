@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 14:26:39 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 15:42:13 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,7 @@ enum class IRCCode : std::int16_t {
     UMODEUNKNOWNFLAG = 501,
     USERSDONTMATCH = 502,
     INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
+    MODE = 993,
     TOPICNOTICE = 994,      // for my own use
     KICK = 995,             // for my own use
     PART = 996,             // for my own use

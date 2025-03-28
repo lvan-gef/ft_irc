@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 21:41:51 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 15:58:57 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -429,7 +429,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
         for (const std::string &channel : channels) {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
-                it->second.removeUser(client);
+                it->second.removeUser(client, "");
             }
         }
 

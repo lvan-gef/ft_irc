@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 16:17:34 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 15:57:53 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #define CHANNEL_HPP
 
 #include <bitset>
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -36,9 +35,10 @@ class Channel {
     ~Channel();
 
   public:
-    void addUser(const std::string &password,
+    bool addUser(const std::string &password,
                  const std::shared_ptr<Client> &user);
-    void removeUser(const std::shared_ptr<Client> &user);
+    void removeUser(const std::shared_ptr<Client> &user,
+                    const std::string &reason);
     void kickUser(const std::shared_ptr<Client> &target,
                   const std::shared_ptr<Client> &client,
                   const std::string &reason);
@@ -66,8 +66,8 @@ class Channel {
     std::string getModesValues() const noexcept;
 
   public:
-    void broadcast(const std::string &senderPrefix, const std::string &message,
-                   IRCCode code) const;
+    void broadcast(IRCCode code, const std::string &senderPrefix,
+                   const std::string &message) const;
     std::string getUserList() const noexcept;
 
   public:
@@ -84,7 +84,7 @@ class Channel {
     bool _userOnChannel(const std::shared_ptr<Client> &user);
 
   private:
-    void _addUser(const std::shared_ptr<Client> &user);
+    bool _addUser(const std::shared_ptr<Client> &user);
 
   private:
     std::string _name;
