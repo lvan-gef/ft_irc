@@ -326,8 +326,6 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     handleMsg(IRCCode::ISUPPORT, client, "", "are supported by this server");
     handleMsg(IRCCode::MOTDSTART, client, "", "");
     handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
-    handleMsg(IRCCode::MOTD, client, "",
-              "- Try not to spam us too much please!");
     handleMsg(IRCCode::ENDOFMOTD, client, "", "");
 
     _nick_to_client[nick] = client;

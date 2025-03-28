@@ -21,9 +21,9 @@
 
 #include "./Channel.hpp"
 #include "./Client.hpp"
+#include "./EpollNotifier.hpp"
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
-#include "./EpollNotifier.hpp"
 
 class Server : public EpollNotifier {
   public:
@@ -39,8 +39,8 @@ class Server : public EpollNotifier {
 
   public:
     class ServerException : public std::exception {
-        public:
-            const char *what() const noexcept override;
+      public:
+        const char *what() const noexcept override;
     };
 
   public:
