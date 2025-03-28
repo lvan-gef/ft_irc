@@ -22,7 +22,7 @@
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
-      _userLimit(static_cast<size_t>(Defaults::USERLIMIT)), _modes(0), _users{},
+      _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0), _users{},
       _operators{} {
     std::cout << "Default constructor called for Channel" << '\n';
     addUser(_password, client);
