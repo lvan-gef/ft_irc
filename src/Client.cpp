@@ -60,7 +60,7 @@ Client::~Client() {
     removeAllChannels();
 }
 
-void Client::setEpollNotifier(EpollNotifier *notifier) {
+void Client::setEpollNotifier(EpollInterface *notifier) {
     _epollNotifier = notifier;
 }
 
