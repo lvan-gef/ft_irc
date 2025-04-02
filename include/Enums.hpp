@@ -123,12 +123,12 @@ enum class IRCCode : std::int16_t {
     USERSDONTMATCH = 502,
     INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
     MODE = 993,
-    TOPICNOTICE = 994,      // for my own use
-    KICK = 995,             // for my own use
-    PART = 996,             // for my own use
-    JOIN = 997,             // for my own use
-    NICKCHANGED = 998,      // for my own use
-    PRIVMSG = 999,          // for my own use
+    TOPICNOTICE = 994, // for my own use
+    KICK = 995,        // for my own use
+    PART = 996,        // for my own use
+    JOIN = 997,        // for my own use
+    NICKCHANGED = 998, // for my own use
+    PRIVMSG = 999,     // for my own use
 };
 
 #endif // ENUMS_HPP

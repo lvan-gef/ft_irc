@@ -129,7 +129,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa {};
+    struct sigaction sa{};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -180,7 +180,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address {};
+    struct sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -201,7 +201,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev {};
+    struct epoll_event ev{};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {
@@ -376,8 +376,9 @@ void Server::_clientSend(int fd) noexcept {
         size_t offset = client->getOffset();
         std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
                   << '\n';
-        ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
-                             msg.length() - offset, MSG_DONTWAIT | MSG_NOSIGNAL);
+        ssize_t bytes =
+            send(client->getFD(), msg.c_str() + offset, msg.length() - offset,
+                 MSG_DONTWAIT | MSG_NOSIGNAL);
 
         if (0 > bytes) {
             if (errno == EAGAIN) {

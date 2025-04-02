@@ -19,16 +19,10 @@
 
 void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                const std::string &value, const std::string &msg) {
-    std::string errnoAsString = {};
-
-    try {
-        errnoAsString = std::to_string(static_cast<std::uint16_t>(code));
-        if (errnoAsString.length() < 3) {
-            errnoAsString.insert(0, 3 - errnoAsString.length(), '0');
-        }
-    } catch (std::runtime_error &e) {
-        std::cerr << e.what() << '\n';
-        return;
+    std::string errnoAsString =
+        std::to_string(static_cast<std::uint16_t>(code));
+    if (errnoAsString.length() < 3) {
+        errnoAsString.insert(0, 3 - errnoAsString.length(), '0');
     }
 
     switch (code) {
@@ -57,7 +51,8 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", errnoAsString, " ", client->getNickname(),
                 " CHANMODES=i,t,k,o,l CHANTYPES=# PREFIX=(o)@ STATUSMSG=@ ",
-                "NICKLEN=", getDefaultValue(Defaults::NICKLEN), " NETWORK=", NAME, " PING USERHOST :", msg));
+                "NICKLEN=", getDefaultValue(Defaults::NICKLEN),
+                " NETWORK=", NAME, " PING USERHOST :", msg));
             break;
         case IRCCode::USERHOST:
             client->appendMessageToQue(
@@ -242,8 +237,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 formatMessage(":", value, " MODE ", msg));
             break;
         case IRCCode::TOPICNOTICE:
-            client->appendMessageToQue(
-                formatMessage(":", value, msg));
+            client->appendMessageToQue(formatMessage(":", value, msg));
             break;
         case IRCCode::KICK:
             client->appendMessageToQue(
