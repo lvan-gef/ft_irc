@@ -6,11 +6,12 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 20:43:13 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:57:46 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <unistd.h>
 #include <utility>
@@ -18,6 +19,7 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
+#include "Utils.hpp"
 
 Client::Client(int fd)
     : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
@@ -58,6 +60,10 @@ Client &Client::operator=(Client &&rhs) noexcept {
 Client::~Client() {
     std::cout << "Client destructor is called" << '\n';
     removeAllChannels();
+}
+
+void Client::setEpollNotifier(EpollInterface *notifier) {
+    _epollNotifier = notifier;
 }
 
 int Client::getFD() const noexcept {
@@ -165,7 +171,24 @@ bool Client::haveMessagesToSend() {
 }
 
 void Client::appendMessageToQue(const std::string &msg) noexcept {
-    _messages.emplace(msg);
+    if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
+        std::vector<std::string> lines = split(msg, "\n");
+        if (lines.size() == 2) {
+            std::cerr << "Message to long and could not split on newline, drop "
+                         "the message"
+                      << '\n';
+            return;
+        }
+
+        // check if there is a \n, if it is there split on it
+        // otherwise assert to fail
+    } else {
+        _messages.emplace(msg);
+    }
+
+    if (_epollNotifier) {
+        _epollNotifier->notifyEpollUpdate(_fd.get());
+    }
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {

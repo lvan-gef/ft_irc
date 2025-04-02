@@ -6,14 +6,16 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:41:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <csignal>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <ostream>
@@ -33,7 +35,7 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "../include/utils.hpp"
+#include "../include/Utils.hpp"
 
 static std::atomic<bool> g_running{true};
 
@@ -44,11 +46,9 @@ static void signalHandler(int signum) {
 }
 
 Server::Server(const std::string &port, std::string &password)
-    : _port(toUint16(port)), _password(std::move(password)),
-      _serverName("codamirc.local"), _serverVersion("0.3.0"),
-      _serverCreated("Mon Feb 19 2025 at 10:00:00 UTC"), _server_fd(-1),
-      _epoll_fd(-1), _connections(0), _fd_to_client{}, _nick_to_client{},
-      _channels{} {
+    : _port(toUint16(port)), _password(std::move(password)), _serverStared(""),
+      _server_fd(-1), _epoll_fd(-1), _connections(0), _fd_to_client{},
+      _nick_to_client{}, _channels{} {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -60,13 +60,19 @@ Server::Server(const std::string &port, std::string &password)
     if (_password.length() == 0) {
         throw std::invalid_argument("password can not be empty");
     }
+
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm *utc_time = std::gmtime(&now_time);
+    std::ostringstream oss;
+
+    oss << std::put_time(utc_time, "%a %b %d %Y at %H:%M:%S UTC");
+    _serverStared = oss.str();
 }
 
 Server::Server(Server &&rhs) noexcept
     : _port(rhs._port), _password(std::move(rhs._password)),
-      _serverName(std::move(rhs._serverName)),
-      _serverVersion(std::move(rhs._serverVersion)),
-      _serverCreated(std::move(rhs._serverCreated)),
+      _serverStared(std::move(rhs._serverStared)),
       _server_fd(std::move(rhs._server_fd)),
       _epoll_fd(std::move(rhs._epoll_fd)), _connections(rhs._connections),
       _fd_to_client(std::move(rhs._fd_to_client)),
@@ -78,9 +84,7 @@ Server &Server::operator=(Server &&rhs) noexcept {
     if (this != &rhs) {
         _port = rhs._port;
         _password = std::move(rhs._password);
-        _serverName = std::move(rhs._serverName);
-        _serverVersion = std::move(rhs._serverVersion);
-        _serverCreated = std::move(rhs._serverCreated);
+        _serverStared = std::move(rhs._serverStared);
         _server_fd = std::move(rhs._server_fd);
         _epoll_fd = std::move(rhs._epoll_fd);
         _connections = rhs._connections;
@@ -94,6 +98,19 @@ Server &Server::operator=(Server &&rhs) noexcept {
 
 Server::~Server() {
     _shutdown();
+}
+
+void Server::notifyEpollUpdate(int fd) {
+    auto it = _fd_to_client.find(fd);
+    if (it == _fd_to_client.end()) {
+        return;
+    }
+
+    epoll_event ev = it->second->getEvent();
+    ev.events = EPOLLIN | EPOLLOUT;
+    if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, fd, &ev)) {
+        std::cerr << "Failed to update epoll: " << strerror(errno) << '\n';
+    }
 }
 
 bool Server::init() noexcept {
@@ -122,6 +139,11 @@ bool Server::run() noexcept {
         return false;
     }
     if (sigaction(SIGTERM, &sa, nullptr) == -1) {
+        std::cerr << "Failed to set up SIGTERM handler" << '\n';
+        return false;
+    }
+
+    if (sigaction(SIGPIPE, &sa, nullptr) == -1) {
         std::cerr << "Failed to set up SIGTERM handler" << '\n';
         return false;
     }
@@ -280,7 +302,7 @@ void Server::_newConnection() noexcept {
     }
 
     std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
-
+    client->setEpollNotifier(this);
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, clientFD,
                       &client->getEvent())) {
         std::cerr << "Failed to add client to epoll" << '\n';
@@ -301,39 +323,15 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
-    std::string user = client->getUsername();
-    std::string ip = client->getIP();
 
-    client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 001 ", nick,
-        " :Welcome to the Internet Relay Network ", nick, "!", user, "@", ip));
-
-    client->appendMessageToQue(
-        formatMessage(":", _serverName, " 002 ", nick, " :Your host is ",
-                      _serverName, ", running version ", _serverVersion));
-
-    client->appendMessageToQue(formatMessage(":", _serverName, " 003 ", nick,
-                                             " :This server was created ",
-                                             _serverCreated));
-
-    client->appendMessageToQue(
-        formatMessage(":", _serverName, " 004 ", nick, " ", _serverName,
-                      " o i,t,k,o,l :are supported by this server"));
-
-    client->appendMessageToQue(formatMessage(
-        ":", _serverName, " 005 ", nick,
-        " CHANMODES=i,t,k,o,l USERMODES=o CHANTYPES=# PREFIX=(o)@ ",
-        "PING USERHOST :are supported by this server"));
-
-    client->appendMessageToQue(formatMessage(":", _serverName, " 375 ", nick,
-                                             " :- ", _serverName,
-                                             " Message of the Day -"));
-
-    client->appendMessageToQue(formatMessage(":", _serverName, " 372 ", nick,
-                                             " :- Welcome to my IRC server!"));
-
-    client->appendMessageToQue(formatMessage(":", _serverName, " 376 ", nick,
-                                             " :End of /MOTD command."));
+    handleMsg(IRCCode::WELCOME, client, "", "");
+    handleMsg(IRCCode::YOURHOST, client, "", "");
+    handleMsg(IRCCode::CREATED, client, "", _serverStared);
+    handleMsg(IRCCode::MYINFO, client, "", "o i,t,k,o,l k,l,o");
+    handleMsg(IRCCode::ISUPPORT, client, "", "");
+    handleMsg(IRCCode::MOTDSTART, client, "", "");
+    handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
+    handleMsg(IRCCode::ENDOFMOTD, client, "", "");
 
     _nick_to_client[nick] = client;
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
@@ -363,6 +361,11 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
+    if (bytes_read > getDefaultValue(Defaults::MAXMSGLEN)) {
+        handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+        return;
+    }
+
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
@@ -376,9 +379,11 @@ void Server::_clientSend(int fd) noexcept {
         std::string msg = client->getMessage();
 
         size_t offset = client->getOffset();
-        std::cout << "send: " << msg.c_str() << '\n';
-        ssize_t bytes = send(client->getFD(), msg.c_str() + offset,
-                             msg.length() - offset, MSG_DONTWAIT);
+        std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
+                  << '\n';
+        ssize_t bytes =
+            send(client->getFD(), msg.c_str() + offset, msg.length() - offset,
+                 MSG_DONTWAIT | MSG_NOSIGNAL);
 
         if (0 > bytes) {
             if (errno == EAGAIN) {
@@ -435,7 +440,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
         for (const std::string &channel : channels) {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
-                it->second.removeUser(client);
+                it->second.removeUser(client, "");
             }
         }
 
@@ -453,26 +458,14 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 
     std::string msg = client->getAndClearBuffer();
-    std::cout << "recv: " << msg << '\n';
+    std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
 
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
         if (!token.success) {
-            _handleError(token, client);
+            handleMsg(token.err.get_value(), client, "", "");
         } else {
             _handleCommand(token, client);
-        }
-    }
-
-    for (const auto &user : _nick_to_client) {
-        if (user.second->haveMessagesToSend()) {
-            epoll_event ev = user.second->getEvent();
-            ev.events = EPOLLIN | EPOLLOUT;
-            if (epoll_ctl(_epoll_fd.get(), EPOLL_CTL_MOD, user.second->getFD(),
-                          &ev) == -1) {
-                std::cerr << "Failed to update epoll event: " << strerror(errno)
-                          << '\n';
-            }
         }
     }
 }

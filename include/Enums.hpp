@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:42 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:57:02 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,58 +26,21 @@ enum class Defaults : std::uint16_t {
     READ_SIZE = 512,
     INTERVAL = 1000,
     TIMEOUT = 360,
-    USERLIMIT = std::numeric_limits<uint16_t>::max()
+    USERLIMIT = std::numeric_limits<uint16_t>::max(),
+    NICKLEN = 9,
+    MAXMSGLEN = 130,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
+std::uint16_t getDefaultValue(Defaults rhs);
 
 enum class ChannelMode : std::uint8_t {
-    INVITE_ONLY = 1 << 0,
-    TOPIC_PROTECTED = 1 << 1,
-    PASSWORD_PROTECTED = 1 << 2,
-    OPERATOR = 1 << 3,
-    USER_LIMIT = 1 << 4,
+    INVITE_ONLY,
+    TOPIC_PROTECTED,
+    PASSWORD_PROTECTED,
+    OPERATOR,
+    USER_LIMIT,
 };
-
-/**
- * @brief Bitwise OR assignment operator for combining flags.
- *
- * @param lhs Reference to the target bitmask (std::uint8_t)
- * @param rhs ChannelMode flag to enable      (ChannelMode)
- * @return Reference to modified lhs          (std::uint_t)
- */
-std::uint8_t &operator|=(std::uint8_t &lhs, ChannelMode rhs);
-
-/**
- * @brief Bitwise AND assignment operator for clearing flags.
- * @param lhs Reference to the target bitmask (std::uint8_t)
- * @param rhs ChannelMode flag to disable     (ChannelMode)
- * @return Reference to modified lhs          (std::uint8_t)
- */
-std::uint8_t &operator&=(std::uint8_t &lhs, ChannelMode rhs);
-
-/**
- * @brief Bitwise NOT operator for flag inversion.
- * @param rhs ChannelMode flag to invert      (ChannelMode)
- * @return std::uint8_t with all bits flipped (std::uint_8_t)
- */
-std::uint8_t operator~(ChannelMode rhs);
-
-/**
- * @brief Bitwise OR operator for combining flags.
- * @param lhs First ChannelMode flag     (ChannelMode)
- * @param rhs Second ChannelMode flag    (ChannelMode)
- * @return std::uint8_t combined bitmask (std::uint8_t)
- */
-std::uint8_t operator|(ChannelMode lhs, ChannelMode rhs);
-
-/**
- * @brief Bitwise AND operator for checking flags.
- * @param lhs Bitmask to check             (std::uint8_t)
- * @param rhs ChannelMode flag to test     (ChannelMode)
- * @return std::uint8_t with matching bits
- */
-std::uint8_t operator&(std::uint8_t lhs, ChannelMode rhs);
 
 enum class ChannelCommand : std::uint8_t {
     MODE_I = 'i',
@@ -105,7 +68,19 @@ enum class IRCCommand : std::uint8_t {
 };
 
 enum class IRCCode : std::int16_t {
-    SUCCES = 0, // For my own use
+    WELCOME = 1,
+    YOURHOST = 2,
+    CREATED = 3,
+    MYINFO = 4,
+    ISUPPORT = 5,
+    USERHOST = 302,
+    CHANNELMODEIS = 324,
+    TOPIC = 332,
+    NAMREPLY = 353,
+    ENDOFNAMES = 366,
+    MOTD = 372,
+    MOTDSTART = 375,
+    ENDOFMOTD = 376,
     NOSUCHNICK = 401,
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,
@@ -118,6 +93,7 @@ enum class IRCCode : std::int16_t {
     NOTEXTTOSEND = 412,
     /*NOTOPLEVEL = 413,  // not sure if we need to impl it*/
     /*WILDTOPLEVEL = 414, // not sure if we need to impl it*/
+    INPUTTOOLONG = 417,
     UNKNOWNCOMMAND = 421,
     /*NOADMININFO = 423,  // think we dont need to impl this*/
     FILEERROR = 424, // only for bonus we need to impl thid
@@ -147,7 +123,14 @@ enum class IRCCode : std::int16_t {
     /*CANTKILLSERVER = 483,  // not sure if we need to impl it*/
     UMODEUNKNOWNFLAG = 501,
     USERSDONTMATCH = 502,
-    INVALIDMODEPARAM = 696 // Not in IRC but in unrealircd
+    INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
+    MODE = 993,
+    TOPICNOTICE = 994, // for my own use
+    KICK = 995,        // for my own use
+    PART = 996,        // for my own use
+    JOIN = 997,        // for my own use
+    NICKCHANGED = 998, // for my own use
+    PRIVMSG = 999,     // for my own use
 };
 
 #endif // ENUMS_HPP

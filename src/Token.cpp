@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/19 16:16:20 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:52:22 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,22 +72,6 @@ IRCCommand getCommand(const std::string &command) {
     }
 
     return it->second;
-}
-
-std::vector<std::string> split(const std::string &s,
-                               const std::string &delimiter) {
-    std::vector<std::string> lines;
-    size_t pos = 0;
-    size_t prev = 0;
-
-    while ((pos = s.find(delimiter, prev)) != std::string::npos) {
-        lines.push_back(s.substr(prev, pos - prev)); // check for throwing
-        prev = pos + delimiter.length();
-    }
-
-    lines.push_back(s.substr(prev));
-
-    return lines;
 }
 
 // debugging

@@ -17,7 +17,6 @@
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
-#include "../include/utils.hpp"
 
 void Server::_handleCommand(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) {
@@ -48,23 +47,8 @@ void Server::_handleCommand(const IRCMessage &token,
             return _handleInvite(token, client);
         case IRCCommand::MODE:
             return _handleMode(token, client);
-        case IRCCommand::USERHOST: {
-            auto it = _nick_to_client.find(token.params[0]);
-
-            if (it != _nick_to_client.end()) {
-                std::shared_ptr<Client> targetClient = it->second;
-                std::string targetNick = targetClient->getNickname();
-
-                client->appendMessageToQue(formatMessage(
-                    ":", _serverName, " 302 ", client->getNickname(), " :",
-                    targetNick, "=-", targetNick, "@", targetClient->getIP()));
-            } else {
-                std::cerr << "Server internal error: Could not found target "
-                             "user for USERHOST"
-                          << '\n';
-            }
-            break;
-        }
+        case IRCCommand::USERHOST:
+            return _handleUserhost(token, client);
         case IRCCommand::UNKNOW:
             std::cerr << "Not impl yet UNKNOW" << '\n';
             break;

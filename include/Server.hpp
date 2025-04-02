@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 20:59:56 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/27 17:15:45 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,11 @@
 
 #include "./Channel.hpp"
 #include "./Client.hpp"
+#include "./EpollInterface.hpp"
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
 
-class Server {
+class Server : public EpollInterface {
   public:
     explicit Server(const std::string &port, std::string &password);
 
@@ -34,17 +35,20 @@ class Server {
     Server(Server &&rhs) noexcept;
     Server &operator=(Server &&rhs) noexcept;
 
-    ~Server();
-
-  public:
-    bool init() noexcept;
-    bool run() noexcept;
+    ~Server() override;
 
   public:
     class ServerException : public std::exception {
       public:
         const char *what() const noexcept override;
     };
+
+  public:
+    void notifyEpollUpdate(int fd) override;
+
+  public:
+    bool init() noexcept;
+    bool run() noexcept;
 
   private:
     bool _init() noexcept;
@@ -61,7 +65,6 @@ class Server {
 
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
-    void _handleError(IRCMessage token, const std::shared_ptr<Client> &client);
     void _handleCommand(const IRCMessage &token,
                         const std::shared_ptr<Client> &client);
 
@@ -92,15 +95,11 @@ class Server {
                      const std::shared_ptr<Client> &client);
     void _handleUserhost(const IRCMessage &token,
                          const std::shared_ptr<Client> &client);
-    void _handleUnknown(const IRCMessage &token,
-                        const std::shared_ptr<Client> &client);
 
   private:
     std::uint16_t _port;
     std::string _password;
-    std::string _serverName;
-    std::string _serverVersion;
-    std::string _serverCreated;
+    std::string _serverStared;
 
   private:
     FileDescriptors _server_fd;

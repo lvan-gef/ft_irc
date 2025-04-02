@@ -21,6 +21,7 @@
 
 #include <sys/epoll.h>
 
+#include "./EpollInterface.hpp"
 #include "./FileDescriptors.hpp"
 
 class Client {
@@ -34,6 +35,9 @@ class Client {
     Client &operator=(Client &&rhs) noexcept;
 
     ~Client();
+
+  public:
+    void setEpollNotifier(EpollInterface *notifier);
 
   public:
     int getFD() const noexcept;
@@ -83,6 +87,9 @@ class Client {
   public:
     void setOffset(size_t offset) noexcept;
     size_t getOffset() const noexcept;
+
+  private:
+    EpollInterface *_epollNotifier;
 
   private:
     FileDescriptors _fd;

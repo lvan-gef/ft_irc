@@ -6,21 +6,20 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/25 18:07:09 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/03/28 15:57:53 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include <cstdint>
+#include <bitset>
 #include <memory>
 #include <string>
 #include <unordered_set>
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "Optional.hpp"
 
 class Channel {
   public:
@@ -36,28 +35,28 @@ class Channel {
     ~Channel();
 
   public:
-    IRCCode addUser(const std::string &password,
-                    const std::shared_ptr<Client> &user);
-    IRCCode removeUser(const std::shared_ptr<Client> &user);
-    IRCCode kickUser(const std::shared_ptr<Client> &target,
-                     const std::shared_ptr<Client> &client);
-    IRCCode inviteUser(const std::shared_ptr<Client> &user,
-                       const std::shared_ptr<Client> &client);
-
-  public:
-    IRCCode setMode(ChannelMode mode, bool state, const std::string &value,
+    bool addUser(const std::string &password,
+                 const std::shared_ptr<Client> &user);
+    void removeUser(const std::shared_ptr<Client> &user,
+                    const std::string &reason);
+    void kickUser(const std::shared_ptr<Client> &target,
+                  const std::shared_ptr<Client> &client,
+                  const std::string &reason);
+    bool inviteUser(const std::shared_ptr<Client> &user,
                     const std::shared_ptr<Client> &client);
-    IRCCode setPassword(const std::string &password,
-                        const std::shared_ptr<Client> &client);
-    IRCCode setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
-    IRCCode setTopic(const std::string &topic,
-                     const std::shared_ptr<Client> &client);
 
   public:
-    Optional<std::shared_ptr<Client>>
-    addOperator(const std::shared_ptr<Client> &user);
-    Optional<std::shared_ptr<Client>>
-    removeOperator(const std::shared_ptr<Client> &user);
+    void setMode(ChannelMode mode, bool state, const std::string &value,
+                 const std::shared_ptr<Client> &client);
+    void setPassword(const std::string &password,
+                     const std::shared_ptr<Client> &client);
+    void setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
+    void setTopic(const std::string &topic,
+                  const std::shared_ptr<Client> &client);
+
+  public:
+    void addOperator(const std::shared_ptr<Client> &user);
+    void removeOperator(const std::shared_ptr<Client> &user);
 
   public:
     const std::string &getName() const noexcept;
@@ -67,7 +66,7 @@ class Channel {
     std::string getModesValues() const noexcept;
 
   public:
-    void broadcast(const std::string &senderPrefix,
+    void broadcast(IRCCode code, const std::string &senderPrefix,
                    const std::string &message) const;
     std::string getUserList() const noexcept;
 
@@ -83,18 +82,16 @@ class Channel {
 
   private:
     bool _userOnChannel(const std::shared_ptr<Client> &user);
-    Optional<std::shared_ptr<Client>>
-    _nick_to_client(const std::string &nickname);
 
   private:
-    IRCCode _addUser(const std::shared_ptr<Client> &user);
+    bool _addUser(const std::shared_ptr<Client> &user);
 
   private:
     std::string _name;
     std::string _topic;
     std::string _password;
     size_t _userLimit;
-    std::uint8_t _modes;
+    std::bitset<5> _modes; // invite, topic, password, operator, userlimit
 
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;
