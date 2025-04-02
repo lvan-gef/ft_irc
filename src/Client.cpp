@@ -169,6 +169,7 @@ bool Client::haveMessagesToSend() {
 }
 
 void Client::appendMessageToQue(const std::string &msg) noexcept {
+    // handle when it is more then 512, max len mesg should be 510
     _messages.emplace(msg);
 
     if (_epollNotifier) {

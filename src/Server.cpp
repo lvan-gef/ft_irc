@@ -328,7 +328,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     handleMsg(IRCCode::YOURHOST, client, "", "");
     handleMsg(IRCCode::CREATED, client, "", _serverStared);
     handleMsg(IRCCode::MYINFO, client, "", "o i,t,k,o,l k,l,o");
-    handleMsg(IRCCode::ISUPPORT, client, "", "are supported by this server");
+    handleMsg(IRCCode::ISUPPORT, client, "", "");
     handleMsg(IRCCode::MOTDSTART, client, "", "");
     handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
     handleMsg(IRCCode::ENDOFMOTD, client, "", "");
@@ -361,6 +361,7 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
+    // handle when msg is more then 512
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
