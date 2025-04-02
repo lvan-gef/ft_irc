@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 20:28:22 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:41:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -361,7 +361,11 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    // handle when msg is more then 512
+    if (bytes_read > getDefaultValue(Defaults::MAXMSGLEN)) {
+        handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+        return;
+    }
+
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 

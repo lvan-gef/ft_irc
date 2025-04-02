@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   utils.hpp                                          :+:    :+:            */
+/*   Utils.hpp                                          :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 21:43:36 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:52:49 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,9 @@ std::string formatMessage(const Args &...args) noexcept;
 
 void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                const std::string &value, const std::string &msg);
+
+std::vector<std::string> split(const std::string &s,
+                               const std::string &delimiter);
 
 #include "../templates/Utils.tpp"
 

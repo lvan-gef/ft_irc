@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:43:20 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:36:46 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,6 +118,11 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::NOTEXTTOSEND:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", ircCode, value, " :No text to send"));
+            break;
+        case IRCCode::INPUTTOOLONG:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), " :Input was too long"));
             break;
         case IRCCode::UNKNOWNCOMMAND:
             client->appendMessageToQue(formatMessage(

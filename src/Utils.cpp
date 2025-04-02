@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   utils.cpp                                          :+:    :+:            */
+/*   Utils.cpp                                          :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:47:51 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 17:17:32 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:52:22 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,4 +43,20 @@ std::size_t toSizeT(const std::string &str) {
     }
 
     return static_cast<size_t>(value);
+}
+
+std::vector<std::string> split(const std::string &s,
+                               const std::string &delimiter) {
+    std::vector<std::string> lines;
+    size_t pos = 0;
+    size_t prev = 0;
+
+    while ((pos = s.find(delimiter, prev)) != std::string::npos) {
+        lines.push_back(s.substr(prev, pos - prev)); // check for throwing
+        prev = pos + delimiter.length();
+    }
+
+    lines.push_back(s.substr(prev));
+
+    return lines;
 }

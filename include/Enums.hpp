@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:42:13 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/02 16:57:02 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ enum class Defaults : std::uint16_t {
     TIMEOUT = 360,
     USERLIMIT = std::numeric_limits<uint16_t>::max(),
     NICKLEN = 9,
+    MAXMSGLEN = 130,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
@@ -92,6 +93,7 @@ enum class IRCCode : std::int16_t {
     NOTEXTTOSEND = 412,
     /*NOTOPLEVEL = 413,  // not sure if we need to impl it*/
     /*WILDTOPLEVEL = 414, // not sure if we need to impl it*/
+    INPUTTOOLONG = 417,
     UNKNOWNCOMMAND = 421,
     /*NOADMININFO = 423,  // think we dont need to impl this*/
     FILEERROR = 424, // only for bonus we need to impl thid
