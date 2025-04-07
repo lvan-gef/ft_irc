@@ -5,4 +5,5 @@ Create file transfer
 Luuk:
     clean up server
     handler when server message is to long
+    when spamming a channel it takes 2 seconds for every message to process
 
