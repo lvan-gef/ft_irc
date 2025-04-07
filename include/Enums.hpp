@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/02 16:57:02 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 15:38:50 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ enum class Defaults : std::uint16_t {
     TIMEOUT = 360,
     USERLIMIT = std::numeric_limits<uint16_t>::max(),
     NICKLEN = 9,
-    MAXMSGLEN = 130,
+    MAXMSGLEN = 512,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
