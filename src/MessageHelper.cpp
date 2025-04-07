@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/02 16:36:46 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 16:31:43 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include "../include/Utils.hpp"
 
 void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
-               const std::string &value, const std::string &msg) {
+               const std::string &value, const std::string &msg) noexcept {
     std::string ircCode = std::to_string(static_cast<std::uint16_t>(code));
     if (ircCode.length() < 3) {
         ircCode.insert(0, 3 - ircCode.length(), '0');

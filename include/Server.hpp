@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:55 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/27 17:15:45 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 16:37:38 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,35 +66,35 @@ class Server : public EpollInterface {
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
     void _handleCommand(const IRCMessage &token,
-                        const std::shared_ptr<Client> &client);
+                        const std::shared_ptr<Client> &client) noexcept;
 
   private:
     void _handleNickname(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client);
+                         const std::shared_ptr<Client> &client) noexcept;
     void _handleUsername(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client);
+                         const std::shared_ptr<Client> &client) noexcept;
     void _handlePassword(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client);
+                         const std::shared_ptr<Client> &client) noexcept;
     void _handlePriv(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleJoin(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleTopic(const IRCMessage &token,
-                      const std::shared_ptr<Client> &client);
+                      const std::shared_ptr<Client> &client) noexcept;
     void _handlePart(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleQuit(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handlePing(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleKick(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleInvite(const IRCMessage &token,
-                       const std::shared_ptr<Client> &client);
+                       const std::shared_ptr<Client> &client) noexcept;
     void _handleMode(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client);
+                     const std::shared_ptr<Client> &client) noexcept;
     void _handleUserhost(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client);
+                         const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::uint16_t _port;

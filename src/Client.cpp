@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 15:34:04 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 16:29:40 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,21 +19,20 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "../include/Utils.hpp"
 
 Client::Client(int fd)
-    : _epollNotifier{}, _fd(fd), _username(""), _nickname(""),
-      _ip("0.0.0.0"), _partial_buffer(""), _messages{}, _offset(0), _event{},
-      _last_seen(0), _channels{} {
+    : _epollNotifier{}, _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
+      _partial_buffer(""), _messages{}, _offset(0), _event{}, _last_seen(0),
+      _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
 }
 
 Client::Client(Client &&rhs) noexcept
-    : _fd(std::move(rhs._fd)), _username(std::move(rhs._username)),
-      _nickname(std::move(rhs._nickname)), _ip(std::move(rhs._ip)),
-      _partial_buffer(std::move(rhs._partial_buffer)),
+    : _epollNotifier(rhs._epollNotifier), _fd(std::move(rhs._fd)),
+      _username(std::move(rhs._username)), _nickname(std::move(rhs._nickname)),
+      _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
       _messages(std::move(rhs._messages)), _offset(rhs._offset),
       _event(rhs._event), _last_seen(rhs._last_seen),
       _channels(std::move(rhs._channels)) {
@@ -42,6 +41,7 @@ Client::Client(Client &&rhs) noexcept
 
 Client &Client::operator=(Client &&rhs) noexcept {
     if (this != &rhs) {
+        _epollNotifier = rhs._epollNotifier;
         _fd = std::move(rhs._fd);
         _username = std::move(rhs._username);
         _nickname = std::move(rhs._nickname);
@@ -143,22 +143,20 @@ void Client::appendToBuffer(const std::string &data) noexcept {
     _partial_buffer += data;
 }
 
-std::string Client::getAndClearBuffer() {
+std::string Client::getAndClearBuffer() noexcept {
     size_t index = _partial_buffer.find("\r\n");
     if (index == std::string::npos) {
         std::cerr << "Find \\r\\n failed when getting the buffer" << '\n';
         return "";
     }
 
-    std::string tmp = {};
-    std::cout << "partial buffer: " << _partial_buffer << '\n';
+    std::string tmp;
     if (index == _partial_buffer.length()) {
         tmp = _partial_buffer;
         _partial_buffer.clear();
     } else {
         tmp = _partial_buffer.substr(0, index);
         _partial_buffer.erase(0, index + 2);
-        std::cout << "Left over: " << _partial_buffer << '\n';
     }
 
     return tmp;
@@ -168,16 +166,16 @@ bool Client::hasCompleteMessage() const noexcept {
     return _partial_buffer.find("\r\n") != std::string::npos;
 }
 
-std::string Client::getMessage() {
+std::string Client::getMessage() noexcept {
     return _messages.front();
 }
 
-void Client::removeMessage() {
+void Client::removeMessage() noexcept {
     _messages.pop();
     _offset = 0;
 }
 
-bool Client::haveMessagesToSend() {
+bool Client::haveMessagesToSend() noexcept {
     if (_messages.empty() != true) {
         return true;
     }
@@ -186,21 +184,7 @@ bool Client::haveMessagesToSend() {
 }
 
 void Client::appendMessageToQue(const std::string &msg) noexcept {
-    if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
-        std::vector<std::string> lines = split(msg, "\n");
-        if (lines.size() == 2) {
-            std::cerr << "Message to long and could not split on newline, drop "
-                         "the message"
-                      << '\n';
-            return;
-        }
-
-        // check if there is a \n, if it is there split on it
-        // otherwise assert to fail
-    } else {
-        _messages.emplace(msg);
-    }
-
+    _messages.emplace(msg);
     if (_epollNotifier) {
         _epollNotifier->notifyEpollUpdate(_fd.get());
     }

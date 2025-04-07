@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/17 20:26:05 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 16:29:08 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,13 +69,13 @@ class Client {
 
   public:
     void appendToBuffer(const std::string &data) noexcept;
-    std::string getAndClearBuffer();
+    std::string getAndClearBuffer() noexcept;
     bool hasCompleteMessage() const noexcept;
 
   public:
-    std::string getMessage();
-    void removeMessage();
-    bool haveMessagesToSend();
+    std::string getMessage() noexcept;
+    void removeMessage() noexcept;
+    bool haveMessagesToSend() noexcept;
     void appendMessageToQue(const std::string &msg) noexcept;
 
   public:

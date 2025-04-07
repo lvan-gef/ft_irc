@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:57:32 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 16:39:02 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,20 +20,20 @@
 #include "../include/Utils.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) {
+                             const std::shared_ptr<Client> &client) noexcept {
 
     const std::string nickname = token.params[0];
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
     }
 
-    std::string old_id = client->getFullID();
     std::string old_nickname = client->getNickname();
     client->setNickname(nickname);
 
     if (client->isRegistered() != true) {
         _clientAccepted(client);
     } else {
+        std::string old_id = client->getFullID();
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
         for (const std::string &channelName : client->allChannels()) {
@@ -51,7 +51,7 @@ void Server::_handleNickname(const IRCMessage &token,
 }
 
 void Server::_handleUsername(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) {
+                             const std::shared_ptr<Client> &client) noexcept {
     if (client->isRegistered()) {
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
@@ -61,7 +61,7 @@ void Server::_handleUsername(const IRCMessage &token,
 }
 
 void Server::_handlePassword(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) {
+                             const std::shared_ptr<Client> &client) noexcept {
     if (client->isRegistered()) {
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
@@ -75,7 +75,7 @@ void Server::_handlePassword(const IRCMessage &token,
 }
 
 void Server::_handlePriv(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
 
     if (token.params[0][0] == '#') {
         auto channel_it = _channels.find(token.params[0]);
@@ -97,7 +97,7 @@ void Server::_handlePriv(const IRCMessage &token,
 }
 
 void Server::_handleJoin(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it == _channels.end()) {
@@ -127,7 +127,7 @@ void Server::_handleJoin(const IRCMessage &token,
 }
 
 void Server::_handleTopic(const IRCMessage &token,
-                          const std::shared_ptr<Client> &client) {
+                          const std::shared_ptr<Client> &client) noexcept {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
@@ -143,7 +143,7 @@ void Server::_handleTopic(const IRCMessage &token,
 }
 
 void Server::_handlePart(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
     auto channel_it = _channels.find(token.params[0]);
 
     if (channel_it == _channels.end()) {
@@ -158,13 +158,13 @@ void Server::_handlePart(const IRCMessage &token,
 }
 
 void Server::_handlePing(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
     client->appendMessageToQue(formatMessage(
         ":", serverName, " PONG ", serverName, " :" + token.params[0]));
 }
 
 void Server::_handleKick(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
@@ -181,7 +181,7 @@ void Server::_handleKick(const IRCMessage &token,
 }
 
 void Server::_handleInvite(const IRCMessage &token,
-                           const std::shared_ptr<Client> &client) {
+                           const std::shared_ptr<Client> &client) noexcept {
     auto channel_it = _channels.find(token.params[1]);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
@@ -205,7 +205,7 @@ void Server::_handleInvite(const IRCMessage &token,
 }
 
 void Server::_handleMode(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) {
+                         const std::shared_ptr<Client> &client) noexcept {
 
     auto channel_it = _channels.find(token.params[0]);
     if (channel_it == _channels.end()) {
@@ -256,7 +256,7 @@ void Server::_handleMode(const IRCMessage &token,
 }
 
 void Server::_handleUserhost(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) {
+                             const std::shared_ptr<Client> &client) noexcept {
     auto it = _nick_to_client.find(token.params[0]);
     if (it == _nick_to_client.end()) {
         std::cerr << "Server internal error: Could not found target "
