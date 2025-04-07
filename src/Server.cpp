@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/02 16:41:50 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 15:10:52 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -361,11 +361,6 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    if (bytes_read > getDefaultValue(Defaults::MAXMSGLEN)) {
-        handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
-        return;
-    }
-
     client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
 
@@ -458,8 +453,11 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     }
 
     std::string msg = client->getAndClearBuffer();
-    std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
+    if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
+        return handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+    }
 
+    std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
     std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
     for (const IRCMessage &token : clientsToken) {
         if (!token.success) {
