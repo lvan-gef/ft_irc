@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 15:10:36 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 15:34:04 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,8 +144,22 @@ void Client::appendToBuffer(const std::string &data) noexcept {
 }
 
 std::string Client::getAndClearBuffer() {
-    std::string tmp = _partial_buffer;
-    _partial_buffer.clear();
+    size_t index = _partial_buffer.find("\r\n");
+    if (index == std::string::npos) {
+        std::cerr << "Find \\r\\n failed when getting the buffer" << '\n';
+        return "";
+    }
+
+    std::string tmp = {};
+    std::cout << "partial buffer: " << _partial_buffer << '\n';
+    if (index == _partial_buffer.length()) {
+        tmp = _partial_buffer;
+        _partial_buffer.clear();
+    } else {
+        tmp = _partial_buffer.substr(0, index);
+        _partial_buffer.erase(0, index + 2);
+        std::cout << "Left over: " << _partial_buffer << '\n';
+    }
 
     return tmp;
 }
@@ -164,7 +178,7 @@ void Client::removeMessage() {
 }
 
 bool Client::haveMessagesToSend() {
-    if (!_messages.empty()) {
+    if (_messages.empty() != true) {
         return true;
     }
 

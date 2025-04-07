@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 15:10:52 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 15:34:53 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -343,9 +343,9 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    char buffer[static_cast<int>(Defaults::READ_SIZE)] = {0};
+    char buffer[static_cast<int>(Defaults::READ_SIZE) + 1] = {0};
     ssize_t bytes_read = recv(
-        fd, buffer, static_cast<int>(Defaults::READ_SIZE) - 1, MSG_DONTWAIT);
+        fd, buffer, static_cast<int>(Defaults::READ_SIZE), MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN) {
             return;
@@ -448,22 +448,25 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
-    if (!client->hasCompleteMessage()) {
-        return;
-    }
+    while (client->hasCompleteMessage()) {
 
-    std::string msg = client->getAndClearBuffer();
-    if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
-        return handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
-    }
+        std::string msg = client->getAndClearBuffer();
+        if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
+            return handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+        }
 
-    std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
-    std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
-    for (const IRCMessage &token : clientsToken) {
-        if (!token.success) {
-            handleMsg(token.err.get_value(), client, "", "");
-        } else {
-            _handleCommand(token, client);
+        if (msg == "") {
+            return;
+        }
+
+        std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
+        std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
+        for (const IRCMessage &token : clientsToken) {
+            if (!token.success) {
+                handleMsg(token.err.get_value(), client, "", "");
+            } else {
+                _handleCommand(token, client);
+            }
         }
     }
 }
