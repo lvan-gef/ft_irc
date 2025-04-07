@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/02 16:57:46 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/07 15:10:36 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,12 @@
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
-#include "Utils.hpp"
+#include "../include/Utils.hpp"
 
 Client::Client(int fd)
-    : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
-      _partial_buffer(""), _messages{}, _offset(0), _event{}, _last_seen(0),
-      _channels{} {
+    : _epollNotifier{}, _fd(fd), _username(""), _nickname(""),
+      _ip("0.0.0.0"), _partial_buffer(""), _messages{}, _offset(0), _event{},
+      _last_seen(0), _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
@@ -146,6 +146,7 @@ void Client::appendToBuffer(const std::string &data) noexcept {
 std::string Client::getAndClearBuffer() {
     std::string tmp = _partial_buffer;
     _partial_buffer.clear();
+
     return tmp;
 }
 
