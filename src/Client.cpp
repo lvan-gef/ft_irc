@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:29:40 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 18:43:26 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 Client::Client(int fd)
     : _epollNotifier{}, _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
       _partial_buffer(""), _messages{}, _offset(0), _event{}, _last_seen(0),
-      _channels{} {
+      _disconnect(false), _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
@@ -35,7 +35,7 @@ Client::Client(Client &&rhs) noexcept
       _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
       _messages(std::move(rhs._messages)), _offset(rhs._offset),
       _event(rhs._event), _last_seen(rhs._last_seen),
-      _channels(std::move(rhs._channels)) {
+      _disconnect(rhs._disconnect), _channels(std::move(rhs._channels)) {
     rhs._fd = -1;
 }
 
@@ -49,9 +49,10 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _ip = std::move(rhs._ip);
         _event = rhs._event;
         _messages = std::move(rhs._messages);
-        _last_seen = rhs._last_seen;
-        _channels = std::move(rhs._channels);
         _offset = rhs._offset;
+        _last_seen = rhs._last_seen;
+        _disconnect = rhs._disconnect;
+        _channels = std::move(rhs._channels);
     }
 
     return *this;
@@ -188,6 +189,14 @@ void Client::appendMessageToQue(const std::string &msg) noexcept {
     if (_epollNotifier) {
         _epollNotifier->notifyEpollUpdate(_fd.get());
     }
+}
+
+void Client::setDisconnect() {
+    _disconnect = true;
+}
+
+bool Client::isDisconnect() {
+    return _disconnect;
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:36:10 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 18:45:02 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -405,6 +405,10 @@ void Server::_clientSend(int fd) noexcept {
             std::cerr << "Failed to update epoll event: " << strerror(errno)
                       << '\n';
         }
+
+        if (client->isDisconnect()) {
+            _removeClient(client);
+        }
     }
 }
 
@@ -462,9 +466,9 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
         std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
         for (const IRCMessage &token : clientsToken) {
-            if (!token.success) {
+            if (!token.succes) {
                 try {
-                    handleMsg(token.err.get_value(), client, "", "");
+                    handleMsg(token.err.get_value(), client, token.errMsg, "");
                 } catch (std::runtime_error &e) {
                     std::cerr << "Failed to get value from err: " << e.what()
                               << '\n';

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:31:43 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 20:12:08 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,6 +140,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(":", serverName, " ",
                                                      ircCode, " * ", value,
                                                      " :Erronues nickname"));
+            if (client->isRegistered() != true) {
+                client->setDisconnect();
+            }
             break;
         case IRCCode::NICKINUSE: {
             std::string clientNick = " * ";
@@ -187,6 +190,14 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, value,
                               " :Channel key already set"));
+            break;
+        case IRCCode::INVALIDUSERNAME:
+            client->appendMessageToQue(formatMessage(":", serverName, " ",
+                                                     ircCode, " * ", value,
+                                                     " :Erronues username"));
+            if (client->isRegistered() != true) {
+                client->setDisconnect();
+            }
             break;
         case IRCCode::CHANNELISFULL:
             client->appendMessageToQue(
@@ -259,8 +270,5 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", value, " PRIVMSG ", msg));
             break;
-        default:
-            std::cerr << "Unknow IRCCode: " << ircCode << " " << value << '\n';
-            return;
     }
 }

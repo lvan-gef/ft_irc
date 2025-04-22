@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:37 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:29:08 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 18:44:03 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,8 @@ class Client {
     void removeMessage() noexcept;
     bool haveMessagesToSend() noexcept;
     void appendMessageToQue(const std::string &msg) noexcept;
+    void setDisconnect();
+    bool isDisconnect();
 
   public:
     void addChannel(const std::string &channelName) noexcept;
@@ -106,6 +108,7 @@ class Client {
     epoll_event _event;
     time_t _last_seen;
     std::bitset<3> _registered; // user, nick, pass
+    bool _disconnect;
 
   private:
     std::vector<std::string> _channels;

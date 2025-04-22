@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:39:02 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 19:34:07 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void Server::_handlePassword(const IRCMessage &token,
         if (token.params[0] == _password) {
             client->setPasswordBit();
         } else {
-            // we should dissconnect the client
+            client->setDisconnect();
             handleMsg(IRCCode::PASSWDMISMATCH, client, "", "");
         }
     }
@@ -90,7 +90,6 @@ void Server::_handlePriv(const IRCMessage &token,
         if (nick_it == _nick_to_client.end()) {
             return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
         }
-
         handleMsg(IRCCode::PRIVMSG, nick_it->second, client->getFullID(),
                   client->getNickname() + " :" + token.params[1]);
     }

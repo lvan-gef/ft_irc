@@ -3,7 +3,7 @@ NAME_DEBUG := $(NAME)_debug
 
 CXX := c++
 BASE_FLAGS := -std=c++11
-WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wswitch-default -Wpedantic
+WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wpedantic
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
