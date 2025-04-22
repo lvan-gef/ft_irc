@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:58:16 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 20:42:19 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,10 +164,6 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
                                     client);
             }
-        default:
-            // need to see how to get the value out of it
-            return handleMsg(IRCCode::UNKNOWMODE, client, "mode", "");
-            /*return handleMsg(IRCCode::UNKNOWMODE, client, mode, "");*/
     }
 }
 

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:37:38 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 20:47:25 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@ void Server::_handleCommand(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) noexcept {
 
     switch (token.type) {
+        case IRCCommand::CAP:
+            break;
         case IRCCommand::NICK:
             return _handleNickname(token, client);
         case IRCCommand::USER:
@@ -41,7 +43,7 @@ void Server::_handleCommand(const IRCMessage &token,
             break;
         case IRCCommand::PING:
             return _handlePing(token, client);
-        case IRCCommand::KICK: // send a message to operator what should not do
+        case IRCCommand::KICK:
             return _handleKick(token, client);
         case IRCCommand::INVITE:
             return _handleInvite(token, client);
@@ -52,7 +54,5 @@ void Server::_handleCommand(const IRCMessage &token,
         case IRCCommand::UNKNOW:
             std::cerr << "Not impl yet UNKNOW" << '\n';
             break;
-        default:
-            std::cerr << "Unknow IRCCommand: " << token.command << '\n';
     }
 }

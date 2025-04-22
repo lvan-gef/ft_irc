@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 19:34:07 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 20:41:52 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,15 +243,7 @@ void Server::_handleMode(const IRCMessage &token,
             channel_it->second.setMode(ChannelMode::USER_LIMIT, state, value,
                                        client);
             break;
-        default:
-            std::cerr << "Unknow channel mode: " << token.params[1][1] << '\n';
-            return;
     }
-
-    /*channel_it->second.broadcast(serverName,*/
-    /*                             "MODE " + channel_it->second.getName() + " "
-     * +*/
-    /*                                 token.params[1] + " " + suffix);*/
 }
 
 void Server::_handleUserhost(const IRCMessage &token,
