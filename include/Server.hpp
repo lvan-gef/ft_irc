@@ -110,6 +110,9 @@ class Server : public EpollInterface {
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
     std::unordered_map<std::string, Channel> _channels;
+
+  public:
+  	std::string getChannelsAndUsers() noexcept;
 };
 
 #endif // !SERVER_HPP

@@ -476,3 +476,33 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         }
     }
 }
+
+std::string Server::getChannelsAndUsers() noexcept
+{
+    std::stringstream ss;
+    //ss << "channels and users:\n";
+
+    for (const auto& pair : _channels) {
+        const std::string& channelName = pair.second.getName();
+        const std::string userListStr = pair.second.getUserList();
+
+        ss << channelName << ":\n";
+
+		std::cout << "Channel: >>?!?!?!?!" << channelName << std::endl;
+		std::cout << "users: " << userListStr << std::endl;
+
+		//check nicks and remove prefixes, send everything here via socket
+
+        std::vector<std::string> users = split(userListStr, " ");
+        for (const std::string& user : users) {
+            if (!user.empty()) {
+                ss << "*" << user << "\n";
+            }
+        }
+        ss << "\n";
+    }
+
+	std::cout << "The whole string: " << ss.str() << std::endl;
+	//return skip to skip in commanHelper
+    return ss.str();
+}

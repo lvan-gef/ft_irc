@@ -13,7 +13,13 @@
 #include <iostream>
 #include <memory>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #include "../include/Channel.hpp"
+#include "../include/ChatBot.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
@@ -22,6 +28,7 @@
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
 
+	//check here if nick isn't 'bot'
     const std::string nickname = token.params[0];
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
@@ -75,25 +82,48 @@ void Server::_handlePassword(const IRCMessage &token,
 }
 
 void Server::_handlePriv(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) noexcept {
+	const std::shared_ptr<Client> &client) noexcept {
+if (token.params.empty())
+	{
+	//do smth if there's just /PRIVMSG sent, or parsing will handle it?
+	return ;
+	}
+	std::cout << ">>>>" << token.params[0] << "<<<<<<" << std::endl;
+	std::cout << ">>>>" << token.params[1] << "<<<<<<" << std::endl;
+	std::string isBot = token.params[0];
+	std::transform(isBot.begin(), isBot.end(), isBot.begin(), ::toupper);
 
-    if (token.params[0][0] == '#') {
-        auto channel_it = _channels.find(token.params[0]);
-        if (channel_it == _channels.end()) {
-            return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
-                             "");
-        }
-        channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
-                                     ":" + token.params[1]);
-    } else {
-        auto nick_it = _nick_to_client.find(token.params[0]);
-        if (nick_it == _nick_to_client.end()) {
-            return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
-        }
-
-        handleMsg(IRCCode::PRIVMSG, nick_it->second, client->getFullID(),
-                  client->getNickname() + " :" + token.params[1]);
-    }
+	if (token.params[0][0] == '#') {
+		auto channel_it = _channels.find(token.params[0]);
+		if (channel_it == _channels.end()) {
+		return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
+				"");
+		}
+		std::string bot = token.params[1];
+		std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
+		std::cout << "what i got in bot: " << bot << std::endl;
+		if (bot == "!BOT")
+		{
+			handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+				client->getNickname() + "Hello, I am bot. I can say hello, check weather and send PONG back.");
+		}
+		else
+			channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
+						":" + token.params[1]);
+	} else if (isBot == "BOT") {
+		//add condition for channels, skip response 
+		std::string response = handleBot(token.params, client, this);
+		std::cout << "Response: " << response << std::endl;
+		handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+			client->getNickname() + " :" + response);
+	} else {
+		auto nick_it = _nick_to_client.find(token.params[0]);
+		if (nick_it == _nick_to_client.end()) {
+			return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
+		}
+		handleMsg(IRCCode::PRIVMSG, nick_it->second, client->getFullID(),
+			client->getNickname() + " :" + token.params[1]);
+	}
 }
 
 void Server::_handleJoin(const IRCMessage &token,

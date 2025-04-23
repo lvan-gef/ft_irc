@@ -34,6 +34,19 @@ bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
 std::uint16_t getDefaultValue(Defaults rhs);
 
+enum class ChatBot : std::int16_t {
+	CHANNELS,
+	HELLO,
+	WEATHER,
+	HELP,
+	JOKE,
+	PING,
+	KICK,
+	WEATHER_TOO_FEW,
+	WEATHER_TOO_MANY,
+	UNKNOWN
+};
+
 enum class ChannelMode : std::uint8_t {
     INVITE_ONLY,
     TOPIC_PROTECTED,

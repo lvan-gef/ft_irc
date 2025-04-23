@@ -42,3 +42,4 @@ compile_commands.json
 ircserv
 ircserv_debug
 .cpp_check
+.vscode
