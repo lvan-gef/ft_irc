@@ -92,9 +92,9 @@ ChatBot getChatCmd(const std::string &command) {
 		{"WEATHER", ChatBot::WEATHER},
         {"HELP", ChatBot::HELP},
 		{"JOKE", ChatBot::JOKE},
-		{"KICK", ChatBot::KICK},
+		{"QUOTE", ChatBot::QUOTE},
 		{"PING", ChatBot::PING},
-		{"CHANNELS", ChatBot::CHANNELS}};
+		{"CHANNELS", ChatBot::CHANNELS},};
     auto it = commandMap.find(uppercase_cmd);
     if (it == commandMap.end()) {
         return (ChatBot::UNKNOWN);
@@ -221,12 +221,97 @@ ChatBot handleBotInput(std::vector<std::string> input)
 }
 
 namespace {
+// std::string getJoke(void)
+// {
+// 	return ("So far it works like that");
+// }
 
-std::string getJoke(void)
+std::string getQuote(void)
 {
-	return ("So far it works like that");
-}
+    const char* hostname = "api.quotable.io";
+    const char* port = "80";
+    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
+    int sockfd = -1;
 
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(hostname, port, &hints, &res);
+    if (status != 0)
+        return ("Could not resolve API hostname.");
+
+    for(p = res; p != nullptr; p = p->ai_next) {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1) {
+            continue; 
+        }
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            sockfd = -1;
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(res);
+
+    if (sockfd == -1)
+        return ("Could not connect to API server.");
+
+    std::stringstream request_ss;
+    request_ss << "GET /quotes/random" << " HTTP/1.1\r\n";
+    request_ss << "Host: " << hostname << "\r\n";
+    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
+    request_ss << "Accept: application/json, */*\r\n";
+    request_ss << "Connection: close\r\n";
+    request_ss << "\r\n";
+    std::string request = request_ss.str();
+    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
+    if (sent == -1) {
+        close(sockfd);
+        return ("Failed to send request.");
+    }
+    char buffer[4096];
+    std::string response_str;
+    ssize_t bytes_received;
+
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
+    while ((bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0)) > 0) {
+        buffer[bytes_received] = '\0';
+        response_str += buffer;
+    }
+
+    if (bytes_received == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+             close(sockfd);
+             return ("Timed out receiving response from API.");
+        } else {
+             close(sockfd);
+             return ("Failed to receive response from API.");
+        }
+    }
+
+    close(sockfd);
+    size_t header_end = response_str.find("\r\n\r\n");
+    if (header_end == std::string::npos) {
+        return ("Invalid HTTP response (no header end).");
+    }
+    std::string json_body = response_str.substr(header_end + 4);
+
+    std::string content = findVal(json_body, "content");
+    std::string author = findVal(json_body, "author");
+
+    if (content == "Key not found" || author == "Key not found") {
+        return ("Error: Could not parse quote data from API response.");
+    }
+    return "\"" + content + "\" - " + author;
+}
 
 }
 
@@ -254,14 +339,14 @@ std::string handleBot(std::vector<std::string> params, const std::shared_ptr<Cli
 		case ChatBot::WEATHER_TOO_MANY:
 			response = "I can check weather only for one location at time.";
 			break ;
-		case ChatBot::JOKE:
-			response  = getJoke();
-			break ;
-		case ChatBot::KICK:
-			response = "KICK";
+		// case ChatBot::JOKE:
+		// 	response  = getJoke();
+		// 	break ;
+		case ChatBot::QUOTE:
+			response = getQuote();
 			break ;
 		case ChatBot::HELP:
-			response = "Hello, I am bot. I can say hello, check weather and send PONG back.";
+			response = "Supported commands: hello, weather <location>, joke, quote, ping, channels";
 			break ;
 		case ChatBot::CHANNELS:
 			response = server->getChannelsAndUsers();
@@ -269,7 +354,6 @@ std::string handleBot(std::vector<std::string> params, const std::shared_ptr<Cli
 		default:
 			response = "Command unknown. Type 'help' to discover my functions.";
 			break ;
-			//add another cases with weather
 	}
 	return (response);
 }

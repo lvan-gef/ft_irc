@@ -124,7 +124,7 @@ if (token.params.empty())
 		if (bot == "!BOT")
 		{
 			handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
-				client->getNickname() + "Hello, I am bot. I can say hello, check weather and send PONG back.");
+				client->getNickname() + "Hello, I am bot. I can say hello, check weather and send PONG back, send a quote and print channels and users.");
 		}
 		else
 			channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),

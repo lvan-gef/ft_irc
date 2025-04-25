@@ -41,8 +41,8 @@ enum class ChatBot : std::int16_t {
 	HELP,
 	JOKE,
 	PING,
-	KICK,
-	WEATHER_TOO_FEW,
+	QUOTE,
+    WEATHER_TOO_FEW,
 	WEATHER_TOO_MANY,
 	UNKNOWN
 };
