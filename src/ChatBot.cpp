@@ -278,8 +278,7 @@ bool	isBot(std::string nickname)
 {
 	std::string upperCase = nickname;
 	std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(), ::toupper);
-	std::cout << "Nick after transformation >>>>>" << upperCase << "<<<<<<" << std::endl;
-	std::cout << "Len: 3?" << upperCase.length() << std::endl;
+	
 	if (upperCase == "BOT")
 	{
 		std::cout << "YUP ITS BOT" << std::endl;
