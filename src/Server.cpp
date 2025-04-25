@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
@@ -435,6 +436,11 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
                 it->second.removeUser(client, "");
+             // Check if the channel is now empty
+             if (it->second.isEmpty()) {
+                _channels.erase(it);
+            }
+            
             }
         }
 
@@ -483,28 +489,47 @@ std::string Server::getChannelsAndUsers() noexcept
 
     ss << "channels and users:\n";
 
-    for (const auto& pair : _channels) {
-        const std::string& channelName = pair.second.getName();
-        const std::string userListStr = pair.second.getUserList();
+    //first sort channels by name:
 
+    std::vector<std::reference_wrapper<Channel>> sortedChannels;
+    for (auto& pair : _channels){
+        sortedChannels.push_back(std::ref(pair.second));
+    }
+
+    std::sort(sortedChannels.begin(), sortedChannels.end(), [](const Channel& a, const Channel& b) {
+        return a.getName() < b.getName();
+    });
+
+    for (const auto& pair : sortedChannels) {
+        const std::string& channelName = pair.get().getName();
+        const std::string userListStr = pair.get().getUserList();
+
+        
         ss << channelName << ": ";
-
         std::vector<std::string> users = split(userListStr, " ");
-        for (const std::string& user : users) {
-            if (!user.empty()) {
-                ss << user;
-            }
-			else
-			{
-				ss << ".";
-				break ;
-			}
-			ss << ", ";
+        std::vector<std::string> sortedUsers = users;
+        std::sort(sortedUsers.begin(), sortedUsers.end());
+        // Filter out empty usernames
+        sortedUsers.erase(std::remove_if(sortedUsers.begin(), sortedUsers.end(),
+                                   [](const std::string& s) { return s.empty(); }),
+                    sortedUsers.end());
+    
+        for (size_t i = 0; i < sortedUsers.size(); ++i) {
+            ss << sortedUsers[i];
+            if (i == sortedUsers.size() - 1)
+                ss << ".";
+            else
+                ss << ", ";
         }
+    
         ss << "\n";
     }
 
 	std::cout << "The whole string: " << ss.str() << std::endl;
 	//return skip to skip in commanHelper
     return ss.str();
+}
+
+bool Channel::isEmpty() const {
+    return _users.empty(); // Assuming `users` is the container holding the channel's users
 }
