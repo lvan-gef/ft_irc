@@ -23,6 +23,9 @@ static IRCCommand getCommand(const std::string &command);
 static void validateMessage(std::vector<IRCMessage> &tokens);
 static void isValidNick(IRCMessage &msg);
 static void isValidUsername(IRCMessage &msg);
+static void isValidJoin(IRCMessage &msg);
+static void isValidTopic(IRCMessage &msg);
+static void isValidMode(IRCMessage &msg);
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     std::vector<IRCMessage> tokens;
@@ -85,19 +88,11 @@ static IRCCommand getCommand(const std::string &command) {
 static void validateMessage(std::vector<IRCMessage> &tokens) {
     for (auto &&token : tokens) {
         switch (token.type) {
-            case IRCCommand::CAP:
-                break;
             case IRCCommand::NICK:
                 isValidNick(token);
                 break;
             case IRCCommand::USER:
                 isValidUsername(token);
-                break;
-            case IRCCommand::PASS:
-                if (token.params.size() < 1) {
-                    token.err.set_value(IRCCode::NEEDMOREPARAMS);
-                    token.succes = false;
-                }
                 break;
             case IRCCommand::PRIVMSG:
                 if (token.params.size() < 2) {
@@ -106,47 +101,34 @@ static void validateMessage(std::vector<IRCMessage> &tokens) {
                 }
                 break;
             case IRCCommand::JOIN:
-                if (token.params.size() < 1) {
-                    token.err.set_value(IRCCode::NEEDMOREPARAMS);
-                    token.succes = false;
-                }
-
-                if (token.params[0][0] != '#') {
-                    token.err.set_value(IRCCode::NOSUCHCHANNEL);
-                    token.succes = false;
-                }
+                isValidJoin(token);
                 break;
             case IRCCommand::TOPIC:
-                if (token.params.size() > 1 && token.params[0].length() > 0) {
-                    for (char c : token.params[0]) {
-                        if (c < 32 || c == 127) {
-                            token.err.set_value(IRCCode::TOPIC);
-                            token.succes = false;
-                            token.errMsg = "Invalid topic";
-                        }
-                    }
-                }
-
-                if (token.params.size() > getDefaultValue(Defaults::TOPICLEN)) {
-                    token.err.set_value(IRCCode::TOPIC);
-                    token.succes = false;
-                    token.errMsg = "Topic to long";
-                }
+                isValidTopic(token);
                 break;
+            case IRCCommand::PASS:
             case IRCCommand::PART:
-                break;
             case IRCCommand::QUIT:
-                break;
             case IRCCommand::PING:
+            case IRCCommand::USERHOST:
+                if (token.params.size() < 1) {
+                    token.err.set_value(IRCCode::NEEDMOREPARAMS);
+                    token.errMsg = token.command;
+                    token.succes = false;
+                }
                 break;
             case IRCCommand::KICK:
-                break;
             case IRCCommand::INVITE:
+                if (token.params.size() < 3) {
+                    token.err.set_value(IRCCode::NEEDMOREPARAMS);
+                    token.errMsg = token.command;
+                    token.succes = false;
+                }
                 break;
             case IRCCommand::MODE:
+                isValidMode(token);
                 break;
-            case IRCCommand::USERHOST:
-                break;
+            case IRCCommand::CAP:
             case IRCCommand::UNKNOW:
                 break;
         }
@@ -208,6 +190,44 @@ static void isValidUsername(IRCMessage &msg) {
             msg.errMsg = msg.params[0];
         }
     }
+}
+
+static void isValidJoin(IRCMessage &msg) {
+    if (msg.params.size() < 1) {
+        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.succes = false;
+        return;
+    }
+
+    if (msg.params[0][0] != '#') {
+        msg.err.set_value(IRCCode::NOSUCHCHANNEL);
+        msg.succes = false;
+        return;
+    }
+}
+
+static void isValidTopic(IRCMessage &msg) {
+    if (msg.params.size() > 1 && msg.params[0].length() > 0) {
+        for (char c : msg.params[0]) {
+            if (c < 32 || c == 127) {
+                msg.err.set_value(IRCCode::TOPIC);
+                msg.succes = false;
+                msg.errMsg = "Invalid topic";
+                break;
+            }
+        }
+    }
+
+    if (msg.params.size() > getDefaultValue(Defaults::TOPICLEN)) {
+        msg.err.set_value(IRCCode::TOPIC);
+        msg.succes = false;
+        msg.errMsg = "Topic to long";
+    }
+}
+
+static void isValidMode(IRCMessage &msg) {
+    (void)msg;
+
 }
 
 // debugging
