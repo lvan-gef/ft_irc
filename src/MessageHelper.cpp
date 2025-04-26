@@ -174,9 +174,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", ircCode, " :You have not registered"));
             break;
         case IRCCode::NEEDMOREPARAMS:
-            client->appendMessageToQue(
-                formatMessage(":", serverName, " ", ircCode, value,
-                              " :Not enough parameters"));
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
+                value, " :Not enough parameters"));
             break;
         case IRCCode::ALREADYREGISTERED:
             client->appendMessageToQue(formatMessage(
