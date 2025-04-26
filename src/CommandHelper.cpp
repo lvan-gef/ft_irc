@@ -117,8 +117,7 @@ void Server::_handleJoin(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    handleMsg(IRCCode::TOPIC, client, channel_it->second.getName(),
-              channel_it->second.getTopic());
+    channel_it->second.setTopic("Default", client);
     handleMsg(IRCCode::NAMREPLY, client, channel_it->second.getName(),
               channel_it->second.getUserList());
     handleMsg(IRCCode::ENDOFNAMES, client, channel_it->second.getName(), "");

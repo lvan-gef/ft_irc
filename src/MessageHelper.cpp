@@ -66,7 +66,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::TOPIC:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
-                              client->getNickname(), " ", value, " :", msg));
+                              client->getNickname(), " ", msg));
             break;
         case IRCCode::NAMREPLY:
             client->appendMessageToQue(

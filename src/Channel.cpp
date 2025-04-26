@@ -192,7 +192,8 @@ void Channel::setTopic(const std::string &topic,
     }
 
     _topic = topic;
-    broadcast(IRCCode::TOPIC, client->getFullID(), " TOPIC :" + topic);
+
+    broadcast(IRCCode::TOPIC, "", topic);
 }
 
 void Channel::addOperator(const std::shared_ptr<Client> &user) {
