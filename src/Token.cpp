@@ -227,7 +227,6 @@ static void isValidTopic(IRCMessage &msg) {
 
 static void isValidMode(IRCMessage &msg) {
     (void)msg;
-
 }
 
 // debugging

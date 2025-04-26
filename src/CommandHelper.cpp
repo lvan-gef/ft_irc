@@ -132,8 +132,9 @@ void Server::_handleTopic(const IRCMessage &token,
     }
 
     if (token.params.size() < 2) {
-        handleMsg(IRCCode::TOPIC, client, "", channel_it->second.getName() + " :" +
-                  channel_it->second.getTopic());
+        handleMsg(IRCCode::TOPIC, client, "",
+                  channel_it->second.getName() + " :" +
+                      channel_it->second.getTopic());
         return;
     }
 
