@@ -157,7 +157,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::USERNOTINCHANNEL:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
-                value, " ", msg, " :They aren't on that channel"));
+                value, msg, " :They aren't on that channel"));
             break;
         case IRCCode::NOTOCHANNEL:
             client->appendMessageToQue(
@@ -229,9 +229,10 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
                 value, " :You're not channel operator"));
             break;
-        case IRCCode::UMODEUNKNOWNFLAG:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :Unknown MODE flag"));
+        case IRCCode::UNKNOWNMODEFLAG:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getFullID(), " :Unknown MODE flag"));
             break;
         case IRCCode::USERSDONTMATCH:
             client->appendMessageToQue(
@@ -239,9 +240,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                               " :Cant change mode for other users"));
             break;
         case IRCCode::INVALIDMODEPARAM:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
-                value, " :Invalid value: '", msg, "'"));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), value, " : ", msg));
             break;
         case IRCCode::MODE:
             client->appendMessageToQue(

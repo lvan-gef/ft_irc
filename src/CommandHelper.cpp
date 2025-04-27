@@ -171,7 +171,8 @@ void Server::_handleKick(const IRCMessage &token,
 
     auto userToKick_it = _nick_to_client.find(token.params[1]);
     if (userToKick_it == _nick_to_client.end()) {
-        return handleMsg(IRCCode::USERNOTINCHANNEL, client, token.params[1],
+        return handleMsg(IRCCode::USERNOTINCHANNEL, client,
+                         channel_it->second.getName() + " " + token.params[1],
                          "");
     }
 
@@ -214,8 +215,8 @@ void Server::_handleMode(const IRCMessage &token,
     if (token.params.size() < 2) {
         return handleMsg(IRCCode::CHANNELMODEIS, client,
                          channel_it->second.getName(),
-                         channel_it->second.getModes() +
-                             channel_it->second.getModesValues());
+                         channel_it->second.getChannelModes() +
+                             channel_it->second.getChannelModesValues());
     }
 
     const bool state = true ? token.params[1][0] == '+' : false;

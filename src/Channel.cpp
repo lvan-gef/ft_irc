@@ -137,6 +137,12 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
+                if (value.empty()) {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +k " + value,
+                                     "Password for channel can not be empty");
+                }
+
                 _modes.set(2);
                 return setPassword(value, client);
             } else {
@@ -156,9 +162,27 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::USER_LIMIT:
             if (state) {
+                if (value[0] == '-') {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value,
+                                     "Limit can not be negative");
+                }
+
+                size_t nbr = toSizeT(value);
+                if (nbr == 0) {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value, "Limit can not be 0");
+                }
+
+                if (errno != 0) {
+                    errno = 0;
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value, "Not a valid number");
+                }
+
                 _modes.set(4);
                 broadcast(IRCCode::MODE, serverName, "+l " + value);
-                return setUserLimit(toSizeT(value), client);
+                return setUserLimit(nbr, client);
             } else {
                 _modes.reset(4);
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
@@ -232,7 +256,7 @@ std::size_t Channel::getActiveUsers() const noexcept {
     return _users.size();
 }
 
-std::string Channel::getModes() const noexcept {
+std::string Channel::getChannelModes() const noexcept {
     std::string modes = "+";
 
     if (_hasInvite() == true) {
@@ -254,7 +278,7 @@ std::string Channel::getModes() const noexcept {
     return modes;
 }
 
-std::string Channel::getModesValues() const noexcept {
+std::string Channel::getChannelModesValues() const noexcept {
     std::string values = "";
 
     if (_hasPassword() == true) {

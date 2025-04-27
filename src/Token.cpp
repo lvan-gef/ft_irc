@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -137,8 +138,9 @@ static void validateMessage(std::vector<IRCMessage> &tokens) {
 
 static void isValidNick(IRCMessage &msg) {
     if (msg.params.size() < 1) {
-        msg.succes = false;
         msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.errMsg = msg.command;
+        msg.succes = false;
         return;
     }
 
@@ -169,15 +171,16 @@ static void isValidNick(IRCMessage &msg) {
 
 static void isValidUsername(IRCMessage &msg) {
     if (msg.params.size() < 1) {
-        msg.succes = false;
         msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.errMsg = msg.command;
+        msg.succes = false;
         return;
     }
 
     if (msg.params[0].length() > getDefaultValue(Defaults::USERLEN) ||
         msg.params[0].empty()) {
-        msg.succes = false;
         msg.err.set_value(IRCCode::INVALIDUSERNAME);
+        msg.succes = false;
         return;
     }
 
@@ -195,6 +198,7 @@ static void isValidUsername(IRCMessage &msg) {
 static void isValidJoin(IRCMessage &msg) {
     if (msg.params.size() < 1) {
         msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.errMsg = msg.command;
         msg.succes = false;
         return;
     }
@@ -226,7 +230,45 @@ static void isValidTopic(IRCMessage &msg) {
 }
 
 static void isValidMode(IRCMessage &msg) {
-    (void)msg;
+    msg.print();
+
+    if (msg.params.size() == 1) {
+        return;
+    }
+
+    if (msg.params.size() < 2) {
+        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.errMsg = msg.command;
+        msg.succes = false;
+        return;
+    }
+
+    if (msg.params[1].length() < 2) {
+        msg.err.set_value(IRCCode::UNKNOWNMODEFLAG);
+        msg.errMsg = msg.command;
+        msg.succes = false;
+        return;
+    }
+
+    const std::string allowedModes = "itkol";
+    const std::string firstAllowed = "+-";
+    if (firstAllowed.find(msg.params[1][0]) == std::string::npos ||
+        allowedModes.find(msg.params[1][1]) == std::string::npos) {
+        msg.err.set_value(IRCCode::UNKNOWMODE);
+        msg.errMsg = "MODE " + msg.params[1];
+        msg.succes = false;
+        return;
+    }
+
+    if (msg.params[1][1] == 'l' || msg.params[1][1] == 'k' ||
+        msg.params[1][1] == 'o') {
+        if (msg.params.size() < 3) {
+            msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+            msg.errMsg = "MODE " + std::string(1, msg.params[1][1]);
+            msg.succes = false;
+            return;
+        }
+    }
 }
 
 // debugging
