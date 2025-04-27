@@ -442,8 +442,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             }
         }
 
-        std::cout << "Client disconnected - FD: " << fd << " Nickname: '"
-                  << nickname << "' - " << '\n';
+        std::cout << "Client FD: " << fd << " disconnected" << '\n';
     } catch (const std::exception &e) {
         std::cerr << "Error while removing client - FD: " << fd
                   << " Nickname: '" << nickname << "' - " << e.what() << '\n';

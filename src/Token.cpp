@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -212,13 +213,11 @@ static void isValidJoin(IRCMessage &msg) {
 
 static void isValidTopic(IRCMessage &msg) {
     if (msg.params.size() > 1 && msg.params[0].length() > 0) {
-        for (char c : msg.params[0]) {
-            if (c < 32 || c == 127) {
-                msg.err.set_value(IRCCode::TOPIC);
-                msg.succes = false;
-                msg.errMsg = "Invalid topic";
-                break;
-            }
+        if (std::any_of(msg.params[0].begin(), msg.params[0].end(),
+                        [](char c) { return c < 32 || c == 127; })) {
+            msg.err.set_value(IRCCode::TOPIC);
+            msg.succes = false;
+            msg.errMsg = "Invalid topic";
         }
     }
 
