@@ -113,7 +113,7 @@ enum class IRCCode : std::int16_t {
     CHANOPRIVSNEEDED = 482,
     UNKNOWNMODEFLAG = 501,
     USERSDONTMATCH = 502,
-    INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
+    INVALIDMODEPARAM = 696,
     MODE = 993,
     TOPICNOTICE = 994, // for my own use
     KICK = 995,        // for my own use

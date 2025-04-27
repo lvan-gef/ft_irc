@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -35,8 +36,9 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     std::vector<std::string> lines = split(msg, "\r\n");
 
     for (const std::string &line : lines) {
-        IRCMessage parsed;
+        IRCMessage parsed = {};
         std::istringstream stream(line);
+
         if (line[0] == ':') {
             stream >> parsed.prefix;
             parsed.prefix.erase(0, 1);
@@ -47,7 +49,12 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
                 if (word[0] == ':') {
                     std::string rest;
                     std::getline(stream, rest);
-                    parsed.params.emplace_back(word.substr(1) + rest);
+                    try {
+                        parsed.params.emplace_back(word.substr(1) + rest);
+                    } catch (const std::out_of_range &e) {
+                        std::cerr << "Parser failed: " << e.what();
+                        return std::vector<IRCMessage>{};
+                    }
                     break;
                 } else {
                     parsed.params.emplace_back(word);
@@ -131,7 +138,11 @@ static void validateMessage(std::vector<IRCMessage> &tokens) {
                 isValidMode(token);
                 break;
             case IRCCommand::CAP:
+                break;
             case IRCCommand::UNKNOW:
+                token.err.set_value(IRCCode::UNKNOWNCOMMAND);
+                token.errMsg = token.command;
+                token.succes = false;
                 break;
         }
     }
@@ -229,8 +240,6 @@ static void isValidTopic(IRCMessage &msg) {
 }
 
 static void isValidMode(IRCMessage &msg) {
-    msg.print();
-
     if (msg.params.size() == 1) {
         return;
     }
@@ -268,15 +277,4 @@ static void isValidMode(IRCMessage &msg) {
             return;
         }
     }
-}
-
-// debugging
-void IRCMessage::print() const {
-    std::cout << "prefix: '" << prefix << "'" << '\n';
-    std::cout << "command: '" << command << "'" << '\n';
-    std::cout << "param: ";
-    for (const std::string &param : params) {
-        std::cout << param << ", ";
-    }
-    std::cout << '\n';
 }

@@ -125,8 +125,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                               client->getNickname(), " :Input was too long"));
             break;
         case IRCCode::UNKNOWNCOMMAND:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " ", value, " :", msg));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), " ", value, " :", msg));
             break;
         case IRCCode::FILEERROR:
             std::cerr << "Need to impl this" << '\n';

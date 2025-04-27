@@ -28,8 +28,6 @@ struct IRCMessage {
     Optional<IRCCode> err;
     std::string errMsg;
     IRCCommand type;
-
-    void print() const;
 };
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg);

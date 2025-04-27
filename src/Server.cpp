@@ -467,7 +467,8 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         for (const IRCMessage &token : clientsToken) {
             if (!token.succes) {
                 try {
-                    handleMsg(token.err.get_value(), client, token.errMsg, "");
+                    handleMsg(token.err.get_value(), client, token.errMsg,
+                              "Unknow command");
                 } catch (std::runtime_error &e) {
                     std::cerr << "Failed to get value from err: " << e.what()
                               << '\n';

@@ -39,7 +39,7 @@ void Server::_handleCommand(const IRCMessage &token,
         case IRCCommand::PART:
             return _handlePart(token, client);
         case IRCCommand::QUIT:
-            _removeClient(client); // mark user for removeing§
+            _removeClient(client);
             break;
         case IRCCommand::PING:
             return _handlePing(token, client);
@@ -52,7 +52,6 @@ void Server::_handleCommand(const IRCMessage &token,
         case IRCCommand::USERHOST:
             return _handleUserhost(token, client);
         case IRCCommand::UNKNOW:
-            std::cerr << "Not impl yet UNKNOW" << '\n';
-            break;
+            return _handleUnkown(token, client);
     }
 }

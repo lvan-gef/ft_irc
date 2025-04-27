@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -24,7 +23,6 @@ Channel::Channel(std::string name, std::string topic,
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
       _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0), _users{},
       _operators{} {
-    std::cout << "Default constructor called for Channel" << '\n';
     addUser(_password, client);
     addOperator(client);
 }
@@ -34,7 +32,6 @@ Channel::Channel(Channel &&rhs) noexcept
       _password(std::move(rhs._password)), _userLimit(rhs._userLimit),
       _modes(rhs._modes), _users(std::move(rhs._users)),
       _operators(std::move(rhs._operators)) {
-    std::cout << "Default move constructor is called for Channel" << '\n';
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -48,12 +45,10 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _operators = std::move(rhs._operators);
     }
 
-    std::cout << "Move assigment operator is called for Channel" << '\n';
     return *this;
 }
 
 Channel::~Channel() {
-    std::cout << "Destructor is called for Channel: '" << _name << '\n';
 }
 
 bool Channel::addUser(const std::string &password,
@@ -74,7 +69,6 @@ bool Channel::addUser(const std::string &password,
     return _addUser(user);
 }
 
-// it wrong i think
 void Channel::removeUser(const std::shared_ptr<Client> &user,
                          const std::string &reason) {
     auto it = std::find(_users.begin(), _users.end(), user);
@@ -97,7 +91,7 @@ void Channel::kickUser(const std::shared_ptr<Client> &target,
     }
 
     if (target == client) {
-        return handleMsg(IRCCode::UNKNOWNCOMMAND, client, getName(),
+        return handleMsg(IRCCode::UNKNOWNCOMMAND, client, "KICK",
                          "Can not kick your self");
     }
 

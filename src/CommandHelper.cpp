@@ -262,3 +262,9 @@ void Server::_handleUserhost(const IRCMessage &token,
     handleMsg(IRCCode::USERHOST, client, "",
               targetNick + "=-" + client->getFullID());
 }
+
+void Server::_handleUnkown(const IRCMessage &token,
+                           const std::shared_ptr<Client> &client) noexcept {
+    return handleMsg(IRCCode::UNKNOWNCOMMAND, client, token.command,
+                     "Unknown command");
+}

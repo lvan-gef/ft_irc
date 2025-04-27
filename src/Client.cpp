@@ -59,7 +59,6 @@ Client &Client::operator=(Client &&rhs) noexcept {
 }
 
 Client::~Client() {
-    std::cout << "Client destructor is called" << '\n';
     removeAllChannels();
 }
 
