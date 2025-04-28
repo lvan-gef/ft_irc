@@ -156,6 +156,7 @@ std::string Server::getChannelsAndUsers() noexcept {
     ss << "channels and users:\n";
 
     std::vector<std::reference_wrapper<Channel>> sortedChannels;
+    sortedChannels.reserve(_channels.size());
     for (auto &pair : _channels) {
         sortedChannels.push_back(std::ref(pair.second));
     }

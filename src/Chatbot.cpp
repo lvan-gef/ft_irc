@@ -323,7 +323,7 @@ static int getApiInfo(const char *hostname, const char *port) {
     }
 
     freeaddrinfo(res);
-    return -1;
+    return sockfd;
 }
 
 static std::string readApiResponse(int sockfd) {
