@@ -7,6 +7,6 @@
 
 std::string handleBot(const std::vector<std::string> &params,
                       const std::shared_ptr<Client> &client, Server *server);
-bool isBot(std::string nickname);
+bool isBot(const std::string &nickname);
 
 #endif

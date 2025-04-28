@@ -175,7 +175,7 @@ std::string getWeatherDirectly(const std::string &location) {
     return extractWeather(response_str);
 }
 
-ChatBot handleBotInput(const std::vector<std::string> &input) {
+static ChatBot handleBotInput(const std::vector<std::string> &input) {
     if (input.empty()) {
         return (ChatBot::UNKNOWN);
     }
@@ -284,7 +284,7 @@ std::string handleBot(const std::vector<std::string> &params,
     return (response);
 }
 
-bool isBot(std::string nickname) {
+bool isBot(const std::string &nickname) {
     std::string upperCase = nickname;
     std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(),
                    ::toupper);
