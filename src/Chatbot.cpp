@@ -175,12 +175,12 @@ std::string getWeatherDirectly(const std::string &location) {
     return extractWeather(response_str);
 }
 
-ChatBot handleBotInput(std::vector<std::string> input) {
+ChatBot handleBotInput(const std::vector<std::string> &input) {
     if (input.empty()) {
         return (ChatBot::UNKNOWN);
     }
 
-    std::string cmd = input[0];
+    const std::string& cmd = input[0];
     ChatBot action = getChatCmd(cmd);
     if (action == ChatBot::WEATHER) {
         if (input.size() == 1)
