@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   FileDescriptors.hpp                                :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/07 22:51:16 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 22:51:16 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef FILEDESCRIPTORS_HPP
 #define FILEDESCRIPTORS_HPP
 

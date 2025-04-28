@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Utils.hpp                                          :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/07 22:48:14 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:31:43 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
@@ -23,8 +11,7 @@
 #define BASE 10
 #define NAME "codamirc"
 #define serverName "codamirc.local"
-#define serverVersion "0.4.0"
-#define serverCreated "Mon Feb 19 2025 at 10:00:00 UTC"
+#define serverVersion "0.6.0"
 
 std::uint16_t toUint16(const std::string &str);
 std::size_t toSizeT(const std::string &str);

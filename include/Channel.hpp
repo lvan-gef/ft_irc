@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Channel.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/10 21:16:25 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:57:53 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
@@ -62,8 +50,8 @@ class Channel {
     const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
     std::size_t getActiveUsers() const noexcept;
-    std::string getModes() const noexcept;
-    std::string getModesValues() const noexcept;
+    std::string getChannelModes() const noexcept;
+    std::string getChannelModesValues() const noexcept;
 
   public:
     void broadcast(IRCCode code, const std::string &senderPrefix,

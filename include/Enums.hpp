@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Enums.hpp                                          :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 15:38:50 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef ENUMS_HPP
 #define ENUMS_HPP
 
@@ -28,23 +16,25 @@ enum class Defaults : std::uint16_t {
     TIMEOUT = 360,
     USERLIMIT = std::numeric_limits<uint16_t>::max(),
     NICKLEN = 9,
+    USERLEN = 10,
+    TOPICLEN = 512,
     MAXMSGLEN = 512,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
 std::uint16_t getDefaultValue(Defaults rhs);
 
-enum class ChatBot : std::int16_t {
-	CHANNELS,
-	HELLO,
-	WEATHER,
-	HELP,
-	JOKE,
-	PING,
-	QUOTE,
+enum class ChatBot : std::int8_t {
+    CHANNELS,
+    HELLO,
+    WEATHER,
+    HELP,
+    JOKE,
+    PING,
+    QUOTE,
     WEATHER_TOO_FEW,
-	WEATHER_TOO_MANY,
-	UNKNOWN
+    WEATHER_TOO_MANY,
+    UNKNOWN
 };
 
 enum class ChannelMode : std::uint8_t {
@@ -64,6 +54,7 @@ enum class ChannelCommand : std::uint8_t {
 };
 
 enum class IRCCommand : std::uint8_t {
+    CAP,
     NICK,
     USER,
     PASS,
@@ -98,45 +89,31 @@ enum class IRCCode : std::int16_t {
     NOSUCHCHANNEL = 403,
     CANNOTSENDTOCHAN = 404,
     TOMANYCHANNELS = 405,
-    /*WASNOSUCHNICK = 406,  // think we dont need to impl this*/
-    /*TOOMANYTARGETS = 407,  // think we dont need to impl this*/
-    /*NOSUCHSERVICE = 408, // not sure if we need to impl it*/
-    /*NOORIGIN = 409,      // not sure if we need to impl it*/
     NORECIPIENT = 411,
     NOTEXTTOSEND = 412,
-    /*NOTOPLEVEL = 413,  // not sure if we need to impl it*/
-    /*WILDTOPLEVEL = 414, // not sure if we need to impl it*/
     INPUTTOOLONG = 417,
     UNKNOWNCOMMAND = 421,
-    /*NOADMININFO = 423,  // think we dont need to impl this*/
-    FILEERROR = 424, // only for bonus we need to impl thid
     NONICK = 431,
     ERRONUENICK = 432,
     NICKINUSE = 433,
-    /*NICKCOLLISION = 436,  // think we dont need to impl this*/
-    /*UNAVAILRESOURCE = 437,  // cannot find it in the rfc*/
     USERNOTINCHANNEL = 441,
     NOTOCHANNEL = 442,
     USERONCHANNEL = 443,
-    /*USERSDISABLED = 446,  // not sure if we need to impl it*/
     NOTREGISTERED = 451,
     NEEDMOREPARAMS = 461,
     ALREADYREGISTERED = 462,
-    /*NOPERMFORHOST = 463,*/
     PASSWDMISMATCH = 464,
-    /*YOURBANNEDCREEP = 465,  // for channel or for server ban??*/
     KEYSET = 467,
+    INVALIDUSERNAME = 468,
     CHANNELISFULL = 471,
     UNKNOWMODE = 472,
     INVITEONLYCHAN = 473,
     BADCHANNELKEY = 475,
-    /*BADCHANMASK = 476,  // can not found it in the rfc*/
     NOPRIVILEGES = 481,
     CHANOPRIVSNEEDED = 482,
-    /*CANTKILLSERVER = 483,  // not sure if we need to impl it*/
-    UMODEUNKNOWNFLAG = 501,
+    UNKNOWNMODEFLAG = 501,
     USERSDONTMATCH = 502,
-    INVALIDMODEPARAM = 696, // Not in IRC but in unrealircd
+    INVALIDMODEPARAM = 696,
     MODE = 993,
     TOPICNOTICE = 994, // for my own use
     KICK = 995,        // for my own use

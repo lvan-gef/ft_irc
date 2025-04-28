@@ -37,9 +37,9 @@
 # dirs
 .cache/
 infer-out/
+.vscode/
+.cpp_check/
 
 compile_commands.json
 ircserv
 ircserv_debug
-.cpp_check
-.vscode

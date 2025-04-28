@@ -1,18 +1,9 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Utils.cpp                                          :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/07 22:47:51 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/02 16:52:22 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 
 #include "../include/Utils.hpp"
 
@@ -52,7 +43,12 @@ std::vector<std::string> split(const std::string &s,
     size_t prev = 0;
 
     while ((pos = s.find(delimiter, prev)) != std::string::npos) {
-        lines.push_back(s.substr(prev, pos - prev)); // check for throwing
+        try {
+            lines.push_back(s.substr(prev, pos - prev));
+        } catch (const std::out_of_range &e) {
+            std::cerr << "Failed to split: " << e.what() << '\n';
+            return std::vector<std::string>{};
+        }
         prev = pos + delimiter.length();
     }
 

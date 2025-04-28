@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   CommandHelper.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:39:02 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <memory>
 
@@ -27,13 +15,8 @@
 
 void Server::_handleNickname(const IRCMessage &token,
 							 const std::shared_ptr<Client> &client) noexcept {
-	//add check if nick has valid characters, then return ERRONUENICK if not, maybe when it's bot we should to return it too?
-	
 	const std::string nickname = token.params[0];
 	
-	if (isBot(nickname) ||  token.params.size() > 1){ //nick 'bot' or contains space
-		return (handleMsg(IRCCode::ERRONUENICK, client, "", ""));
-	}
 	if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
 		return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
 	}
@@ -311,11 +294,6 @@ void Server::_handleMode(const IRCMessage &token,
 			std::cerr << "Unknow channel mode: " << token.params[1][1] << '\n';
 			return;
 	}
-
-	/*channel_it->second.broadcast(serverName,*/
-	/*                             "MODE " + channel_it->second.getName() + " "
-	 * +*/
-	/*                                 token.params[1] + " " + suffix);*/
 }
 
 void Server::_handleUserhost(const IRCMessage &token,
@@ -332,4 +310,10 @@ void Server::_handleUserhost(const IRCMessage &token,
 	std::string targetNick = targetClient->getNickname();
 	handleMsg(IRCCode::USERHOST, client, "",
 			  targetNick + "=-" + client->getFullID());
+}
+
+void Server::_handleUnkown(const IRCMessage &token,
+                           const std::shared_ptr<Client> &client) noexcept {
+    return handleMsg(IRCCode::UNKNOWNCOMMAND, client, token.command,
+                     "Unknown command");
 }
