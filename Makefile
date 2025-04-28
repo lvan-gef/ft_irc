@@ -32,7 +32,7 @@ MARGENTA := \033[35m
 NC := \033[0m
 
 .PHONY: all
-all: $(NAME_DEBUG)  ## Build the release version (default)
+all: $(NAME)  ## Build the release version (default)
 
 .PHONY: debug
 debug: $(NAME_DEBUG)  ## Build the debug version
@@ -60,7 +60,7 @@ help:  ## Get help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  ${BLUE}%-15s${NC} %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 $(NAME): $(OBJS)
-	$(CXX) -v $(CXXFLAGS) $(RELEASE_FLAGS) $^ $(HEADERS) -o $@
+	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $^ $(HEADERS) -o $@
 
 $(NAME_DEBUG): $(OBJS_DEBUG)
 	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) $^ $(HEADERS) -o $@
