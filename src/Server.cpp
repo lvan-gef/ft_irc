@@ -128,7 +128,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa{};
+    struct sigaction sa {};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -161,6 +161,47 @@ const char *Server::ServerException::what() const noexcept {
     return "Internal server error";
 }
 
+std::string Server::getChannelsAndUsers() noexcept {
+    std::stringstream ss;
+
+    ss << "channels and users:\n";
+
+    std::vector<std::reference_wrapper<Channel>> sortedChannels;
+    for (auto &pair : _channels) {
+        sortedChannels.push_back(std::ref(pair.second));
+    }
+
+    std::sort(sortedChannels.begin(), sortedChannels.end(),
+              [](const Channel &a, const Channel &b) {
+                  return a.getName() < b.getName();
+              });
+
+    for (const auto &pair : sortedChannels) {
+        const std::string &channelName = pair.get().getName();
+        const std::string userListStr = pair.get().getUserList();
+
+        ss << channelName << ": ";
+        std::vector<std::string> users = split(userListStr, " ");
+        std::vector<std::string> sortedUsers = users;
+        std::sort(sortedUsers.begin(), sortedUsers.end());
+        sortedUsers.erase(
+            std::remove_if(sortedUsers.begin(), sortedUsers.end(),
+                           [](const std::string &s) { return s.empty(); }),
+            sortedUsers.end());
+
+        for (size_t i = 0; i < sortedUsers.size(); ++i) {
+            ss << sortedUsers[i];
+            if (i == sortedUsers.size() - 1)
+                ss << ".";
+            else
+                ss << ", ";
+        }
+        ss << "\n";
+    }
+
+    return ss.str();
+}
+
 bool Server::_init() noexcept {
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
@@ -179,7 +220,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address{};
+    struct sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
@@ -200,7 +241,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {
