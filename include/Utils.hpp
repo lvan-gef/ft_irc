@@ -11,7 +11,7 @@
 #define BASE 10
 #define NAME "codamirc"
 #define serverName "codamirc.local"
-#define serverVersion "0.5.0"
+#define serverVersion "0.6.0"
 
 std::uint16_t toUint16(const std::string &str);
 std::size_t toSizeT(const std::string &str);

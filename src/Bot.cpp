@@ -1,25 +1,9 @@
 #include <algorithm>
-#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <utility>
 
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <netdb.h>
-#include <netinet/in.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
 #include "../include/Bot.hpp"
@@ -210,7 +194,7 @@ std::string getWeatherDirectly(const std::string &location) {
     return response_str;
 }
 
-static ChatBot handleBotInput(std::vector<std::string> input) {
+static ChatBot handleBotInput(const std::vector<std::string> &input) {
     if (input.empty()) {
         return (ChatBot::UNKNOWN);
     }
@@ -300,8 +284,10 @@ std::string getQuote() {
 
 } // namespace
 
-std::string handleBot(std::vector<std::string> params,
-                      const std::shared_ptr<Client> &client, Server *server) {
+std::string handleBot(const std::vector<std::string> &params,
+                      const std::shared_ptr<Client> &client,
+                      const Server &server) {
+    (void)server;
     std::string response;
 
     std::vector<std::string> input = split(params[1], " ");
@@ -342,17 +328,16 @@ std::string handleBot(std::vector<std::string> params,
     return (response);
 }
 
-bool isBot(std::string nickname) {
-    std::string upperCase = std::move(nickname);
+bool isBot(const std::string &nickname) {
+    std::string upperCase = nickname;
     std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(),
                    ::toupper);
 
     if (upperCase == "BOT") {
-        std::cout << "YUP ITS BOT" << '\n';
-        return (true);
+        return true;
     }
-    std::cout << "NOPE NOT BOT 0O" << '\n';
-    return (false);
+
+    return false;
 }
 
 static int getApiInfo_(const char *hostname, const char *port) {
