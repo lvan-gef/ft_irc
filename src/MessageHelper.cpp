@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 20:12:08 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 15:45:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,11 +84,13 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             break;
         case IRCCode::MOTDSTART:
             client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :Message of the Day -"));
+                ":", serverName, " ", ircCode, " ", client->getNickname(),
+                " :- Message of the Day -"));
             break;
         case IRCCode::ENDOFMOTD:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :End of /MOTD command"));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), " :End of /MOTD command"));
             break;
         case IRCCode::NOSUCHNICK:
             client->appendMessageToQue(formatMessage(

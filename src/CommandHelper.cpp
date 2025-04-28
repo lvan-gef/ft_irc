@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 20:41:52 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 15:54:47 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
-
     const std::string nickname = token.params[0];
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
@@ -52,6 +51,11 @@ void Server::_handleNickname(const IRCMessage &token,
 
 void Server::_handleUsername(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
+    if (!client->getPasswordBit()) {
+        client->setDisconnect();
+        return handleMsg(IRCCode::NOTREGISTERED, client, "", "");
+    }
+
     if (client->isRegistered()) {
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
@@ -76,7 +80,6 @@ void Server::_handlePassword(const IRCMessage &token,
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-
     if (token.params[0][0] == '#') {
         auto channel_it = _channels.find(token.params[0]);
         if (channel_it == _channels.end()) {

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 20:39:38 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 16:25:38 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,12 +137,12 @@ static void validateMessage(std::vector<IRCMessage> &tokens) {
             case IRCCommand::MODE:
                 isValidMode(token);
                 break;
-            case IRCCommand::CAP:
-                break;
             case IRCCommand::UNKNOW:
                 token.err.set_value(IRCCode::UNKNOWNCOMMAND);
                 token.errMsg = token.command;
                 token.succes = false;
+                break;
+            case IRCCommand::CAP:
                 break;
         }
     }
@@ -151,6 +151,13 @@ static void validateMessage(std::vector<IRCMessage> &tokens) {
 static void isValidNick(IRCMessage &msg) {
     if (msg.params.size() < 1) {
         msg.err.set_value(IRCCode::NEEDMOREPARAMS);
+        msg.errMsg = msg.command;
+        msg.succes = false;
+        return;
+    }
+
+    if (msg.params.size() > 1) {
+        msg.err.set_value(IRCCode::ERRONUENICK);
         msg.errMsg = msg.command;
         msg.succes = false;
         return;

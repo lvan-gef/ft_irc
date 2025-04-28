@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 18:45:02 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 15:46:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,7 +329,9 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     handleMsg(IRCCode::MYINFO, client, "", "o i,t,k,o,l k,l,o");
     handleMsg(IRCCode::ISUPPORT, client, "", "");
     handleMsg(IRCCode::MOTDSTART, client, "", "");
-    handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
+    handleMsg(IRCCode::MOTD, client, "",
+              "- This server is for educational purposes!");
+    handleMsg(IRCCode::MOTD, client, "", "- Have fun chatting!");
     handleMsg(IRCCode::ENDOFMOTD, client, "", "");
 
     _nick_to_client[nick] = client;
