@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/28 15:46:21 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 16:37:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -362,9 +362,7 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
-
     _processMessage(client);
 }
 
