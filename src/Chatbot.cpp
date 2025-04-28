@@ -241,7 +241,7 @@ std::string getQuote() {
 
 } // namespace
 
-std::string handleBot(std::vector<std::string> params,
+std::string handleBot(const std::vector<std::string> &params,
                       const std::shared_ptr<Client> &client, Server *server) {
     std::string response;
 
