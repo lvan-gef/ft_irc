@@ -122,8 +122,8 @@ std::string getWeatherDirectly(const std::string &location) {
     const char *hostname = "api.weatherapi.com";
     const char *port = "80";
 
-    const std::string api_key = std::getenv("MY_API_KEY");
-    if (api_key.empty()) {
+    const char *api_key = std::getenv("MY_API_KEY");
+    if (!api_key) {
         return "Error: API Key not configured.";
     }
 
@@ -132,8 +132,8 @@ std::string getWeatherDirectly(const std::string &location) {
         return "Could not connect to API server.";
     }
 
-    std::string full_path =
-        "/v1/current.json?key=" + api_key + "&q=" + location + "&aqi=no";
+    std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
+                            "&q=" + location + "&aqi=no";
 
     std::stringstream request_ss;
     request_ss << "GET " << full_path << " HTTP/1.1\r\n";
@@ -294,8 +294,7 @@ bool isBot(std::string nickname) {
 }
 
 static int getApiInfo(const char *hostname, const char *port) {
-    struct addrinfo hints {
-    }, *res = nullptr, *p = nullptr;
+    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
     int sockfd = -1;
 
     memset(&hints, 0, sizeof hints);
@@ -331,7 +330,7 @@ static std::string readApiResponse(int sockfd) {
     std::string response_str;
     ssize_t bytes_received = 0;
 
-    struct timeval tv {};
+    struct timeval tv{};
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);

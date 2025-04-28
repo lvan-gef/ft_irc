@@ -1,24 +1,12 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   CommandHelper.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/28 21:47:33 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <memory>
 
 #include "../include/Channel.hpp"
+#include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
-#include "Chatbot.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
@@ -88,13 +76,16 @@ void botResponseNl(const std::shared_ptr<Client> &client,
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
+    std::string bot = token.params[0];
+    std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
+
     if (token.params[0][0] == '#') {
         auto channel_it = _channels.find(token.params[0]);
         if (channel_it == _channels.end()) {
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
                              "");
         }
-        if (token.params[0] == "!BOT") {
+        if (bot == "!BOT") {
             handleMsg(
                 IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
                 client->getNickname() +
@@ -104,7 +95,7 @@ void Server::_handlePriv(const IRCMessage &token,
             channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
                                          ":" + token.params[1]);
         }
-    } else if (token.params[0] == "BOT") {
+    } else if (bot == "BOT") {
         std::string response = handleBot(token.params, client, this);
         size_t find = response.find('\n');
         if (std::string::npos != find) {
