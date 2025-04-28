@@ -16,12 +16,13 @@ void Server::_handleNickname(const IRCMessage &token,
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
     }
 
+    bool wasRegistered = client->isRegistered();
     std::string old_nickname = client->getNickname();
     client->setNickname(nickname);
 
-    if (client->isRegistered() != true) {
+    if (!wasRegistered && client->isRegistered()) {
         _clientAccepted(client);
-    } else {
+    } else if (client->isRegistered()) {
         std::string old_id = client->getFullID();
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
