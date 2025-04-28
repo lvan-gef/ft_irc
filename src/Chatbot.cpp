@@ -263,9 +263,10 @@ std::string handleBot(std::vector<std::string> params,
         case ChatBot::WEATHER_TOO_MANY:
             response = "I can check weather only for one location at time.";
             break;
-        // case ChatBot::JOKE:
-        // 	response  = getJoke();
-        // 	break ;
+        case ChatBot::JOKE:
+        	// response  = getJoke();
+            std::cerr << "Joke not handled" << '\n';
+        	break ;
         case ChatBot::QUOTE:
             response = getQuote();
             break;
@@ -276,7 +277,7 @@ std::string handleBot(std::vector<std::string> params,
         case ChatBot::CHANNELS:
             response = server->getChannelsAndUsers();
             break;
-        default:
+        case ChatBot::UNKNOWN:
             response = "Command unknown. Type 'help' to discover my functions.";
             break;
     }
