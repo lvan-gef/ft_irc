@@ -1,16 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   MessageHelper.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/28 15:45:21 by lvan-gef      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include <iostream>
 #include <memory>
 
 #include "../include/Client.hpp"
@@ -130,9 +117,6 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
                               client->getNickname(), " ", value, " :", msg));
-            break;
-        case IRCCode::FILEERROR:
-            std::cerr << "Need to impl this" << '\n';
             break;
         case IRCCode::NONICK:
             client->appendMessageToQue(formatMessage(":", serverName, " ",
