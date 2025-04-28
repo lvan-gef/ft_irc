@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 14:59:36 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/28 16:25:38 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 20:34:01 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,13 @@ static void isValidNick(IRCMessage &msg) {
 
     if (msg.params[0].length() > getDefaultValue(Defaults::NICKLEN) ||
         msg.params[0].empty()) {
+        msg.err.set_value(IRCCode::NICKINUSE);
+        msg.errMsg = msg.command;
+        msg.succes = false;
+        return;
+    }
+
+    if (msg.params[0] == "BOT") {
         msg.succes = false;
         msg.err.set_value(IRCCode::ERRONUENICK);
         return;

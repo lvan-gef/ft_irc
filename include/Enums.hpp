@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/27 21:58:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/22 20:34:28 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 20:30:05 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,19 @@ enum class Defaults : std::uint16_t {
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);
 std::uint16_t getDefaultValue(Defaults rhs);
+
+enum class ChatBot : std::int8_t {
+	CHANNELS,
+	HELLO,
+	WEATHER,
+	HELP,
+	JOKE,
+	PING,
+	QUOTE,
+    WEATHER_TOO_FEW,
+	WEATHER_TOO_MANY,
+	UNKNOWN
+};
 
 enum class ChannelMode : std::uint8_t {
     INVITE_ONLY,

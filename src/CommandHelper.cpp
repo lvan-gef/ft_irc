@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 14:37:31 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/28 15:54:47 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 21:47:33 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
+#include "Chatbot.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
@@ -51,11 +52,6 @@ void Server::_handleNickname(const IRCMessage &token,
 
 void Server::_handleUsername(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
-    if (!client->getPasswordBit()) {
-        client->setDisconnect();
-        return handleMsg(IRCCode::NOTREGISTERED, client, "", "");
-    }
-
     if (client->isRegistered()) {
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
@@ -77,6 +73,18 @@ void Server::_handlePassword(const IRCMessage &token,
         }
     }
 }
+namespace {
+void botResponseNl(const std::shared_ptr<Client> &client,
+                   std::string response) {
+    std::string line;
+    std::istringstream stream(response);
+
+    while (std::getline(stream, line)) {
+        handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+                  client->getNickname() + " :" + line);
+    }
+}
+} // namespace
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
@@ -86,8 +94,25 @@ void Server::_handlePriv(const IRCMessage &token,
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
                              "");
         }
-        channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
-                                     ":" + token.params[1]);
+        if (token.params[0] == "!BOT") {
+            handleMsg(
+                IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+                client->getNickname() +
+                    "Hello, I am bot. I can say hello, check weather and send "
+                    "PONG back, send a quote and print channels and users.");
+        } else {
+            channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
+                                         ":" + token.params[1]);
+        }
+    } else if (token.params[0] == "BOT") {
+        std::string response = handleBot(token.params, client, this);
+        size_t find = response.find('\n');
+        if (std::string::npos != find) {
+            botResponseNl(client, response);
+        } else {
+            handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+                      client->getNickname() + " :" + response);
+        }
     } else {
         auto nick_it = _nick_to_client.find(token.params[0]);
         if (nick_it == _nick_to_client.end()) {
