@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/03 19:46:47 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:31:43 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 15:45:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::TOPIC:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
-                              client->getNickname(), " ", value, " :", msg));
+                              client->getNickname(), " ", msg));
             break;
         case IRCCode::NAMREPLY:
             client->appendMessageToQue(
@@ -84,11 +84,13 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             break;
         case IRCCode::MOTDSTART:
             client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :Message of the Day -"));
+                ":", serverName, " ", ircCode, " ", client->getNickname(),
+                " :- Message of the Day -"));
             break;
         case IRCCode::ENDOFMOTD:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :End of /MOTD command"));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), " :End of /MOTD command"));
             break;
         case IRCCode::NOSUCHNICK:
             client->appendMessageToQue(formatMessage(
@@ -125,8 +127,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                               client->getNickname(), " :Input was too long"));
             break;
         case IRCCode::UNKNOWNCOMMAND:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " ", value, " :", msg));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), " ", value, " :", msg));
             break;
         case IRCCode::FILEERROR:
             std::cerr << "Need to impl this" << '\n';
@@ -140,6 +143,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(":", serverName, " ",
                                                      ircCode, " * ", value,
                                                      " :Erronues nickname"));
+            if (client->isRegistered() != true) {
+                client->setDisconnect();
+            }
             break;
         case IRCCode::NICKINUSE: {
             std::string clientNick = " * ";
@@ -154,7 +160,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::USERNOTINCHANNEL:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
-                value, " ", msg, " :They aren't on that channel"));
+                value, msg, " :They aren't on that channel"));
             break;
         case IRCCode::NOTOCHANNEL:
             client->appendMessageToQue(
@@ -171,9 +177,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", ircCode, " :You have not registered"));
             break;
         case IRCCode::NEEDMOREPARAMS:
-            client->appendMessageToQue(
-                formatMessage(":", serverName, " ", ircCode, value,
-                              " :Not enough parameters"));
+            client->appendMessageToQue(formatMessage(
+                ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
+                value, " :Not enough parameters"));
             break;
         case IRCCode::ALREADYREGISTERED:
             client->appendMessageToQue(formatMessage(
@@ -187,6 +193,14 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, value,
                               " :Channel key already set"));
+            break;
+        case IRCCode::INVALIDUSERNAME:
+            client->appendMessageToQue(formatMessage(":", serverName, " ",
+                                                     ircCode, " * ", value,
+                                                     " :Erronues username"));
+            if (client->isRegistered() != true) {
+                client->setDisconnect();
+            }
             break;
         case IRCCode::CHANNELISFULL:
             client->appendMessageToQue(
@@ -218,9 +232,10 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
                 value, " :You're not channel operator"));
             break;
-        case IRCCode::UMODEUNKNOWNFLAG:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " :Unknown MODE flag"));
+        case IRCCode::UNKNOWNMODEFLAG:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getFullID(), " :Unknown MODE flag"));
             break;
         case IRCCode::USERSDONTMATCH:
             client->appendMessageToQue(
@@ -228,9 +243,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                               " :Cant change mode for other users"));
             break;
         case IRCCode::INVALIDMODEPARAM:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
-                value, " :Invalid value: '", msg, "'"));
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname(), value, " : ", msg));
             break;
         case IRCCode::MODE:
             client->appendMessageToQue(
@@ -259,8 +274,5 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", value, " PRIVMSG ", msg));
             break;
-        default:
-            std::cerr << "Unknow IRCCode: " << ircCode << " " << value << '\n';
-            return;
     }
 }

@@ -6,12 +6,11 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/10 21:16:09 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/28 15:58:16 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/22 20:42:19 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -24,7 +23,6 @@ Channel::Channel(std::string name, std::string topic,
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
       _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0), _users{},
       _operators{} {
-    std::cout << "Default constructor called for Channel" << '\n';
     addUser(_password, client);
     addOperator(client);
 }
@@ -34,7 +32,6 @@ Channel::Channel(Channel &&rhs) noexcept
       _password(std::move(rhs._password)), _userLimit(rhs._userLimit),
       _modes(rhs._modes), _users(std::move(rhs._users)),
       _operators(std::move(rhs._operators)) {
-    std::cout << "Default move constructor is called for Channel" << '\n';
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -48,12 +45,10 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _operators = std::move(rhs._operators);
     }
 
-    std::cout << "Move assigment operator is called for Channel" << '\n';
     return *this;
 }
 
 Channel::~Channel() {
-    std::cout << "Destructor is called for Channel: '" << _name << '\n';
 }
 
 bool Channel::addUser(const std::string &password,
@@ -74,7 +69,6 @@ bool Channel::addUser(const std::string &password,
     return _addUser(user);
 }
 
-// it wrong i think
 void Channel::removeUser(const std::shared_ptr<Client> &user,
                          const std::string &reason) {
     auto it = std::find(_users.begin(), _users.end(), user);
@@ -97,7 +91,7 @@ void Channel::kickUser(const std::shared_ptr<Client> &target,
     }
 
     if (target == client) {
-        return handleMsg(IRCCode::UNKNOWNCOMMAND, client, getName(),
+        return handleMsg(IRCCode::UNKNOWNCOMMAND, client, "KICK",
                          "Can not kick your self");
     }
 
@@ -137,6 +131,12 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::PASSWORD_PROTECTED:
             if (state) {
+                if (value.empty()) {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +k " + value,
+                                     "Password for channel can not be empty");
+                }
+
                 _modes.set(2);
                 return setPassword(value, client);
             } else {
@@ -156,18 +156,32 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
             break;
         case ChannelMode::USER_LIMIT:
             if (state) {
+                if (value[0] == '-') {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value,
+                                     "Limit can not be negative");
+                }
+
+                size_t nbr = toSizeT(value);
+                if (nbr == 0) {
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value, "Limit can not be 0");
+                }
+
+                if (errno != 0) {
+                    errno = 0;
+                    return handleMsg(IRCCode::INVALIDMODEPARAM, client,
+                                     " MODE +l " + value, "Not a valid number");
+                }
+
                 _modes.set(4);
                 broadcast(IRCCode::MODE, serverName, "+l " + value);
-                return setUserLimit(toSizeT(value), client);
+                return setUserLimit(nbr, client);
             } else {
                 _modes.reset(4);
                 return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
                                     client);
             }
-        default:
-            // need to see how to get the value out of it
-            return handleMsg(IRCCode::UNKNOWMODE, client, "mode", "");
-            /*return handleMsg(IRCCode::UNKNOWMODE, client, mode, "");*/
     }
 }
 
@@ -196,7 +210,8 @@ void Channel::setTopic(const std::string &topic,
     }
 
     _topic = topic;
-    broadcast(IRCCode::TOPIC, client->getFullID(), " TOPIC :" + topic);
+
+    broadcast(IRCCode::TOPIC, "", topic);
 }
 
 void Channel::addOperator(const std::shared_ptr<Client> &user) {
@@ -235,7 +250,7 @@ std::size_t Channel::getActiveUsers() const noexcept {
     return _users.size();
 }
 
-std::string Channel::getModes() const noexcept {
+std::string Channel::getChannelModes() const noexcept {
     std::string modes = "+";
 
     if (_hasInvite() == true) {
@@ -257,7 +272,7 @@ std::string Channel::getModes() const noexcept {
     return modes;
 }
 
-std::string Channel::getModesValues() const noexcept {
+std::string Channel::getChannelModesValues() const noexcept {
     std::string values = "";
 
     if (_hasPassword() == true) {

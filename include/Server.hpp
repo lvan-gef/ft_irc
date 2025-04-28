@@ -95,6 +95,8 @@ class Server : public EpollInterface {
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleUserhost(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept;
+    void _handleUnkown(const IRCMessage &token,
+                       const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::uint16_t _port;

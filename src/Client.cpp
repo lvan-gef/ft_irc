@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 18:05:33 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:29:40 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 16:36:35 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@
 
 Client::Client(int fd)
     : _epollNotifier{}, _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
-      _partial_buffer(""), _messages{}, _offset(0), _event{}, _last_seen(0),
-      _channels{} {
+      _partial_buffer(""), _messages{}, _offset(0), _event{},
+      _disconnect(false), _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
@@ -34,8 +34,8 @@ Client::Client(Client &&rhs) noexcept
       _username(std::move(rhs._username)), _nickname(std::move(rhs._nickname)),
       _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
       _messages(std::move(rhs._messages)), _offset(rhs._offset),
-      _event(rhs._event), _last_seen(rhs._last_seen),
-      _channels(std::move(rhs._channels)) {
+      _event(rhs._event),
+      _disconnect(rhs._disconnect), _channels(std::move(rhs._channels)) {
     rhs._fd = -1;
 }
 
@@ -49,16 +49,15 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _ip = std::move(rhs._ip);
         _event = rhs._event;
         _messages = std::move(rhs._messages);
-        _last_seen = rhs._last_seen;
-        _channels = std::move(rhs._channels);
         _offset = rhs._offset;
+        _disconnect = rhs._disconnect;
+        _channels = std::move(rhs._channels);
     }
 
     return *this;
 }
 
 Client::~Client() {
-    std::cout << "Client destructor is called" << '\n';
     removeAllChannels();
 }
 
@@ -94,14 +93,6 @@ const std::string &Client::getUsername() const noexcept {
 
 const std::string &Client::getNickname() const noexcept {
     return _nickname;
-}
-
-void Client::updatedLastSeen() noexcept {
-    _last_seen = time(nullptr);
-}
-
-time_t Client::getLastSeen() const noexcept {
-    return _last_seen;
 }
 
 void Client::setUsernameBit() noexcept {
@@ -188,6 +179,14 @@ void Client::appendMessageToQue(const std::string &msg) noexcept {
     if (_epollNotifier) {
         _epollNotifier->notifyEpollUpdate(_fd.get());
     }
+}
+
+void Client::setDisconnect() {
+    _disconnect = true;
+}
+
+bool Client::isDisconnect() {
+    return _disconnect;
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {

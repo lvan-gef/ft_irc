@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/02/19 17:48:48 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/04/07 16:36:10 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/28 16:37:21 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,7 +329,9 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     handleMsg(IRCCode::MYINFO, client, "", "o i,t,k,o,l k,l,o");
     handleMsg(IRCCode::ISUPPORT, client, "", "");
     handleMsg(IRCCode::MOTDSTART, client, "", "");
-    handleMsg(IRCCode::MOTD, client, "", "- Welcome to my IRC server!");
+    handleMsg(IRCCode::MOTD, client, "",
+              "- This server is for educational purposes!");
+    handleMsg(IRCCode::MOTD, client, "", "- Have fun chatting!");
     handleMsg(IRCCode::ENDOFMOTD, client, "", "");
 
     _nick_to_client[nick] = client;
@@ -360,9 +362,7 @@ void Server::_clientRecv(int fd) noexcept {
         return;
     }
 
-    client->updatedLastSeen();
     client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
-
     _processMessage(client);
 }
 
@@ -405,6 +405,10 @@ void Server::_clientSend(int fd) noexcept {
             std::cerr << "Failed to update epoll event: " << strerror(errno)
                       << '\n';
         }
+
+        if (client->isDisconnect()) {
+            _removeClient(client);
+        }
     }
 }
 
@@ -438,8 +442,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             }
         }
 
-        std::cout << "Client disconnected - FD: " << fd << " Nickname: '"
-                  << nickname << "' - " << '\n';
+        std::cout << "Client FD: " << fd << " disconnected" << '\n';
     } catch (const std::exception &e) {
         std::cerr << "Error while removing client - FD: " << fd
                   << " Nickname: '" << nickname << "' - " << e.what() << '\n';
@@ -462,9 +465,10 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
         std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
         for (const IRCMessage &token : clientsToken) {
-            if (!token.success) {
+            if (!token.succes) {
                 try {
-                    handleMsg(token.err.get_value(), client, "", "");
+                    handleMsg(token.err.get_value(), client, token.errMsg,
+                              "Unknow command");
                 } catch (std::runtime_error &e) {
                     std::cerr << "Failed to get value from err: " << e.what()
                               << '\n';

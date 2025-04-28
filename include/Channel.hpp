@@ -62,8 +62,8 @@ class Channel {
     const std::string &getName() const noexcept;
     const std::string &getTopic() const noexcept;
     std::size_t getActiveUsers() const noexcept;
-    std::string getModes() const noexcept;
-    std::string getModesValues() const noexcept;
+    std::string getChannelModes() const noexcept;
+    std::string getChannelModesValues() const noexcept;
 
   public:
     void broadcast(IRCCode code, const std::string &senderPrefix,
