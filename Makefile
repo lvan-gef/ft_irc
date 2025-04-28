@@ -7,7 +7,7 @@ WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion 
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
-DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address
+DEBUG_FLAGS := -g3 -DDEBUG -g#-fsanitize=address 
 RELEASE_FLAGS := -DNDEBUG
 
 SRCDIR := src/
@@ -17,6 +17,7 @@ OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
 SRCFILES := Bot.cpp Channel.cpp Client.cpp CommandEnum.cpp CommandHelper.cpp Enum.cpp FileDescriptors.cpp main.cpp MessageHelper.cpp Server.cpp Token.cpp Utils.cpp
+
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)
@@ -37,7 +38,7 @@ all: $(NAME_DEBUG)  ## Build the release version (default)
 .PHONY: debug
 debug: $(NAME_DEBUG)  ## Build the debug version
 
-.PHONY: fmt
+.PHONY: fmt`
 fmt:  ## Format code via clang-format
 	@echo "Format code"
 	@find . -type f -name "*.*pp" -print0 | xargs -0 clang-format -i

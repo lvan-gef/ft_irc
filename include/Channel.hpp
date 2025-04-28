@@ -84,6 +84,8 @@ class Channel {
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;
     std::unordered_set<std::shared_ptr<Client>> _operators;
+  public:
+    bool isEmpty() const;
 };
 
 #endif // CHANNEL_HPP

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
@@ -427,6 +428,11 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
                 it->second.removeUser(client, "");
+             // Check if the channel is now empty
+             if (it->second.isEmpty()) {
+                _channels.erase(it);
+            }
+            
             }
         }
 
@@ -467,4 +473,50 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             }
         }
     }
+}
+
+std::string Server::getChannelsAndUsers() noexcept
+{
+    std::stringstream ss;
+
+    ss << "channels and users:\n";
+    std::vector<std::reference_wrapper<Channel>> sortedChannels;
+    for (auto& pair : _channels){
+        sortedChannels.push_back(std::ref(pair.second));
+    }
+
+    std::sort(sortedChannels.begin(), sortedChannels.end(), [](const Channel& a, const Channel& b) {
+        return a.getName() < b.getName();
+    });
+
+    for (const auto& pair : sortedChannels) {
+        const std::string& channelName = pair.get().getName();
+        const std::string userListStr = pair.get().getUserList();
+
+        
+        ss << channelName << ": ";
+        std::vector<std::string> users = split(userListStr, " ");
+        std::vector<std::string> sortedUsers = users;
+        std::sort(sortedUsers.begin(), sortedUsers.end());
+        sortedUsers.erase(std::remove_if(sortedUsers.begin(), sortedUsers.end(),
+                                   [](const std::string& s) { return s.empty(); }),
+                    sortedUsers.end());
+    
+        for (size_t i = 0; i < sortedUsers.size(); ++i) {
+            ss << sortedUsers[i];
+            if (i == sortedUsers.size() - 1)
+                ss << ".";
+            else
+                ss << ", ";
+        }
+    
+        ss << "\n";
+    }
+
+	std::cout << "The whole string: " << ss.str() << std::endl;
+    return ss.str();
+}
+
+bool Channel::isEmpty() const {
+    return _users.empty();
 }
