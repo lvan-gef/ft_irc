@@ -51,7 +51,7 @@ class Server : public EpollInterface {
     bool run() noexcept;
 
   public:
-  	std::string getChannelsAndUsers() noexcept;
+    std::string getChannelsAndUsers() noexcept;
 
   private:
     bool _init() noexcept;
