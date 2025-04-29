@@ -125,13 +125,15 @@ void Server::_handlePriv(const IRCMessage &token,
 
 void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
+    std::string channelName = token.params[0];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+    auto channel_it = _channels.find(channelName);
 
     if (channel_it == _channels.end()) {
         std::string topic =
             token.params.size() > 1 ? token.params[1] : "Default";
-        _channels.emplace(token.params[0],
-                          Channel(token.params[0], topic, client));
+        _channels.emplace(channelName,
+                          Channel(channelName, topic, client));
     } else {
         const std::string password =
             token.params.size() > 1 ? token.params[1] : "";
@@ -140,9 +142,9 @@ void Server::_handleJoin(const IRCMessage &token,
         }
     }
 
-    channel_it = _channels.find(token.params[0]);
+    channel_it = _channels.find(channelName);
     if (channel_it == _channels.end()) {
-        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
+        return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
     }
 
     channel_it->second.setTopic("Default", client);
