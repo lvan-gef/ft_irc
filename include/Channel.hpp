@@ -20,7 +20,7 @@ class Channel {
     Channel(Channel &&rhs) noexcept;
     Channel &operator=(Channel &&rhs) noexcept;
 
-    ~Channel();
+    ~Channel() = default;
 
   public:
     bool addUser(const std::string &password,
