@@ -20,7 +20,7 @@ void Server::_handleNickname(const IRCMessage &token,
 
     bool wasRegistered = client->isRegistered();
     std::string old_nickname = client->getNickname();
-    client->setNickname(nickname);
+    client->setNickname(token.params[0]);
 
     if (!wasRegistered && client->isRegistered()) {
         _clientAccepted(client);
