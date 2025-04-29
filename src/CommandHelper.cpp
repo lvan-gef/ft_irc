@@ -79,6 +79,7 @@ void Server::_handleUsername(const IRCMessage &token,
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         client->setUsername(token.params[0]);
+		client->setRealname(token.params[3]);
         _clientAccepted(client);
     }
 }
@@ -317,9 +318,10 @@ void Server::_handleUnkown(const IRCMessage &token,
 }
 
 
-void Server::handleWhois(const IRCMessage &token,
+void Server::_handleWhois(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
     auto it = _nick_to_client.find(token.params[0]);
+	(void)client;
     if (it == _nick_to_client.end()) {
         std::cerr << "Server internal error: Could not found target "
                      "user for WHOIS"
@@ -327,7 +329,34 @@ void Server::handleWhois(const IRCMessage &token,
         return; 
     }
     std::shared_ptr<Client> targetClient = it->second;
-    std::string targetNick = targetClient->getNickname();
-    handleMsg(IRCCode::WHOIS, client, targetNick,
-              targetClient->getFullID());
+    std::string requester = client->getNickname();
+	std::string targetNickname = targetClient->getNickname();
+	std::string targetUsername = targetClient->getUsername();
+	std::string targetIP = targetClient->getIP();
+	std::string targetRealname = targetClient->getRealname();
+	std::stringstream msg;
+	msg << " " << requester << " "
+		<< targetNickname << " "
+	 	<< targetUsername << " "
+		<< targetIP << " "
+		<< targetRealname;
+	handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
+	
+	msg.str("");
+	msg.clear();
+	msg << " " << requester << " "
+		<< serverName;
+    handleMsg(IRCCode::RPL_WHOISSERVER, client, "", msg.str());
+    
+	msg.str("");
+	msg.clear();
+    handleMsg(IRCCode::RPL_WHOISIDLE, client, "", msg.str());
+    //handleMsg(IRCCode::RPL_WHOISUSER, client, targetNick,
+    //handleMsg(IRCCode::RPL_WHOISUSER, client, targetNick,
+    //          targetClient->getFullID());
+	msg.str("");
+	msg.clear();
+	msg << requester << " " << targetNickname;
+
+    handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
 }
