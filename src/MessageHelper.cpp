@@ -131,9 +131,6 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(":", serverName, " ",
                                                      ircCode, " * ", value,
                                                      " :Erronues nickname"));
-            if (client->isRegistered() != true) {
-                client->setDisconnect();
-            }
             break;
         case IRCCode::NICKINUSE: {
             std::string clientNick = " * ";
