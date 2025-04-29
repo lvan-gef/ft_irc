@@ -14,18 +14,19 @@ void Server::_handleNickname(const IRCMessage &token,
     std::string nickname = token.params[0];
     std::transform(nickname.begin(), nickname.end(), nickname.begin(),
                    ::toupper);
+
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
     }
 
-    bool wasRegistered = client->isRegistered();
+    std::string old_id = client->getFullID();
     std::string old_nickname = client->getNickname();
     client->setNickname(token.params[0]);
+    std::cout << ">>>>>>> " << client->getNickname() << '\n';
 
-    if (!wasRegistered && client->isRegistered()) {
+    if (client->isRegistered() != true) {
         _clientAccepted(client);
     } else if (client->isRegistered()) {
-        std::string old_id = client->getFullID();
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
         for (const std::string &channelName : client->allChannels()) {
@@ -33,7 +34,6 @@ void Server::_handleNickname(const IRCMessage &token,
             if (it != _channels.end()) {
                 it->second.broadcast(IRCCode::NICKCHANGED, old_id,
                                      client->getNickname());
-                break;
             }
         }
     }
@@ -112,14 +112,14 @@ void Server::_handlePriv(const IRCMessage &token,
 void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
     std::string channelName = token.params[0];
-    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(),
+                   ::toupper);
     auto channel_it = _channels.find(channelName);
 
     if (channel_it == _channels.end()) {
         std::string topic =
             token.params.size() > 1 ? token.params[1] : "Default";
-        _channels.emplace(channelName,
-                          Channel(channelName, topic, client));
+        _channels.emplace(channelName, Channel(channelName, topic, client));
     } else {
         const std::string password =
             token.params.size() > 1 ? token.params[1] : "";

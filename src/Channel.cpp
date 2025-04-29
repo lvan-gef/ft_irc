@@ -285,7 +285,11 @@ void Channel::broadcast(IRCCode code, const std::string &senderPrefix,
             continue;
         }
 
-        handleMsg(code, user, senderPrefix, getName() + " " + message);
+        if (code == IRCCode::NICKCHANGED) {
+            handleMsg(code, user, senderPrefix, message);
+        } else {
+            handleMsg(code, user, senderPrefix, getName() + " " + message);
+        }
     }
 }
 
