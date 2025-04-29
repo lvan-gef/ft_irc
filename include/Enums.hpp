@@ -29,7 +29,6 @@ enum class ChatBot : std::int8_t {
     HELLO,
     WEATHER,
     HELP,
-    JOKE,
     PING,
     QUOTE,
     WEATHER_TOO_FEW,

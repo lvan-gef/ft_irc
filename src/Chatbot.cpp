@@ -208,10 +208,10 @@ ChatBot getChatCmd(const std::string &command) {
     std::transform(uppercase_cmd.begin(), uppercase_cmd.end(),
                    uppercase_cmd.begin(), ::toupper);
     static const std::unordered_map<std::string, ChatBot> commandMap = {
-        {"HELLO", ChatBot::HELLO},     {"HI", ChatBot::HELLO},
-        {"WEATHER", ChatBot::WEATHER}, {"HELP", ChatBot::HELP},
-        {"JOKE", ChatBot::JOKE},       {"QUOTE", ChatBot::QUOTE},
-        {"PING", ChatBot::PING},       {"CHANNELS", ChatBot::CHANNELS},
+        {"HELLO", ChatBot::HELLO},       {"HI", ChatBot::HELLO},
+        {"WEATHER", ChatBot::WEATHER},   {"HELP", ChatBot::HELP},
+        {"QUOTE", ChatBot::QUOTE},       {"PING", ChatBot::PING},
+        {"CHANNELS", ChatBot::CHANNELS},
     };
 
     auto it = commandMap.find(uppercase_cmd);
@@ -317,10 +317,6 @@ std::string handleBot(const std::vector<std::string> &params,
         case ChatBot::WEATHER_TOO_MANY:
             response = "I can check weather only for one location at time.";
             break;
-        case ChatBot::JOKE:
-            // response  = getJoke();
-            std::cerr << "Joke not handled" << '\n';
-            break;
         case ChatBot::QUOTE:
             response = getQuote();
             break;
@@ -336,15 +332,4 @@ std::string handleBot(const std::vector<std::string> &params,
             break;
     }
     return (response);
-}
-
-bool isBot(const std::string &nickname) {
-    std::string upperCase = nickname;
-    std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(),
-                   ::toupper);
-
-    if (upperCase == "BOT") {
-        return true;
-    }
-    return false;
 }
