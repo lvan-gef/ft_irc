@@ -354,6 +354,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
+    std::transform(nick.begin(), nick.end(), nick.begin(), ::toupper);
 
     handleMsg(IRCCode::WELCOME, client, "", "");
     handleMsg(IRCCode::YOURHOST, client, "", "");
