@@ -12,7 +12,7 @@ class Optional {
     Optional(Optional &&rhs) noexcept;
     Optional &operator=(Optional &&rhs) noexcept;
 
-    ~Optional();
+    ~Optional() = default;
 
   public:
     T &get_value();
@@ -22,8 +22,8 @@ class Optional {
     bool has_value() const noexcept;
 
   private:
-    bool _has_value;
-    T _value;
+    bool _has_value{false};
+    T _value{};
 };
 
 #include "../templates/Optional.tpp"

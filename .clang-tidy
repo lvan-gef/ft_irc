@@ -5,9 +5,19 @@ Checks: >
   cppcoreguidelines-*,
   performance-*,
   misc-*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  security-*,
+  cert-*,
+  misc-include-cleaner,
   clang-analyzer-cplusplus*,
   -modernize-use-nodiscard,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -cert-err58-cpp
+
+HeaderFilterRegex: '.*'
 
 CheckOptions:
   - key:             modernize-loop-convert.MinConfidence
@@ -20,4 +30,11 @@ CheckOptions:
     value:           'NULL'
   - key:             'Language'
     value:           'C++11'
+  - key: security.FloatLoopCounter
+    value: 'true'                   # Warn on floating-point loop counters
+  - key: cert-env33-cpp.DiagnoseStdIn
+    value: 'true'                   # Warn on std::cin usage
+  - key: cppcoreguidelines-pro-type-vararg.DiagnoseStdVarargs
+    value: 'true'                   # Warn on printf-style varargs
+
 ExtraArgs: ['-std=c++11']

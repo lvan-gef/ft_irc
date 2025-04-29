@@ -8,10 +8,10 @@
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 
-#define BASE 10
-#define NAME "codamirc"
-#define serverName "codamirc.local"
-#define serverVersion "0.5.0"
+constexpr int BASE = 10;
+constexpr const char *NAME = "codamirc";
+constexpr const char *serverName = "codamirc.local";
+constexpr const char *serverVersion = "0.5.1";
 
 std::uint16_t toUint16(const std::string &str);
 std::size_t toSizeT(const std::string &str);

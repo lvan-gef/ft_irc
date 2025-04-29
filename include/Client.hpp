@@ -75,7 +75,7 @@ class Client {
     size_t getOffset() const noexcept;
 
   private:
-    EpollInterface *_epollNotifier;
+    EpollInterface *_epollNotifier{};
 
   private:
     FileDescriptors _fd;
@@ -86,12 +86,12 @@ class Client {
   private:
     std::string _partial_buffer;
     std::queue<std::string> _messages;
-    size_t _offset;
+    size_t _offset{0};
 
   private:
     epoll_event _event;
     std::bitset<3> _registered; // user, nick, pass
-    bool _disconnect;
+    bool _disconnect{false};
 
   private:
     std::vector<std::string> _channels;

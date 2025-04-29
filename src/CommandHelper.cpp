@@ -244,7 +244,7 @@ void Server::_handleMode(const IRCMessage &token,
     }
 
     const bool state = true ? token.params[1][0] == '+' : false;
-    const ChannelCommand cmd = static_cast<ChannelCommand>(token.params[1][1]);
+    const auto cmd = static_cast<ChannelCommand>(token.params[1][1]);
     const std::string value = token.params.size() > 2 ? token.params[2] : "";
 
     switch (cmd) {

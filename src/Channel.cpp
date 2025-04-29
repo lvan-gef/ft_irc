@@ -36,9 +36,6 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
     return *this;
 }
 
-Channel::~Channel() {
-}
-
 bool Channel::addUser(const std::string &password,
                       const std::shared_ptr<Client> &user) {
 

@@ -6,7 +6,7 @@
 /*   By: lvan-gef <lvan-gef@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/07 22:48:43 by lvan-gef      #+#    #+#                 */
-/*   Updated: 2025/03/07 22:48:43 by lvan-gef      ########   odam.nl         */
+/*   Updated: 2025/04/29 13:57:47 by lvan-gef      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,7 @@
 #include <utility>
 
 template <typename T>
-Optional<T>::Optional() : _has_value(false), _value{} {
-}
+Optional<T>::Optional() = default;
 
 template <typename T>
 Optional<T>::Optional(const Optional &rhs)
@@ -50,10 +49,6 @@ Optional<T> &Optional<T>::operator=(Optional &&rhs) noexcept {
     }
 
     return *this;
-}
-
-template <typename T>
-Optional<T>::~Optional() {
 }
 
 template <typename T>

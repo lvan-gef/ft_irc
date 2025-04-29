@@ -97,7 +97,7 @@ class Server : public EpollInterface {
   private:
     FileDescriptors _server_fd;
     FileDescriptors _epoll_fd;
-    size_t _connections;
+    size_t _connections{0};
 
   private:
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
