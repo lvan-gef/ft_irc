@@ -82,7 +82,6 @@ std::string extractWeather(const std::string &json) {
     return result;
 }
 
-
 int getApiInfo(const char *hostname, const char *port) {
     struct addrinfo hints{}, *res = nullptr, *p = nullptr;
     int sockfd = -1;
@@ -227,7 +226,7 @@ ChatBot handleBotInput(const std::vector<std::string> &input) {
         return (ChatBot::UNKNOWN);
     }
 
-    const std::string& cmd = input[0];
+    const std::string &cmd = input[0];
     ChatBot action = getChatCmd(cmd);
     if (action == ChatBot::WEATHER) {
         if (input.size() == 1)
@@ -254,7 +253,7 @@ std::string getWeatherDirectly(const std::string &location) {
     }
 
     std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
-        "&q=" + location + "&aqi=no";
+                            "&q=" + location + "&aqi=no";
 
     std::stringstream request_ss;
     request_ss << "GET " << full_path << " HTTP/1.1\r\n";
@@ -319,9 +318,9 @@ std::string handleBot(const std::vector<std::string> &params,
             response = "I can check weather only for one location at time.";
             break;
         case ChatBot::JOKE:
-        	// response  = getJoke();
+            // response  = getJoke();
             std::cerr << "Joke not handled" << '\n';
-        	break ;
+            break;
         case ChatBot::QUOTE:
             response = getQuote();
             break;
