@@ -19,14 +19,14 @@ void Server::_handleNickname(const IRCMessage &token,
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
     }
 
-    std::string old_id = client->getFullID();
+    bool wasRegistered = client->isRegistered();
     std::string old_nickname = client->getNickname();
     client->setNickname(token.params[0]);
-    std::cout << ">>>>>>> " << client->getNickname() << '\n';
 
-    if (client->isRegistered() != true) {
+    if (!wasRegistered && client->isRegistered()) {
         _clientAccepted(client);
     } else if (client->isRegistered()) {
+        std::string old_id = client->getFullID();
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
         for (const std::string &channelName : client->allChannels()) {
@@ -34,12 +34,43 @@ void Server::_handleNickname(const IRCMessage &token,
             if (it != _channels.end()) {
                 it->second.broadcast(IRCCode::NICKCHANGED, old_id,
                                      client->getNickname());
+                break;
             }
         }
     }
 
-    _nick_to_client[client->getNickname()] = client;
+    _nick_to_client[nickname] = client;
     _nick_to_client.erase(old_nickname);
+
+    // std::string nickname = token.params[0];
+    // std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+    //                ::toupper);
+    //
+    // if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
+    //     return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
+    // }
+    //
+    // std::string old_id = client->getFullID();
+    // std::string old_nickname = client->getNickname();
+    // client->setNickname(token.params[0]);
+    //
+    // if (client->isRegistered() != true) {
+    //     _clientAccepted(client);
+    // } else if (client->isRegistered()) {
+    //     handleMsg(IRCCode::NICKCHANGED, client, old_id,
+    //     client->getNickname());
+    //
+    //     for (const std::string &channelName : client->allChannels()) {
+    //         auto it = _channels.find(channelName);
+    //         if (it != _channels.end()) {
+    //             it->second.broadcast(IRCCode::NICKCHANGED, old_id,
+    //                                  client->getNickname());
+    //         }
+    //     }
+    // }
+    //
+    // _nick_to_client[client->getNickname()] = client;
+    // _nick_to_client.erase(old_nickname);
 }
 
 void Server::_handleUsername(const IRCMessage &token,

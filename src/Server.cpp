@@ -451,6 +451,8 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 
     int fd = client->getFD();
     std::string nickname = client->getNickname();
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                   ::toupper);
 
     try {
         auto fd_it = _fd_to_client.find(fd);

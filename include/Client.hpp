@@ -90,7 +90,7 @@ class Client {
 
   private:
     epoll_event _event;
-    std::bitset<3> _registered; // user, nick, pass
+    std::bitset<3> _registered{0}; // user, nick, pass
     bool _disconnect{false};
 
   private:
