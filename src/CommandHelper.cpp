@@ -338,7 +338,7 @@ void Server::_handleWhois(const IRCMessage &token,
 	msg << " " << requester << " "
 		<< targetNickname << " "
 	 	<< targetUsername << " "
-		<< targetIP << " "
+		<< targetIP << " * :"
 		<< targetRealname;
 	handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
 	
