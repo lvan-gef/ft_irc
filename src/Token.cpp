@@ -184,6 +184,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
             case IRCCommand::USER:
                 isValidUsername(token);
                 break;
+            case IRCCommand::KICK:
             case IRCCommand::PRIVMSG:
                 if (token.params.size() < 2) {
                     token.err.set_value(IRCCode::NEEDMOREPARAMS);
@@ -207,7 +208,6 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                     token.succes = false;
                 }
                 break;
-            case IRCCommand::KICK:
             case IRCCommand::INVITE:
                 if (token.params.size() < 3) {
                     token.err.set_value(IRCCode::NEEDMOREPARAMS);
