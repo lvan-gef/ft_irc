@@ -11,7 +11,9 @@
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
-    const std::string nickname = token.params[0];
+    std::string nickname = token.params[0];
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                   ::toupper);
     if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
         return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
     }
