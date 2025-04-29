@@ -65,7 +65,7 @@ void Server::_handlePassword(const IRCMessage &token,
 }
 namespace {
 void botResponseNl(const std::shared_ptr<Client> &client,
-                   std::string response) {
+                   const std::string& response) {
     std::string line;
     std::istringstream stream(response);
 
@@ -87,6 +87,9 @@ void Server::_handlePriv(const IRCMessage &token,
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
                              "");
         }
+
+        bot = token.params[1];
+		std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
         if (bot == "!BOT") {
             handleMsg(
                 IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
