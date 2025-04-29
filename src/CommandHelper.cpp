@@ -9,6 +9,20 @@
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
 
+namespace {
+void botResponseNl(const std::shared_ptr<Client> &client,
+                   const std::string &response) {
+    std::string line;
+    std::istringstream stream(response);
+
+    while (std::getline(stream, line)) {
+        handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+                  client->getNickname() + " :" + line);
+    }
+}
+} // namespace
+
+
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
     std::string nickname = token.params[0];
@@ -65,18 +79,6 @@ void Server::_handlePassword(const IRCMessage &token,
         }
     }
 }
-namespace {
-void botResponseNl(const std::shared_ptr<Client> &client,
-                   const std::string &response) {
-    std::string line;
-    std::istringstream stream(response);
-
-    while (std::getline(stream, line)) {
-        handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
-                  client->getNickname() + " :" + line);
-    }
-}
-} // namespace
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
