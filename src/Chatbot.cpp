@@ -11,9 +11,6 @@
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
 
-static int getApiInfo(const char *hostname, const char *port);
-static std::string readApiResponse(int sockfd);
-
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
     std::string key_to_find = "\"" + key + "\":";
@@ -85,114 +82,68 @@ std::string extractWeather(const std::string &json) {
     return result;
 }
 
-} // namespace
 
-ChatBot getChatCmd(const std::string &command) {
-    std::string uppercase_cmd = command;
+int getApiInfo(const char *hostname, const char *port) {
+    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
+    int sockfd = -1;
 
-    size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
-    if (std::string::npos == first) {
-        uppercase_cmd = "";
-    } else {
-        size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
-        try {
-            uppercase_cmd = uppercase_cmd.substr(first, (last - first + 1));
-        } catch (const std::out_of_range &e) {
-            std::cerr << "Failed to substr: " << e.what() << '\n';
-            return ChatBot::UNKNOWN;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(hostname, port, &hints, &res);
+    if (status != 0) {
+        std::cerr << "Could not resolve API hostname." << '\n';
+        return -1;
+    }
+
+    for (p = res; p != nullptr; p = p->ai_next) {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1) {
+            continue;
+        }
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            sockfd = -1;
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(res);
+    return sockfd;
+}
+
+std::string readApiResponse(int sockfd) {
+    char buffer[4096];
+    std::string response_str;
+    ssize_t bytes_received = 0;
+
+    struct timeval tv{};
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+
+    while ((bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0)) > 0) {
+        buffer[bytes_received] = '\0';
+        response_str += buffer;
+    }
+
+    if (bytes_received == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            close(sockfd);
+            return "Timed out receiving response from API.";
+        } else {
+            close(sockfd);
+            return "Failed to receive response from API.";
         }
     }
+    close(sockfd);
 
-    std::transform(uppercase_cmd.begin(), uppercase_cmd.end(),
-                   uppercase_cmd.begin(), ::toupper);
-    static const std::unordered_map<std::string, ChatBot> commandMap = {
-        {"HELLO", ChatBot::HELLO},     {"HI", ChatBot::HELLO},
-        {"WEATHER", ChatBot::WEATHER}, {"HELP", ChatBot::HELP},
-        {"JOKE", ChatBot::JOKE},       {"QUOTE", ChatBot::QUOTE},
-        {"PING", ChatBot::PING},       {"CHANNELS", ChatBot::CHANNELS},
-    };
-
-    auto it = commandMap.find(uppercase_cmd);
-    if (it == commandMap.end()) {
-        return ChatBot::UNKNOWN;
-    }
-    return it->second;
+    return response_str;
 }
 
-std::string getWeatherDirectly(const std::string &location) {
-    const char *hostname = "api.weatherapi.com";
-    const char *port = "80";
-
-    const char *api_key = std::getenv("MY_API_KEY");
-    if (!api_key) {
-        return "Error: API Key not configured.";
-    }
-
-    int sockfd = getApiInfo(hostname, port);
-    if (sockfd == -1) {
-        return "Could not connect to API server.";
-    }
-
-    std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
-                            "&q=" + location + "&aqi=no";
-
-    std::stringstream request_ss;
-    request_ss << "GET " << full_path << " HTTP/1.1\r\n";
-    request_ss << "Host: " << hostname << "\r\n";
-    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
-    request_ss << "Accept: application/json, */*\r\n";
-    request_ss << "Connection: close\r\n";
-    request_ss << "\r\n";
-
-    std::string request = request_ss.str();
-    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
-    if (sent == -1) {
-        close(sockfd);
-        return "Failed to send request.";
-    }
-
-    std::string response_str = readApiResponse(sockfd);
-    size_t header_end = response_str.find("\r\n\r\n");
-    if (header_end == std::string::npos) {
-        return "Invalid HTTP response (no header end).";
-    }
-
-    std::string status_line;
-    try {
-        status_line = response_str.substr(0, response_str.find("\r\n"));
-    } catch (const std::out_of_range &e) {
-        std::cerr << "Failed to substr: " << e.what() << '\n';
-        return "Internal server error";
-    }
-
-    if (status_line.find("200 OK") == std::string::npos) {
-        if (status_line.find(" 30") != std::string::npos) {
-            return "API requires HTTPS, cannot connect via HTTP.";
-        }
-        return "API request failed (Status: " + status_line + ")";
-    }
-
-    return extractWeather(response_str);
-}
-
-static ChatBot handleBotInput(const std::vector<std::string> &input) {
-    if (input.empty()) {
-        return (ChatBot::UNKNOWN);
-    }
-
-    const std::string& cmd = input[0];
-    ChatBot action = getChatCmd(cmd);
-    if (action == ChatBot::WEATHER) {
-        if (input.size() == 1)
-            return ChatBot::WEATHER_TOO_FEW;
-        if (input.size() > 2)
-            return ChatBot::WEATHER_TOO_MANY;
-    }
-
-    return (action);
-}
-
-namespace {
 std::string getQuote() {
     const char *hostname = "api.quotable.io";
     const char *port = "80";
@@ -239,6 +190,110 @@ std::string getQuote() {
     return "\"" + content + "\" - " + author;
 }
 
+ChatBot getChatCmd(const std::string &command) {
+    std::string uppercase_cmd = command;
+
+    size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
+    if (std::string::npos == first) {
+        uppercase_cmd = "";
+    } else {
+        size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
+        try {
+            uppercase_cmd = uppercase_cmd.substr(first, (last - first + 1));
+        } catch (const std::out_of_range &e) {
+            std::cerr << "Failed to substr: " << e.what() << '\n';
+            return ChatBot::UNKNOWN;
+        }
+    }
+
+    std::transform(uppercase_cmd.begin(), uppercase_cmd.end(),
+                   uppercase_cmd.begin(), ::toupper);
+    static const std::unordered_map<std::string, ChatBot> commandMap = {
+        {"HELLO", ChatBot::HELLO},     {"HI", ChatBot::HELLO},
+        {"WEATHER", ChatBot::WEATHER}, {"HELP", ChatBot::HELP},
+        {"JOKE", ChatBot::JOKE},       {"QUOTE", ChatBot::QUOTE},
+        {"PING", ChatBot::PING},       {"CHANNELS", ChatBot::CHANNELS},
+    };
+
+    auto it = commandMap.find(uppercase_cmd);
+    if (it == commandMap.end()) {
+        return ChatBot::UNKNOWN;
+    }
+    return it->second;
+}
+
+ChatBot handleBotInput(const std::vector<std::string> &input) {
+    if (input.empty()) {
+        return (ChatBot::UNKNOWN);
+    }
+
+    const std::string& cmd = input[0];
+    ChatBot action = getChatCmd(cmd);
+    if (action == ChatBot::WEATHER) {
+        if (input.size() == 1)
+            return ChatBot::WEATHER_TOO_FEW;
+        if (input.size() > 2)
+            return ChatBot::WEATHER_TOO_MANY;
+    }
+
+    return (action);
+}
+
+std::string getWeatherDirectly(const std::string &location) {
+    const char *hostname = "api.weatherapi.com";
+    const char *port = "80";
+
+    const char *api_key = std::getenv("MY_API_KEY");
+    if (!api_key) {
+        return "Error: API Key not configured.";
+    }
+
+    int sockfd = getApiInfo(hostname, port);
+    if (sockfd == -1) {
+        return "Could not connect to API server.";
+    }
+
+    std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
+        "&q=" + location + "&aqi=no";
+
+    std::stringstream request_ss;
+    request_ss << "GET " << full_path << " HTTP/1.1\r\n";
+    request_ss << "Host: " << hostname << "\r\n";
+    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
+    request_ss << "Accept: application/json, */*\r\n";
+    request_ss << "Connection: close\r\n";
+    request_ss << "\r\n";
+
+    std::string request = request_ss.str();
+    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
+    if (sent == -1) {
+        close(sockfd);
+        return "Failed to send request.";
+    }
+
+    std::string response_str = readApiResponse(sockfd);
+    size_t header_end = response_str.find("\r\n\r\n");
+    if (header_end == std::string::npos) {
+        return "Invalid HTTP response (no header end).";
+    }
+
+    std::string status_line;
+    try {
+        status_line = response_str.substr(0, response_str.find("\r\n"));
+    } catch (const std::out_of_range &e) {
+        std::cerr << "Failed to substr: " << e.what() << '\n';
+        return "Internal server error";
+    }
+
+    if (status_line.find("200 OK") == std::string::npos) {
+        if (status_line.find(" 30") != std::string::npos) {
+            return "API requires HTTPS, cannot connect via HTTP.";
+        }
+        return "API request failed (Status: " + status_line + ")";
+    }
+
+    return extractWeather(response_str);
+}
 } // namespace
 
 std::string handleBot(const std::vector<std::string> &params,
@@ -293,65 +348,4 @@ bool isBot(const std::string &nickname) {
         return true;
     }
     return false;
-}
-
-static int getApiInfo(const char *hostname, const char *port) {
-    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
-    int sockfd = -1;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int status = getaddrinfo(hostname, port, &hints, &res);
-    if (status != 0) {
-        std::cerr << "Could not resolve API hostname." << '\n';
-        return -1;
-    }
-
-    for (p = res; p != nullptr; p = p->ai_next) {
-        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (sockfd == -1) {
-            continue;
-        }
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            sockfd = -1;
-            continue;
-        }
-        break;
-    }
-
-    freeaddrinfo(res);
-    return sockfd;
-}
-
-static std::string readApiResponse(int sockfd) {
-    char buffer[4096];
-    std::string response_str;
-    ssize_t bytes_received = 0;
-
-    struct timeval tv{};
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
-
-    while ((bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0)) > 0) {
-        buffer[bytes_received] = '\0';
-        response_str += buffer;
-    }
-
-    if (bytes_received == -1) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            close(sockfd);
-            return "Timed out receiving response from API.";
-        } else {
-            close(sockfd);
-            return "Failed to receive response from API.";
-        }
-    }
-    close(sockfd);
-
-    return response_str;
 }

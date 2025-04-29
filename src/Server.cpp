@@ -25,13 +25,14 @@
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
 
-static bool g_running{true};
-
-static void signalHandler(int signum) {
+namespace {
+bool g_running{true};
+void signalHandler(int signum) {
     if (signum == SIGINT || signum == SIGTERM) {
         g_running = false;
     }
 }
+} // namespace
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _serverStared(""),
