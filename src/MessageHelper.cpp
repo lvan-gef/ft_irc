@@ -259,5 +259,6 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", value, " PRIVMSG ", msg));
             break;
+        
     }
 }

@@ -67,6 +67,7 @@ enum class IRCCommand : std::uint8_t {
     INVITE,
     MODE,
     USERHOST,
+    WHOIS,
     UNKNOW
 };
 

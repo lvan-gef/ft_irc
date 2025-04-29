@@ -315,3 +315,19 @@ void Server::_handleUnkown(const IRCMessage &token,
     return handleMsg(IRCCode::UNKNOWNCOMMAND, client, token.command,
                      "Unknown command");
 }
+
+
+void Server::handleWhois(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) noexcept {
+    auto it = _nick_to_client.find(token.params[0]);
+    if (it == _nick_to_client.end()) {
+        std::cerr << "Server internal error: Could not found target "
+                     "user for WHOIS"
+                  << '\n';
+        return; 
+    }
+    std::shared_ptr<Client> targetClient = it->second;
+    std::string targetNick = targetClient->getNickname();
+    handleMsg(IRCCode::WHOIS, client, targetNick,
+              targetClient->getFullID());
+}

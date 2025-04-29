@@ -83,6 +83,12 @@ void Server::_handleCommand(const IRCMessage &token,
                 return handleMsg(IRCCode::NOTREGISTERED, client, "", "");
             }
             return _handleUserhost(token, client);
+        case IRCCommand::WHOIS:
+            if (!client->isRegistered()) {
+                client->setDisconnect();
+                return handleMsg(IRCCode::NOTREGISTERED, client, "", "");
+            }
+            return _handleWhois(token, client);
         case IRCCommand::UNKNOW:
             if (!client->isRegistered()) {
                 client->setDisconnect();
