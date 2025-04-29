@@ -9,6 +9,7 @@
 
 #include "../include/Enums.hpp"
 #include "../include/Token.hpp"
+#include "../include/Chatbot.hpp"
 
 namespace {
 IRCCommand getCommand(const std::string &command) {
@@ -53,7 +54,7 @@ void isValidNick(IRCMessage &msg) {
         return;
     }
 
-    if (msg.params[0] == "BOT") {
+    if (isBot(msg.params[0])) {
         msg.succes = false;
         msg.err.set_value(IRCCode::ERRONUENICK);
         return;
