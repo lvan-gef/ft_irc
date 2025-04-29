@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "../include/Chatbot.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
@@ -193,6 +194,14 @@ std::string Server::getChannelsAndUsers() noexcept {
     return ss.str();
 }
 
+int Server::getEpollFD() const noexcept {
+    return _epoll_fd.get();
+}
+
+void Server::addApiRequest(ApiRequest &api) {
+    _api_requests[api.fd] = api;
+}
+
 bool Server::_init() noexcept {
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
@@ -268,9 +277,22 @@ void Server::_run() {
             if (event.data.fd == _server_fd.get()) {
                 _newConnection();
             } else if (event.events & EPOLLIN) {
-                _clientRecv(event.data.fd);
+                auto api_it = _api_requests.find(event.data.fd);
+                if (api_it != _api_requests.end()) {
+                    handleRecvApi(api_it->second);
+                    _api_requests.erase(api_it);
+                } else {
+                    _clientRecv(event.data.fd);
+                }
             } else if (event.events & EPOLLOUT) {
-                _clientSend(event.data.fd);
+                auto api_it = _api_requests.find(event.data.fd);
+                if (api_it != _api_requests.end()) {
+                    if (!handleSendApi(api_it->second, event, getEpollFD())) {
+                        _api_requests.erase(event.data.fd);
+                    }
+                } else {
+                    _clientSend(event.data.fd);
+                }
             } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
                 auto it = _fd_to_client.find(event.data.fd);
                 if (it != _fd_to_client.end()) {
