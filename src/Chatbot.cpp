@@ -10,6 +10,7 @@
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
+#include "../include/Utils.hpp"
 
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
@@ -334,25 +335,25 @@ std::string handleBot(const std::vector<std::string> &params,
     return (response);
 }
 
-bool   isBot(std::string nickname)
-{
-       std::string upperCase = nickname;
-       std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(), ::toupper);
+bool isBot(const std::string &nickname) {
+    std::string upperCase = nickname;
+    std::transform(upperCase.begin(), upperCase.end(), upperCase.begin(),
+                   ::toupper);
 
-       if (upperCase == "BOT")
-       {;
-               return (true);
-       }
-       return (false);
+    if (upperCase == "BOT") {
+        ;
+        return (true);
+    }
+    return (false);
 }
 
 void botResponseNl(const std::shared_ptr<Client> &client,
-    const std::string &response) {
+                   const std::string &response) {
     std::string line;
     std::istringstream stream(response);
 
     while (std::getline(stream, line)) {
-    handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
-    client->getNickname() + " :" + line);
+        handleMsg(IRCCode::PRIVMSG, client, ("Bot!Bot@codamirc.local"),
+                  client->getNickname() + " :" + line);
     }
 }
