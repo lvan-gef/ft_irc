@@ -471,10 +471,6 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
                 it->second.removeUser(client, "");
-
-                if (channel.empty()) {
-                    _channels.erase(channel);
-                }
             }
         }
 
