@@ -13,181 +13,47 @@
 #include "../include/Utils.hpp"
 
 namespace {
-std::string findVal(const std::string &json, const std::string &key) {
-    std::string key_to_find = "\"" + key + "\":";
-    size_t key_pos = json.find(key_to_find);
 
-    if (key_pos == std::string::npos) {
-        return "Key not found";
-    }
-
-    size_t value_start = key_pos + key_to_find.length();
-
-    while (value_start < json.length() && isspace(json[value_start])) {
-        value_start++;
-    }
-
-    if (value_start >= json.length()) {
-        return "No value found after key";
-    }
-
-    if (json[value_start] == '"') {
-        size_t value_end = json.find('"', value_start + 1);
-        if (value_end != std::string::npos) {
-            try {
-                return json.substr(value_start + 1,
-                                   value_end - value_start - 1);
-            } catch (const std::out_of_range &e) {
-                std::cerr << "Failed to substr: " << e.what() << '\n';
-                return "Internal server error";
-            }
-        }
-    } else if (isdigit(json[value_start]) || json[value_start] == '-') {
-        size_t value_end = value_start;
-        while (value_end < json.length() &&
-               (isdigit(json[value_end]) || json[value_end] == '.' ||
-                json[value_end] == '-')) {
-            value_end++;
-        }
-        try {
-            return json.substr(value_start, value_end - value_start);
-        } catch (const std::out_of_range &e) {
-            std::cerr << "Failed to substr: " << e.what() << '\n';
-            return "Internal server error";
-        }
-    }
-
-    return "Couldn't parse";
-}
-
-std::string extractWeather(const std::string &json) {
-    if (json.empty() || json.rfind("Error:", 0) == 0) {
-        return "Json empty or error";
-    }
-
-    std::string temp_c = findVal(json, "temp_c");
-    std::string description = findVal(json, "text");
-    std::string location = findVal(json, "name");
-    std::string country = findVal(json, "country");
-
-    if (temp_c.empty() || description.empty() || location.empty()) {
-        return "Error: Could not parse weather data from API response.";
-    }
-
-    std::string result = location;
-    if (!country.empty()) {
-        result += ", " + country;
-    }
-    result += ": " + temp_c + "°C, " + description;
-
-    return result;
-}
-
-int getApiInfo(const char *hostname, const char *port) {
-    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
-    int sockfd = -1;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int status = getaddrinfo(hostname, port, &hints, &res);
-    if (status != 0) {
-        std::cerr << "Could not resolve API hostname." << '\n';
-        return -1;
-    }
-
-    for (p = res; p != nullptr; p = p->ai_next) {
-        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (sockfd == -1) {
-            continue;
-        }
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            sockfd = -1;
-            continue;
-        }
-        break;
-    }
-
-    freeaddrinfo(res);
-    return sockfd;
-}
-
-std::string readApiResponse(int sockfd) {
-    char buffer[4096];
-    std::string response_str;
-    ssize_t bytes_received = 0;
-
-    struct timeval tv{};
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
-
-    while ((bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0)) > 0) {
-        buffer[bytes_received] = '\0';
-        response_str += buffer;
-    }
-
-    if (bytes_received == -1) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            close(sockfd);
-            return "Timed out receiving response from API.";
-        } else {
-            close(sockfd);
-            return "Failed to receive response from API.";
-        }
-    }
-    close(sockfd);
-
-    return response_str;
+std::string getJoke()
+{
+    static const std::vector<std::string> jokes = {
+        "Why did the scarecrow win an award? Because he was outstanding in his field!",
+        "Algorithm: A word used by programmers when they don't want to explain how their code works.",
+        "Debugging is like being the detective in a crime movie where you're also the murderer at the same time.",
+        "The six stages of debugging:\n1. That can't happen.\n2. That doesn't happen on my machine.\n3." \
+        " That shouldn't happen.\n4. Why does that happen?\n5. Oh, I see.\n6. How did that ever work?",
+        "My husband and I were happy for 20 years. And then we met.",
+        "What kind of doctor is Dr. Pepper?, \nHe's a fizzician.",
+        "Why did the coffee file a police report? \nIt got mugged.",
+        "What do you call a fish wearing a bowtie? \nSofishticated.",
+        "I told my suitcase we're not going on vacation — now it's dealing with emotional baggage."        
+    };
+    
+    
+    int index = std::rand() % static_cast<int> (jokes.size());
+    return jokes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
 std::string getQuote() {
-    const char *hostname = "api.quotable.io";
-    const char *port = "80";
 
-    int sockfd = getApiInfo(hostname, port);
-    if (sockfd == -1) {
-        return ("Could not connect to API server.");
-    }
+    static const std::vector<std::string> quotes ={
+        "\"Your friend is your needs answered.\" - Kahlil Gibran",
+        "\"How is it possible to find meaning in a finite world, given my waist and shirt size?\" - Woody Allen",
+        "\"A true friend freely, advises justly, assists readily, adventures boldly, takes all patiently," \
+        " defends courageously, and continues a friend unchangeably.\" - William C. Menninger",
+        "\"Imagination is the highest kite one can fly.\" - Lauren Bacall",
+        "\"The personal life deeply lived always expands into truths beyond itself.\" - Anaïs Nin",
+        "\"Without leaps of imagination, or dreaming, we lose the excitement of possibilities. Dreaming, after all, is a form of planning.\" - Gloria Steinem",
+        "\"The greatest glory in living lies not in never falling, but in rising every time we fall.\" - Nelson Mandela",
+        "\"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+        "\"The only limit to our realization of tomorrow will be our doubts of today.\" - Franklin D. Roosevelt",
+        "\"The best way to predict the future is to create it.\" - Peter Drucker",
+        "\"In the end, we will remember not the words of our enemies, but the silence of our friends.\" - Martin Luther King Jr.",
+        "\"Either I will find a way, or I will make one.\" - Philip Sidney"
+    };
 
-    std::stringstream request_ss;
-    request_ss << "GET /quotes/random" << " HTTP/1.1\r\n";
-    request_ss << "Host: " << hostname << "\r\n";
-    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
-    request_ss << "Accept: application/json, */*\r\n";
-    request_ss << "Connection: close\r\n";
-    request_ss << "\r\n";
-
-    std::string request = request_ss.str();
-    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
-    if (sent == -1) {
-        close(sockfd);
-        return ("Failed to send request.");
-    }
-
-    const std::string response_str = readApiResponse(sockfd);
-    size_t header_end = response_str.find("\r\n\r\n");
-    if (header_end == std::string::npos) {
-        return "Invalid HTTP response (no header end).";
-    }
-
-    std::string json_body;
-    try {
-        json_body = response_str.substr(header_end + 4);
-    } catch (const std::out_of_range &e) {
-        std::cerr << "Failed to substr: " << e.what() << '\n';
-        return "Internal server error";
-    }
-
-    std::string content = findVal(json_body, "content");
-    std::string author = findVal(json_body, "author");
-    if (content == "Key not found" || author == "Key not found") {
-        return "Error: Could not parse quote data from API response.";
-    }
-    return "\"" + content + "\" - " + author;
+    int index = std::rand() % static_cast<int> (quotes.size());
+    return quotes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
 ChatBot getChatCmd(const std::string &command) {
@@ -210,7 +76,7 @@ ChatBot getChatCmd(const std::string &command) {
                    uppercase_cmd.begin(), ::toupper);
     static const std::unordered_map<std::string, ChatBot> commandMap = {
         {"HELLO", ChatBot::HELLO},       {"HI", ChatBot::HELLO},
-        {"WEATHER", ChatBot::WEATHER},   {"HELP", ChatBot::HELP},
+        {"JOKE", ChatBot::JOKE},         {"HELP", ChatBot::HELP},
         {"QUOTE", ChatBot::QUOTE},       {"PING", ChatBot::PING},
         {"CHANNELS", ChatBot::CHANNELS},
     };
@@ -229,71 +95,10 @@ ChatBot handleBotInput(const std::vector<std::string> &input) {
 
     const std::string &cmd = input[0];
     ChatBot action = getChatCmd(cmd);
-    if (action == ChatBot::WEATHER) {
-        if (input.size() == 1)
-            return ChatBot::WEATHER_TOO_FEW;
-        if (input.size() > 2)
-            return ChatBot::WEATHER_TOO_MANY;
-    }
 
     return (action);
 }
 
-std::string getWeatherDirectly(const std::string &location) {
-    const char *hostname = "api.weatherapi.com";
-    const char *port = "80";
-
-    const char *api_key = std::getenv("MY_API_KEY");
-    if (!api_key) {
-        return "Error: API Key not configured.";
-    }
-
-    int sockfd = getApiInfo(hostname, port);
-    if (sockfd == -1) {
-        return "Could not connect to API server.";
-    }
-
-    std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
-                            "&q=" + location + "&aqi=no";
-
-    std::stringstream request_ss;
-    request_ss << "GET " << full_path << " HTTP/1.1\r\n";
-    request_ss << "Host: " << hostname << "\r\n";
-    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
-    request_ss << "Accept: application/json, */*\r\n";
-    request_ss << "Connection: close\r\n";
-    request_ss << "\r\n";
-
-    std::string request = request_ss.str();
-    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
-    if (sent == -1) {
-        close(sockfd);
-        return "Failed to send request.";
-    }
-
-    std::string response_str = readApiResponse(sockfd);
-    size_t header_end = response_str.find("\r\n\r\n");
-    if (header_end == std::string::npos) {
-        return "Invalid HTTP response (no header end).";
-    }
-
-    std::string status_line;
-    try {
-        status_line = response_str.substr(0, response_str.find("\r\n"));
-    } catch (const std::out_of_range &e) {
-        std::cerr << "Failed to substr: " << e.what() << '\n';
-        return "Internal server error";
-    }
-
-    if (status_line.find("200 OK") == std::string::npos) {
-        if (status_line.find(" 30") != std::string::npos) {
-            return "API requires HTTPS, cannot connect via HTTP.";
-        }
-        return "API request failed (Status: " + status_line + ")";
-    }
-
-    return extractWeather(response_str);
-}
 } // namespace
 
 std::string handleBot(const std::vector<std::string> &params,
@@ -306,23 +111,17 @@ std::string handleBot(const std::vector<std::string> &params,
         case ChatBot::HELLO:
             response = "Hello " + client->getNickname() + "!";
             break;
-        case ChatBot::WEATHER:
-            response = getWeatherDirectly(input[1]);
+        case ChatBot::JOKE:
+            response = getJoke();
             break;
         case ChatBot::PING:
             response = "PONG";
-            break;
-        case ChatBot::WEATHER_TOO_FEW:
-            response = "Provide location for a weather.";
-            break;
-        case ChatBot::WEATHER_TOO_MANY:
-            response = "I can check weather only for one location at time.";
             break;
         case ChatBot::QUOTE:
             response = getQuote();
             break;
         case ChatBot::HELP:
-            response = "Supported commands: hello, weather <location>, joke, "
+            response = "Supported commands: hello, joke, "
                        "quote, ping, channels";
             break;
         case ChatBot::CHANNELS:

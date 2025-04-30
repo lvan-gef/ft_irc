@@ -170,7 +170,9 @@ std::string Server::getChannelsAndUsers() noexcept {
     for (const auto &pair : sortedChannels) {
         const std::string &channelName = pair.get().getName();
         const std::string userListStr = pair.get().getUserList();
-
+        if (userListStr.empty()) {
+            continue;
+        }
         ss << channelName << ": ";
         std::vector<std::string> users = split(userListStr, " ");
         std::vector<std::string> sortedUsers = users;
@@ -194,6 +196,7 @@ std::string Server::getChannelsAndUsers() noexcept {
 }
 
 bool Server::_init() noexcept {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
         std::cerr << "Failed to create a socket: " << strerror(errno) << '\n';

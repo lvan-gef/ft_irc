@@ -27,12 +27,12 @@ std::uint16_t getDefaultValue(Defaults rhs);
 enum class ChatBot : std::int8_t {
     CHANNELS,
     HELLO,
-    WEATHER,
+    JOKE,
     HELP,
     PING,
     QUOTE,
-    WEATHER_TOO_FEW,
-    WEATHER_TOO_MANY,
+    // WEATHER_TOO_FEW,
+    // WEATHER_TOO_MANY,
     UNKNOWN
 };
 
