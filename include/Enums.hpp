@@ -67,6 +67,7 @@ enum class IRCCommand : std::uint8_t {
     INVITE,
     MODE,
     USERHOST,
+    WHOIS,
     UNKNOW
 };
 
@@ -77,6 +78,9 @@ enum class IRCCode : std::int16_t {
     MYINFO = 4,
     ISUPPORT = 5,
     USERHOST = 302,
+	RPL_WHOISUSER = 311,
+	RPL_WHOISSERVER = 312,
+	RPL_ENDOFWHOIS = 318,
     CHANNELMODEIS = 324,
     TOPIC = 332,
     NAMREPLY = 353,

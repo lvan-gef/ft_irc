@@ -21,7 +21,7 @@ IRCCommand getCommand(const std::string &command) {
         {"QUIT", IRCCommand::QUIT},       {"PING", IRCCommand::PING},
         {"KICK", IRCCommand::KICK},       {"INVITE", IRCCommand::INVITE},
         {"MODE", IRCCommand::MODE},       {"USERHOST", IRCCommand::USERHOST},
-        {"UNKNOW", IRCCommand::UNKNOW}};
+        {"UNKNOW", IRCCommand::UNKNOW}, {"WHOIS", IRCCommand::WHOIS}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {
@@ -225,6 +225,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                 token.succes = false;
                 break;
             case IRCCommand::CAP:
+			case IRCCommand::WHOIS:
                 break;
         }
     }
