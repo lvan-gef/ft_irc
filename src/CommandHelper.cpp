@@ -30,7 +30,9 @@ void Server::_handleNickname(const IRCMessage &token,
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
         for (const std::string &channelName : client->allChannels()) {
-            auto it = _channels.find(channelName);
+            std::string cn = channelName;
+            std::transform(cn.begin(), cn.end(), cn.begin(), ::toupper);
+            auto it = _channels.find(cn);
             if (it != _channels.end()) {
                 it->second.broadcast(IRCCode::NICKCHANGED, old_id,
                                      client->getNickname());
@@ -73,8 +75,11 @@ void Server::_handlePriv(const IRCMessage &token,
     std::string bot = token.params[0];
     std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
 
+    std::string channel = token.params[0];
+    std::transform(channel.begin(), channel.end(), channel.begin(), ::toupper);
+
     if (token.params[0][0] == '#') {
-        auto channel_it = _channels.find(token.params[0]);
+        auto channel_it = _channels.find(channel);
         if (channel_it == _channels.end()) {
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
                              "");
@@ -89,6 +94,12 @@ void Server::_handlePriv(const IRCMessage &token,
                     "Hello, I am bot. I can say hello, check weather and send "
                     "PONG back, send a quote and print channels and users.");
         } else {
+            if (channel_it->second.userOnChannel(client) != true) {
+                return handleMsg(IRCCode::USERNOTINCHANNEL, client,
+                                 channel_it->second.getName(),
+                                 client->getNickname());
+            }
+
             channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
                                          ":" + token.params[1]);
         }
@@ -121,7 +132,7 @@ void Server::_handleJoin(const IRCMessage &token,
     if (channel_it == _channels.end()) {
         std::string topic =
             token.params.size() > 1 ? token.params[1] : "Default";
-        _channels.emplace(channelName, Channel(channelName, topic, client));
+        _channels.emplace(channelName, Channel(token.params[0], topic, client));
     } else {
         const std::string password =
             token.params.size() > 1 ? token.params[1] : "";
@@ -135,7 +146,8 @@ void Server::_handleJoin(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
     }
 
-    channel_it->second.setTopic("Default", client);
+    handleMsg(IRCCode::TOPIC, client,
+                  channel_it->second.getName(), channel_it->second.getTopic());
     handleMsg(IRCCode::NAMREPLY, client, channel_it->second.getName(),
               channel_it->second.getUserList());
     handleMsg(IRCCode::ENDOFNAMES, client, channel_it->second.getName(), "");
@@ -144,7 +156,10 @@ void Server::_handleJoin(const IRCMessage &token,
 
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
+    std::string channelName = token.params[0];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+
+    auto channel_it = _channels.find(channelName);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
@@ -161,7 +176,9 @@ void Server::_handleTopic(const IRCMessage &token,
 
 void Server::_handlePart(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
+    std::string channelName = token.params[0];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+    auto channel_it = _channels.find(channelName);
 
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
@@ -182,12 +199,17 @@ void Server::_handlePing(const IRCMessage &token,
 
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
+    std::string channelName = token.params[0];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+
+    auto channel_it = _channels.find(channelName);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    auto userToKick_it = _nick_to_client.find(token.params[1]);
+    std::string nickname = token.params[1];
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(), ::toupper);
+    auto userToKick_it = _nick_to_client.find(nickname);
     if (userToKick_it == _nick_to_client.end()) {
         return handleMsg(IRCCode::USERNOTINCHANNEL, client,
                          channel_it->second.getName() + " " + token.params[1],
@@ -200,12 +222,17 @@ void Server::_handleKick(const IRCMessage &token,
 
 void Server::_handleInvite(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[1]);
+    std::string channelName = token.params[1];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
+
+    auto channel_it = _channels.find(channelName);
     if (channel_it == _channels.end()) {
-        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
+        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[1], "");
     }
 
-    auto targetUser_it = _nick_to_client.find(token.params[0]);
+    std::string nickname = token.params[0];
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(), ::toupper);
+    auto targetUser_it = _nick_to_client.find(nickname);
     if (targetUser_it == _nick_to_client.end()) {
         handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
         return;
@@ -224,8 +251,10 @@ void Server::_handleInvite(const IRCMessage &token,
 
 void Server::_handleMode(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
+    std::string channelName = token.params[0];
+    std::transform(channelName.begin(), channelName.end(), channelName.begin(), ::toupper);
 
-    auto channel_it = _channels.find(token.params[0]);
+    auto channel_it = _channels.find(channelName);
     if (channel_it == _channels.end()) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }

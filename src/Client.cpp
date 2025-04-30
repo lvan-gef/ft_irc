@@ -179,11 +179,11 @@ void Client::appendMessageToQue(const std::string &msg) noexcept {
     }
 }
 
-void Client::setDisconnect() {
+void Client::setDisconnect() noexcept {
     _disconnect = true;
 }
 
-bool Client::isDisconnect() {
+bool Client::isDisconnect() const noexcept {
     return _disconnect;
 }
 

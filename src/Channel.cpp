@@ -86,7 +86,7 @@ void Channel::kickUser(const std::shared_ptr<Client> &target,
                          "Can not kick your self");
     }
 
-    if (_userOnChannel(target)) {
+    if (userOnChannel(target)) {
         broadcast(IRCCode::KICK, client->getFullID(),
                   target->getNickname() + " :" + reason);
         return removeUser(target, reason);
@@ -332,7 +332,7 @@ bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
     return false;
 }
 
-bool Channel::_userOnChannel(const std::shared_ptr<Client> &user) {
+bool Channel::userOnChannel(const std::shared_ptr<Client> &user) const noexcept {
     auto it = std::find(_users.begin(), _users.end(), user);
 
     if (it == _users.end()) {
@@ -343,7 +343,7 @@ bool Channel::_userOnChannel(const std::shared_ptr<Client> &user) {
 }
 
 bool Channel::_addUser(const std::shared_ptr<Client> &user) {
-    if (_userOnChannel(user) == true) {
+    if (userOnChannel(user) == true) {
         handleMsg(IRCCode::USERONCHANNEL, user, getName(), "");
         return false;
     }
