@@ -493,6 +493,21 @@ std::cout << "Removing client with fd: " << fd
     }
 }
 
+Channel *Server::isChannel(const std::string &channelName) noexcept {
+    std::string channelUpper = channelName;
+    std::transform(channelUpper.begin(), channelUpper.end(), channelUpper.begin(), ::toupper);
+    for (auto &it : _channels) {
+        std::string uppercaseIt = it.first;
+        std::transform(uppercaseIt.begin(), uppercaseIt.end(),
+                       uppercaseIt.begin(), ::toupper);
+        if (uppercaseIt == channelUpper) {
+            return &it.second;
+        }
+    }
+
+    return nullptr;
+}
+
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     while (client->hasCompleteMessage()) {
 
