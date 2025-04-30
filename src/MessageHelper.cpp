@@ -259,17 +259,18 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", value, " PRIVMSG ", msg));
             break;
-		case IRCCode::RPL_WHOISUSER:
-			client->appendMessageToQue(
-				formatMessage(":", serverName, " ", ircCode, msg));
-			break;
-		case IRCCode::RPL_WHOISSERVER:
-			client->appendMessageToQue(
-				formatMessage(":", serverName, " ", ircCode, " :", msg));
-			break;
-		case IRCCode::RPL_ENDOFWHOIS:
-			client->appendMessageToQue(
-				formatMessage(":", serverName, " ", ircCode, " ", msg, " :End of WHOIS list"));
-			break;
+        case IRCCode::RPL_WHOISUSER:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, msg));
+            break;
+        case IRCCode::RPL_WHOISSERVER:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " :", msg));
+            break;
+        case IRCCode::RPL_ENDOFWHOIS:
+            client->appendMessageToQue(formatMessage(":", serverName, " ",
+                                                     ircCode, " ", msg,
+                                                     " :End of WHOIS list"));
+            break;
     }
 }

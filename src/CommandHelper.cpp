@@ -49,7 +49,7 @@ void Server::_handleUsername(const IRCMessage &token,
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         client->setUsername(token.params[0]);
-		client->setRealname(token.params[3]);
+        client->setRealname(token.params[3]);
         _clientAccepted(client);
     }
 }
@@ -288,47 +288,42 @@ void Server::_handleUnkown(const IRCMessage &token,
 }
 
 void Server::_handleWhois(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) noexcept {
-	if (token.params.empty())
-		return ;	
-					 
-	std::string upperCaseNick = token.params[0];
-	std::transform(upperCaseNick.begin(), upperCaseNick.end(),
-                   upperCaseNick.begin(), ::toupper);						 
+                          const std::shared_ptr<Client> &client) noexcept {
+    if (token.params.empty())
+        return;
+
+    std::string upperCaseNick = token.params[0];
+    std::transform(upperCaseNick.begin(), upperCaseNick.end(),
+                   upperCaseNick.begin(), ::toupper);
     auto it = _nick_to_client.find(upperCaseNick);
-	std::stringstream msg;
-	std::string requester = client->getNickname();
+    std::stringstream msg;
+    std::string requester = client->getNickname();
     if (it == _nick_to_client.end()) {
         msg.str("");
-		msg.clear();
-		msg << requester << " " << token.params[0];
+        msg.clear();
+        msg << requester << " " << token.params[0];
 
-		handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
-		return ;
+        handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
+        return;
     }
 
     std::shared_ptr<Client> targetClient = it->second;
-	std::string targetNickname = targetClient->getNickname();
-	std::string targetUsername = targetClient->getUsername();
-	std::string targetIP = targetClient->getIP();
-	std::string targetRealname = targetClient->getRealname();
-	
-	msg << " " << requester << " "
-		<< targetNickname << " "
-	 	<< targetUsername << " "
-		<< targetIP << " * :"
-		<< targetRealname;
-	handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
-	
-	msg.str("");
-	msg.clear();
-	msg << " " << targetNickname << " "
-		<< serverName 
-		<< " :ft_irc";
+    std::string targetNickname = targetClient->getNickname();
+    std::string targetUsername = targetClient->getUsername();
+    std::string targetIP = targetClient->getIP();
+    std::string targetRealname = targetClient->getRealname();
+
+    msg << " " << requester << " " << targetNickname << " " << targetUsername
+        << " " << targetIP << " * :" << targetRealname;
+    handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
+
+    msg.str("");
+    msg.clear();
+    msg << " " << targetNickname << " " << serverName << " :ft_irc";
     handleMsg(IRCCode::RPL_WHOISSERVER, client, "", msg.str());
-    
-	msg.str("");
-	msg.clear();
-	msg << requester << " " << targetNickname;
+
+    msg.str("");
+    msg.clear();
+    msg << requester << " " << targetNickname;
     handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
 }
