@@ -170,7 +170,9 @@ std::string Server::getChannelsAndUsers() noexcept {
     for (const auto &pair : sortedChannels) {
         const std::string &channelName = pair.get().getName();
         const std::string userListStr = pair.get().getUserList();
-
+        if (userListStr.empty()) {
+            continue;
+        }
         ss << channelName << ": ";
         std::vector<std::string> users = split(userListStr, " ");
         std::vector<std::string> sortedUsers = users;
@@ -194,6 +196,7 @@ std::string Server::getChannelsAndUsers() noexcept {
 }
 
 bool Server::_init() noexcept {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
         std::cerr << "Failed to create a socket: " << strerror(errno) << '\n';
@@ -354,7 +357,7 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
-    std::transform(nick.begin(), nick.end(), nick.begin(), ::toupper);
+    // std::transform(nick.begin(), nick.end(), nick.begin(), ::toupper);
 
     handleMsg(IRCCode::WELCOME, client, "", "");
     handleMsg(IRCCode::YOURHOST, client, "", "");
@@ -452,20 +455,26 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 
     int fd = client->getFD();
     std::string nickname = client->getNickname();
-    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
-                   ::toupper);
+    // std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+    //                ::toupper);
 
+std::cout << "Removing client with fd: " << fd
+              << " and nickname: '" << nickname << "'\n";
     try {
         auto fd_it = _fd_to_client.find(fd);
         auto nick_it = _nick_to_client.find(nickname);
 
         if (fd_it != _fd_to_client.end() && fd_it->second == client) {
+            std::cout << "Removing client with fd: " << fd
+                      << " and nickname: '" << nickname << "'\n";
             _fd_to_client.erase(fd_it);
             epoll_ctl(_epoll_fd.get(), EPOLL_CTL_DEL, fd, nullptr);
             _connections = _fd_to_client.size();
         }
 
         if (nick_it != _nick_to_client.end() && nick_it->second == client) {
+            std::cout << "Removing client with nickname: " << nickname
+                      << '\n';
             _nick_to_client.erase(nick_it);
         }
 

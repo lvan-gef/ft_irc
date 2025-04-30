@@ -15,8 +15,13 @@ void Server::_handleNickname(const IRCMessage &token,
     std::transform(nickname.begin(), nickname.end(), nickname.begin(),
                    ::toupper);
 
-    if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
-        return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
+    for (const auto &it : _nick_to_client) {
+        std::string uppercaseIt = it.first;
+        std::transform(uppercaseIt.begin(), uppercaseIt.end(), uppercaseIt.begin(),
+                   ::toupper);                  
+        if (uppercaseIt == nickname) {
+            return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
+        }
     }
 
     bool wasRegistered = client->isRegistered();
@@ -41,7 +46,7 @@ void Server::_handleNickname(const IRCMessage &token,
         }
     }
 
-    _nick_to_client[nickname] = client;
+    _nick_to_client[client->getNickname()] = client;
     _nick_to_client.erase(old_nickname);
 }
 
