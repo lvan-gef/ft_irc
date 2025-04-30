@@ -34,11 +34,11 @@ class Client {
 
   public:
     void setUsername(const std::string &username) noexcept;
-	void setRealname(const std::string &realname) noexcept;
+    void setRealname(const std::string &realname) noexcept;
     void setNickname(const std::string &nickname) noexcept;
     const std::string &getUsername() const noexcept;
     const std::string &getNickname() const noexcept;
-	const std::string &getRealname() const noexcept;
+    const std::string &getRealname() const noexcept;
 
   public:
     void setUsernameBit() noexcept;
@@ -63,8 +63,8 @@ class Client {
     void removeMessage() noexcept;
     bool haveMessagesToSend() noexcept;
     void appendMessageToQue(const std::string &msg) noexcept;
-    void setDisconnect();
-    bool isDisconnect();
+    void setDisconnect() noexcept;
+    bool isDisconnect() const noexcept;
 
   public:
     void addChannel(const std::string &channelName) noexcept;
@@ -84,7 +84,7 @@ class Client {
     std::string _username;
     std::string _nickname;
     std::string _ip;
-	std::string _realname;
+    std::string _realname;
 
   private:
     std::string _partial_buffer;
