@@ -261,13 +261,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             break;
 		case IRCCode::RPL_WHOISUSER:
 			client->appendMessageToQue(
-				formatMessage(":", serverName, " ", ircCode, " ", msg));
+				formatMessage(":", serverName, " ", ircCode, msg));
 			break;
 		case IRCCode::RPL_WHOISSERVER:
-			client->appendMessageToQue(
-				formatMessage(":", serverName, " ", ircCode, " :", msg));
-			break;
-		case IRCCode::RPL_WHOISIDLE:
 			client->appendMessageToQue(
 				formatMessage(":", serverName, " ", ircCode, " :", msg));
 			break;

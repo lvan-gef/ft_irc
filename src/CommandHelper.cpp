@@ -317,24 +317,32 @@ void Server::_handleUnkown(const IRCMessage &token,
                      "Unknown command");
 }
 
-
 void Server::_handleWhois(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto it = _nick_to_client.find(token.params[0]);
-	(void)client;
+	if (token.params.empty())
+		return ;	
+					 
+	std::string upperCaseNick = token.params[0];
+	std::transform(upperCaseNick.begin(), upperCaseNick.end(),
+                   upperCaseNick.begin(), ::toupper);						 
+    auto it = _nick_to_client.find(upperCaseNick);
+	std::stringstream msg;
+	std::string requester = client->getNickname();
     if (it == _nick_to_client.end()) {
-        std::cerr << "Server internal error: Could not found target "
-                     "user for WHOIS"
-                  << '\n';
-        return; 
+        msg.str("");
+		msg.clear();
+		msg << requester << " " << token.params[0];
+
+		handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
+		return ;
     }
+
     std::shared_ptr<Client> targetClient = it->second;
-    std::string requester = client->getNickname();
 	std::string targetNickname = targetClient->getNickname();
 	std::string targetUsername = targetClient->getUsername();
 	std::string targetIP = targetClient->getIP();
 	std::string targetRealname = targetClient->getRealname();
-	std::stringstream msg;
+	
 	msg << " " << requester << " "
 		<< targetNickname << " "
 	 	<< targetUsername << " "
@@ -344,19 +352,13 @@ void Server::_handleWhois(const IRCMessage &token,
 	
 	msg.str("");
 	msg.clear();
-	msg << " " << requester << " "
-		<< serverName;
+	msg << " " << targetNickname << " "
+		<< serverName 
+		<< " :ft_irc";
     handleMsg(IRCCode::RPL_WHOISSERVER, client, "", msg.str());
     
 	msg.str("");
 	msg.clear();
-    handleMsg(IRCCode::RPL_WHOISIDLE, client, "", msg.str());
-    //handleMsg(IRCCode::RPL_WHOISUSER, client, targetNick,
-    //handleMsg(IRCCode::RPL_WHOISUSER, client, targetNick,
-    //          targetClient->getFullID());
-	msg.str("");
-	msg.clear();
 	msg << requester << " " << targetNickname;
-
     handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
 }
