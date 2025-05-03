@@ -271,6 +271,7 @@ void Server::_run() {
             throw ServerException();
         }
 
+        // ... inside _run loop ...
         for (int index = 0; index < nfds; ++index) {
             const auto &event = events[static_cast<size_t>(index)];
 
@@ -279,35 +280,70 @@ void Server::_run() {
             } else if (event.events & EPOLLIN) {
                 auto api_it = _api_requests.find(event.data.fd);
                 if (api_it != _api_requests.end()) {
-                    handleRecvApi(api_it->second);
-                    _api_requests.erase(api_it);
+                    // Get a reference BEFORE calling the handler
+                    ApiRequest &current_api_request = api_it->second;
+                    handleRecvApi(current_api_request); // Call the handler
+
+                    // Check if the handler marked the request as finished/error
+                    if (current_api_request.fd == -1) {
+                        // Only erase if fd is -1
+                        _api_requests.erase(api_it);
+                        std::cout << "Server::_run: Removed completed/failed API request for original fd=" << event.data.fd << std::endl;
+                    } else {
+                        // Handler returned, but fd is still valid -> waiting for more data
+                         std::cout << "Server::_run: API request for fd=" << event.data.fd << " waiting for more data." << std::endl;
+                    }
                 } else {
+                    // Not an API request, handle as regular client receive
                     _clientRecv(event.data.fd);
                 }
             } else if (event.events & EPOLLOUT) {
-                auto api_it = _api_requests.find(event.data.fd);
-                if (api_it != _api_requests.end()) {
-                    if (!handleSendApi(api_it->second, event, getEpollFD())) {
-                        _api_requests.erase(event.data.fd);
-                    }
-                } else {
-                    _clientSend(event.data.fd);
-                }
-            } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                auto it = _fd_to_client.find(event.data.fd);
-                if (it != _fd_to_client.end()) {
-                    _removeClient(it->second);
-                } else {
-                    std::cerr << "Client on fd: " << event.data.fd
-                              << " is not in the map" << '\n';
-                }
+                 auto api_it = _api_requests.find(event.data.fd);
+                 if (api_it != _api_requests.end()) {
+                     // Get a reference BEFORE calling the handler
+                     ApiRequest &current_api_request = api_it->second;
+                     if (!handleSendApi(current_api_request, event, getEpollFD())) {
+                         // handleSendApi indicated an error and set fd to -1
+                         if (current_api_request.fd == -1) {
+                             _api_requests.erase(api_it);
+                             std::cout << "Server::_run: Removed failed API request during send/connect for original fd=" << event.data.fd << std::endl;
+                         }
+                     }
+                 } else {
+                     // Not an API request, handle as regular client send
+                     _clientSend(event.data.fd);
+                 }
+            } else if (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) { // Added EPOLLERR
+                 // Check API requests first
+                 auto api_it = _api_requests.find(event.data.fd);
+                 if (api_it != _api_requests.end()) {
+                     std::cerr << "Server::_run: EPOLLERR/HUP on API socket fd=" << event.data.fd << ". Removing request." << std::endl;
+                     // Ensure socket is closed if not already
+                     if (api_it->second.fd != -1) {
+                         close(api_it->second.fd);
+                         api_it->second.fd = -1; // Mark as invalid
+                     }
+                     _api_requests.erase(api_it);
+                 } else {
+                     // Handle client disconnection/error
+                     auto it = _fd_to_client.find(event.data.fd);
+                     if (it != _fd_to_client.end()) {
+                         std::cerr << "Server::_run: EPOLLERR/HUP on client socket fd=" << event.data.fd << ". Removing client." << std::endl;
+                         _removeClient(it->second);
+                     } else {
+                         std::cerr << "Server::_run: EPOLLERR/HUP on unknown fd=" << event.data.fd << std::endl;
+                         // Just remove from epoll if it's somehow still registered
+                         epoll_ctl(_epoll_fd.get(), EPOLL_CTL_DEL, event.data.fd, nullptr);
+                     }
+                 }
             } else {
-                std::cout << "Unknow event from client: " << event.data.fd
-                          << '\n';
+                std::cout << "Unknown epoll event " << event.events << " from fd: " << event.data.fd << '\n';
             }
         }
+// ... rest of _run ...
+        }
     }
-}
+
 
 void Server::_shutdown() noexcept {
     std::cout << '\n' << "Shutting down server..." << '\n';
