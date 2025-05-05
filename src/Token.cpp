@@ -7,9 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Token.hpp"
-#include "../include/Chatbot.hpp"
 
 namespace {
 IRCCommand getCommand(const std::string &command) {
@@ -21,7 +21,7 @@ IRCCommand getCommand(const std::string &command) {
         {"QUIT", IRCCommand::QUIT},       {"PING", IRCCommand::PING},
         {"KICK", IRCCommand::KICK},       {"INVITE", IRCCommand::INVITE},
         {"MODE", IRCCommand::MODE},       {"USERHOST", IRCCommand::USERHOST},
-        {"UNKNOW", IRCCommand::UNKNOW}};
+        {"UNKNOW", IRCCommand::UNKNOW},   {"WHOIS", IRCCommand::WHOIS}};
 
     auto it = commandMap.find(command);
     if (it == commandMap.end()) {
@@ -185,10 +185,12 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
             case IRCCommand::USER:
                 isValidUsername(token);
                 break;
+            case IRCCommand::INVITE:
             case IRCCommand::KICK:
             case IRCCommand::PRIVMSG:
                 if (token.params.size() < 2) {
                     token.err.set_value(IRCCode::NEEDMOREPARAMS);
+                    token.errMsg = token.command;
                     token.succes = false;
                 }
                 break;
@@ -209,13 +211,6 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                     token.succes = false;
                 }
                 break;
-            case IRCCommand::INVITE:
-                if (token.params.size() < 3) {
-                    token.err.set_value(IRCCode::NEEDMOREPARAMS);
-                    token.errMsg = token.command;
-                    token.succes = false;
-                }
-                break;
             case IRCCommand::MODE:
                 isValidMode(token);
                 break;
@@ -225,6 +220,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                 token.succes = false;
                 break;
             case IRCCommand::CAP:
+            case IRCCommand::WHOIS:
                 break;
         }
     }

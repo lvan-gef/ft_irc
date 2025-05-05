@@ -9,7 +9,7 @@
 #include "../include/Enums.hpp"
 
 Client::Client(int fd)
-    : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"),
+    : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"), _realname(""),
       _partial_buffer(""), _messages{}, _event{}, _channels{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
@@ -19,10 +19,11 @@ Client::Client(int fd)
 Client::Client(Client &&rhs) noexcept
     : _epollNotifier(rhs._epollNotifier), _fd(std::move(rhs._fd)),
       _username(std::move(rhs._username)), _nickname(std::move(rhs._nickname)),
-      _ip(std::move(rhs._ip)), _partial_buffer(std::move(rhs._partial_buffer)),
+      _ip(std::move(rhs._ip)), _realname(std::move(rhs._realname)),
+      _partial_buffer(std::move(rhs._partial_buffer)),
       _messages(std::move(rhs._messages)), _offset(rhs._offset),
-      _event(rhs._event), _registered(rhs._registered), _disconnect(rhs._disconnect),
-      _channels(std::move(rhs._channels)) {
+      _event(rhs._event), _registered(rhs._registered),
+      _disconnect(rhs._disconnect), _channels(std::move(rhs._channels)) {
     rhs._fd = -1;
 }
 
@@ -40,6 +41,7 @@ Client &Client::operator=(Client &&rhs) noexcept {
         _disconnect = rhs._disconnect;
         _channels = std::move(rhs._channels);
         _registered = rhs._registered;
+        _realname = std::move(rhs._realname);
     }
 
     return *this;
@@ -70,6 +72,10 @@ void Client::setUsername(const std::string &username) noexcept {
     _username = username;
 }
 
+void Client::setRealname(const std::string &realname) noexcept {
+    _realname = realname;
+}
+
 void Client::setNickname(const std::string &nickname) noexcept {
     setNicknameBit();
     _nickname = nickname;
@@ -77,6 +83,10 @@ void Client::setNickname(const std::string &nickname) noexcept {
 
 const std::string &Client::getUsername() const noexcept {
     return _username;
+}
+
+const std::string &Client::getRealname() const noexcept {
+    return _realname;
 }
 
 const std::string &Client::getNickname() const noexcept {
@@ -169,11 +179,11 @@ void Client::appendMessageToQue(const std::string &msg) noexcept {
     }
 }
 
-void Client::setDisconnect() {
+void Client::setDisconnect() noexcept {
     _disconnect = true;
 }
 
-bool Client::isDisconnect() {
+bool Client::isDisconnect() const noexcept {
     return _disconnect;
 }
 

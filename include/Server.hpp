@@ -63,6 +63,7 @@ class Server : public EpollInterface {
     void _clientRecv(int fd) noexcept;
     void _clientSend(int fd) noexcept;
     void _removeClient(const std::shared_ptr<Client> &client) noexcept;
+    Channel *isChannel(const std::string &channelName) noexcept;
 
   private:
     void _processMessage(const std::shared_ptr<Client> &client) noexcept;
@@ -98,6 +99,8 @@ class Server : public EpollInterface {
                          const std::shared_ptr<Client> &client) noexcept;
     void _handleUnkown(const IRCMessage &token,
                        const std::shared_ptr<Client> &client) noexcept;
+    void _handleWhois(const IRCMessage &token,
+                      const std::shared_ptr<Client> &client) noexcept;
 
   private:
     std::uint16_t _port;

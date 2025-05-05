@@ -171,7 +171,9 @@ std::string Server::getChannelsAndUsers() noexcept {
     for (const auto &pair : sortedChannels) {
         const std::string &channelName = pair.get().getName();
         const std::string userListStr = pair.get().getUserList();
-
+        if (userListStr.empty()) {
+            continue;
+        }
         ss << channelName << ": ";
         std::vector<std::string> users = split(userListStr, " ");
         std::vector<std::string> sortedUsers = users;
@@ -203,6 +205,7 @@ void Server::addApiRequest(const ApiRequest &api) noexcept {
 }
 
 bool Server::_init() noexcept {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > _server_fd.get()) {
         std::cerr << "Failed to create a socket: " << strerror(errno) << '\n';
@@ -404,8 +407,6 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
 
     int clientFD = client->getFD();
     std::string nick = client->getNickname();
-    std::transform(nick.begin(), nick.end(), nick.begin(), ::toupper);
-
     handleMsg(IRCCode::WELCOME, client, "", "");
     handleMsg(IRCCode::YOURHOST, client, "", "");
     handleMsg(IRCCode::CREATED, client, "", _serverStared);
@@ -502,8 +503,6 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 
     int fd = client->getFD();
     std::string nickname = client->getNickname();
-    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
-                   ::toupper);
 
     try {
         auto fd_it = _fd_to_client.find(fd);
@@ -532,6 +531,21 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
         std::cerr << "Error while removing client - FD: " << fd
                   << " Nickname: '" << nickname << "' - " << e.what() << '\n';
     }
+}
+
+Channel *Server::isChannel(const std::string &channelName) noexcept {
+    std::string channelUpper = channelName;
+    std::transform(channelUpper.begin(), channelUpper.end(), channelUpper.begin(), ::toupper);
+    for (auto &it : _channels) {
+        std::string uppercaseIt = it.first;
+        std::transform(uppercaseIt.begin(), uppercaseIt.end(),
+                       uppercaseIt.begin(), ::toupper);
+        if (uppercaseIt == channelUpper) {
+            return &it.second;
+        }
+    }
+
+    return nullptr;
 }
 
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {

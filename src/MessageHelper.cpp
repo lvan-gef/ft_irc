@@ -54,7 +54,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::TOPIC:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
-                              client->getNickname(), " ", msg));
+                              client->getNickname(), " ", value, " ", msg));
             break;
         case IRCCode::NAMREPLY:
             client->appendMessageToQue(
@@ -145,7 +145,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::USERNOTINCHANNEL:
             client->appendMessageToQue(formatMessage(
                 ":", serverName, " ", ircCode, " ", client->getNickname(), " ",
-                value, msg, " :They aren't on that channel"));
+                value, " ", msg, " :They aren't on that channel"));
             break;
         case IRCCode::NOTOCHANNEL:
             client->appendMessageToQue(
@@ -258,6 +258,19 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
         case IRCCode::PRIVMSG:
             client->appendMessageToQue(
                 formatMessage(":", value, " PRIVMSG ", msg));
+            break;
+        case IRCCode::RPL_WHOISUSER:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, msg));
+            break;
+        case IRCCode::RPL_WHOISSERVER:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " :", msg));
+            break;
+        case IRCCode::RPL_ENDOFWHOIS:
+            client->appendMessageToQue(formatMessage(":", serverName, " ",
+                                                     ircCode, " ", msg,
+                                                     " :End of WHOIS list"));
             break;
     }
 }

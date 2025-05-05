@@ -15,8 +15,13 @@ void Server::_handleNickname(const IRCMessage &token,
     std::transform(nickname.begin(), nickname.end(), nickname.begin(),
                    ::toupper);
 
-    if (_nick_to_client.find(nickname) != _nick_to_client.end()) {
-        return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
+    for (const auto &it : _nick_to_client) {
+        std::string uppercaseIt = it.first;
+        std::transform(uppercaseIt.begin(), uppercaseIt.end(),
+                       uppercaseIt.begin(), ::toupper);
+        if (uppercaseIt == nickname) {
+            return handleMsg(IRCCode::NICKINUSE, client, token.params[0], "");
+        }
     }
 
     bool wasRegistered = client->isRegistered();
@@ -30,7 +35,9 @@ void Server::_handleNickname(const IRCMessage &token,
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
         for (const std::string &channelName : client->allChannels()) {
-            auto it = _channels.find(channelName);
+            std::string cn = channelName;
+            std::transform(cn.begin(), cn.end(), cn.begin(), ::toupper);
+            auto it = _channels.find(cn);
             if (it != _channels.end()) {
                 it->second.broadcast(IRCCode::NICKCHANGED, old_id,
                                      client->getNickname());
@@ -39,7 +46,7 @@ void Server::_handleNickname(const IRCMessage &token,
         }
     }
 
-    _nick_to_client[nickname] = client;
+    _nick_to_client[client->getNickname()] = client;
     _nick_to_client.erase(old_nickname);
 }
 
@@ -49,6 +56,7 @@ void Server::_handleUsername(const IRCMessage &token,
         handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         client->setUsername(token.params[0]);
+        client->setRealname(token.params[3]);
         _clientAccepted(client);
     }
 }
@@ -72,8 +80,11 @@ void Server::_handlePriv(const IRCMessage &token,
     std::string bot = token.params[0];
     std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
 
+    std::string channel = token.params[0];
+    std::transform(channel.begin(), channel.end(), channel.begin(), ::toupper);
+
     if (token.params[0][0] == '#') {
-        auto channel_it = _channels.find(token.params[0]);
+        auto channel_it = _channels.find(channel);
         if (channel_it == _channels.end()) {
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
                              "");
@@ -88,6 +99,12 @@ void Server::_handlePriv(const IRCMessage &token,
                     "Hello, I am bot. I can say hello, check weather and send "
                     "PONG back, send a quote and print channels and users.");
         } else {
+            if (channel_it->second.userOnChannel(client) != true) {
+                return handleMsg(IRCCode::USERNOTINCHANNEL, client,
+                                 channel_it->second.getName(),
+                                 client->getNickname());
+            }
+
             channel_it->second.broadcast(IRCCode::PRIVMSG, client->getFullID(),
                                          ":" + token.params[1]);
         }
@@ -113,63 +130,63 @@ void Server::_handlePriv(const IRCMessage &token,
 void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
     std::string channelName = token.params[0];
-    std::transform(channelName.begin(), channelName.end(), channelName.begin(),
-                   ::toupper);
-    auto channel_it = _channels.find(channelName);
 
-    if (channel_it == _channels.end()) {
+    Channel *channel = isChannel(channelName);
+    if (channel == nullptr) {
         std::string topic =
             token.params.size() > 1 ? token.params[1] : "Default";
-        _channels.emplace(channelName, Channel(channelName, topic, client));
+        _channels.emplace(channelName, Channel(token.params[0], topic, client));
     } else {
         const std::string password =
             token.params.size() > 1 ? token.params[1] : "";
-        if (channel_it->second.addUser(password, client) != true) {
+        if (channel->addUser(password, client) != true) {
             return;
         }
     }
 
-    channel_it = _channels.find(channelName);
-    if (channel_it == _channels.end()) {
+    channel = isChannel(channelName);
+    if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
     }
 
-    channel_it->second.setTopic("Default", client);
-    handleMsg(IRCCode::NAMREPLY, client, channel_it->second.getName(),
-              channel_it->second.getUserList());
-    handleMsg(IRCCode::ENDOFNAMES, client, channel_it->second.getName(), "");
-    client->addChannel(channel_it->second.getName());
+    handleMsg(IRCCode::TOPIC, client, channel->getName(), channel->getTopic());
+    handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
+              channel->getUserList());
+    handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
+    client->addChannel(channel->getName());
 }
 
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
-    if (channel_it == _channels.end()) {
+    std::string channelName = token.params[0];
+
+    Channel *channel = isChannel(channelName);
+    if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
     if (token.params.size() < 2) {
         handleMsg(IRCCode::TOPIC, client, "",
-                  channel_it->second.getName() + " :" +
-                      channel_it->second.getTopic());
+                  channel->getName() + " :" + channel->getTopic());
         return;
     }
 
-    channel_it->second.setTopic(token.params[1], client);
+    channel->setTopic(token.params[1], client);
 }
 
 void Server::_handlePart(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
+    std::string channelName = token.params[0];
+    Channel *channel = isChannel(channelName);
 
-    if (channel_it == _channels.end()) {
+    if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
     const std::string reason = token.params.size() > 1 ? token.params[1] : "";
-    channel_it->second.removeUser(client, reason);
-    if (channel_it->second.getActiveUsers() == 0) {
-        _channels.erase(channel_it->second.getName());
+    channel->removeUser(client, reason);
+    if (channel->getActiveUsers() == 0) {
+        _channels.erase(channel->getName());
     }
 }
 
@@ -181,59 +198,65 @@ void Server::_handlePing(const IRCMessage &token,
 
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[0]);
-    if (channel_it == _channels.end()) {
+    std::string channelName = token.params[0];
+
+    Channel *channel = isChannel(channelName);
+    if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    auto userToKick_it = _nick_to_client.find(token.params[1]);
+    std::string nickname = token.params[1];
+    auto userToKick_it = _nick_to_client.find(nickname);
     if (userToKick_it == _nick_to_client.end()) {
         return handleMsg(IRCCode::USERNOTINCHANNEL, client,
-                         channel_it->second.getName() + " " + token.params[1],
-                         "");
+                         channel->getName() + " " + token.params[1], "");
     }
 
     const std::string rsn = token.params.size() > 2 ? token.params[2] : "bye";
-    channel_it->second.kickUser(userToKick_it->second, client, rsn);
+    channel->kickUser(userToKick_it->second, client, rsn);
 }
 
 void Server::_handleInvite(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) noexcept {
-    auto channel_it = _channels.find(token.params[1]);
-    if (channel_it == _channels.end()) {
-        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
+    std::string channelName = token.params[1];
+
+    Channel *channel = isChannel(channelName);
+    if (channel == nullptr) {
+        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[1], "");
     }
 
-    auto targetUser_it = _nick_to_client.find(token.params[0]);
+    std::string nickname = token.params[0];
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                   ::toupper);
+    auto targetUser_it = _nick_to_client.find(nickname);
     if (targetUser_it == _nick_to_client.end()) {
         handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
         return;
     }
 
-    if (channel_it->second.inviteUser(targetUser_it->second, client)) {
-        handleMsg(IRCCode::TOPIC, targetUser_it->second,
-                  channel_it->second.getName(), channel_it->second.getTopic());
-        handleMsg(IRCCode::NAMREPLY, targetUser_it->second,
-                  channel_it->second.getName(),
-                  channel_it->second.getUserList());
+    if (channel->inviteUser(targetUser_it->second, client)) {
+        handleMsg(IRCCode::TOPIC, targetUser_it->second, channel->getName(),
+                  channel->getTopic());
+        handleMsg(IRCCode::NAMREPLY, targetUser_it->second, channel->getName(),
+                  channel->getUserList());
         handleMsg(IRCCode::ENDOFNAMES, targetUser_it->second,
-                  channel_it->second.getName(), "");
+                  channel->getName(), "");
     }
 }
 
 void Server::_handleMode(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
+    std::string channelName = token.params[0];
 
-    auto channel_it = _channels.find(token.params[0]);
-    if (channel_it == _channels.end()) {
+    Channel *channel = isChannel(channelName);
+    if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
     if (token.params.size() < 2) {
-        return handleMsg(IRCCode::CHANNELMODEIS, client,
-                         channel_it->second.getName(),
-                         channel_it->second.getChannelModes() +
-                             channel_it->second.getChannelModesValues());
+        return handleMsg(IRCCode::CHANNELMODEIS, client, channel->getName(),
+                         channel->getChannelModes() +
+                             channel->getChannelModesValues());
     }
 
     const bool state = true ? token.params[1][0] == '+' : false;
@@ -242,24 +265,21 @@ void Server::_handleMode(const IRCMessage &token,
 
     switch (cmd) {
         case ChannelCommand::MODE_I:
-            channel_it->second.setMode(ChannelMode::INVITE_ONLY, state, value,
-                                       client);
+            channel->setMode(ChannelMode::INVITE_ONLY, state, value, client);
             break;
         case ChannelCommand::MODE_T:
-            channel_it->second.setMode(ChannelMode::TOPIC_PROTECTED, state,
-                                       value, client);
+            channel->setMode(ChannelMode::TOPIC_PROTECTED, state, value,
+                             client);
             break;
         case ChannelCommand::MODE_K:
-            channel_it->second.setMode(ChannelMode::PASSWORD_PROTECTED, state,
-                                       value, client);
+            channel->setMode(ChannelMode::PASSWORD_PROTECTED, state, value,
+                             client);
             break;
         case ChannelCommand::MODE_O:
-            channel_it->second.setMode(ChannelMode::OPERATOR, state, value,
-                                       client);
+            channel->setMode(ChannelMode::OPERATOR, state, value, client);
             break;
         case ChannelCommand::MODE_L:
-            channel_it->second.setMode(ChannelMode::USER_LIMIT, state, value,
-                                       client);
+            channel->setMode(ChannelMode::USER_LIMIT, state, value, client);
             break;
     }
 }
@@ -284,4 +304,60 @@ void Server::_handleUnkown(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) noexcept {
     return handleMsg(IRCCode::UNKNOWNCOMMAND, client, token.command,
                      "Unknown command");
+}
+
+void Server::_handleWhois(const IRCMessage &token,
+                         const std::shared_ptr<Client> &client) noexcept {
+	if (token.params.empty())
+		return ;	
+					 
+	std::string upperCaseNick = token.params[0];
+    std::stringstream msg;
+    bool control = true;
+    std::string requester = client->getNickname();
+    std::shared_ptr<Client> targetClient = nullptr;
+	std::transform(upperCaseNick.begin(), upperCaseNick.end(),
+    upperCaseNick.begin(), ::toupper);	
+
+    for (auto const &it : _nick_to_client) {
+     std::string upperCaseIt = it.first;
+     std::transform(upperCaseIt.begin(), upperCaseIt.end(), upperCaseIt.begin(),
+                ::toupper);                  
+     if (upperCaseIt == upperCaseNick) {
+        targetClient = it.second;
+        control = false;
+         break;
+     }
+    }
+    if (control) {
+        msg.str("");
+        msg.clear();
+        msg << requester << " " << token.params[0];
+         handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
+        return ;
+    }
+
+	std::string targetNickname = targetClient->getNickname();
+	std::string targetUsername = targetClient->getUsername();
+	std::string targetIP = targetClient->getIP();
+	std::string targetRealname = targetClient->getRealname();
+	
+	msg << " " << requester << " "
+		<< targetNickname << " "
+	 	<< targetUsername << " "
+		<< targetIP << " * :"
+		<< targetRealname;
+	handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
+	
+	msg.str("");
+	msg.clear();
+	msg << " " << targetNickname << " "
+		<< serverName 
+		<< " :ft_irc";
+    handleMsg(IRCCode::RPL_WHOISSERVER, client, "", msg.str());
+
+    msg.str("");
+    msg.clear();
+    msg << requester << " " << targetNickname;
+    handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
 }
