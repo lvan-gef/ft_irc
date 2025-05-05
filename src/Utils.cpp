@@ -27,9 +27,10 @@ std::uint16_t toUint16(const std::string &str) {
 
 std::size_t toSizeT(const std::string &str) {
     char *endptr = nullptr;
+    const char *c_str = str.c_str();
     unsigned long int value = strtoul(str.c_str(), &endptr, BASE);
 
-    if (endptr == str || *endptr != '\0') {
+    if (endptr == c_str || *endptr != '\0') {
         errno = EINVAL;
         return 0;
     }
