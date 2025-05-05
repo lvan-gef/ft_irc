@@ -4,6 +4,8 @@
 #include <cstring>
 #include <string>
 
+#include <sys/epoll.h>
+
 #include "./Server.hpp"
 
 std::string handleBot(const std::vector<std::string> &params,
@@ -11,5 +13,7 @@ std::string handleBot(const std::vector<std::string> &params,
 bool isBot(const std::string &nickname);
 void botResponseNl(const std::shared_ptr<Client> &client,
                    const std::string &response);
+bool handleSendApi(ApiRequest &api, epoll_event event, int epoll_fd);
+void handleRecvApi(ApiRequest &api);
 
 #endif // !CHATBOT_HPP

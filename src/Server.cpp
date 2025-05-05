@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "../include/Chatbot.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
@@ -195,6 +196,14 @@ std::string Server::getChannelsAndUsers() noexcept {
     return ss.str();
 }
 
+int Server::getEpollFD() const noexcept {
+    return _epoll_fd.get();
+}
+
+void Server::addApiRequest(const ApiRequest &api) noexcept {
+    _api_requests[api.fd] = api;
+}
+
 bool Server::_init() noexcept {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -271,20 +280,61 @@ void Server::_run() {
             if (event.data.fd == _server_fd.get()) {
                 _newConnection();
             } else if (event.events & EPOLLIN) {
-                _clientRecv(event.data.fd);
-            } else if (event.events & EPOLLOUT) {
-                _clientSend(event.data.fd);
-            } else if (event.events & (EPOLLRDHUP | EPOLLHUP)) {
-                auto it = _fd_to_client.find(event.data.fd);
-                if (it != _fd_to_client.end()) {
-                    _removeClient(it->second);
+                auto api_it = _api_requests.find(event.data.fd);
+                if (api_it != _api_requests.end()) {
+                    ApiRequest &current_api_request = api_it->second;
+                    handleRecvApi(current_api_request);
+
+                    if (current_api_request.fd == -1) {
+                        _api_requests.erase(api_it);
+                    } else {
+                        std::cout << "Server::_run: API request for fd="
+                                  << event.data.fd << " waiting for more data."
+                                  << '\n';
+                    }
                 } else {
-                    std::cerr << "Client on fd: " << event.data.fd
-                              << " is not in the map" << '\n';
+                    _clientRecv(event.data.fd);
+                }
+            } else if (event.events & EPOLLOUT) {
+                auto api_it = _api_requests.find(event.data.fd);
+                if (api_it != _api_requests.end()) {
+                    ApiRequest &current_api_request = api_it->second;
+                    if (!handleSendApi(current_api_request, event,
+                                       getEpollFD())) {
+                        if (current_api_request.fd == -1) {
+                            _api_requests.erase(api_it);
+                        }
+                    }
+                } else {
+                    _clientSend(event.data.fd);
+                }
+            } else if (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+                auto api_it = _api_requests.find(event.data.fd);
+                if (api_it != _api_requests.end()) {
+                    std::cerr << "Server::_run: EPOLLERR/HUP on API socket fd="
+                              << event.data.fd << ". Removing request." << '\n';
+                    if (api_it->second.fd != -1) {
+                        close(api_it->second.fd);
+                        api_it->second.fd = -1;
+                    }
+                    _api_requests.erase(api_it);
+                } else {
+                    auto it = _fd_to_client.find(event.data.fd);
+                    if (it != _fd_to_client.end()) {
+                        std::cerr
+                            << "Server::_run: EPOLLERR/HUP on client socket fd="
+                            << event.data.fd << ". Removing client." << '\n';
+                        _removeClient(it->second);
+                    } else {
+                        std::cerr << "Server::_run: EPOLLERR/HUP on unknown fd="
+                                  << event.data.fd << '\n';
+                        epoll_ctl(_epoll_fd.get(), EPOLL_CTL_DEL, event.data.fd,
+                                  nullptr);
+                    }
                 }
             } else {
-                std::cout << "Unknow event from client: " << event.data.fd
-                          << '\n';
+                std::cout << "Unknown epoll event " << event.events
+                          << " from fd: " << event.data.fd << '\n';
             }
         }
     }

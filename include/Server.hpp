@@ -13,6 +13,14 @@
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
 
+struct ApiRequest {
+    int fd;
+    std::shared_ptr<Client> client;
+    std::string buffer;
+    std::string request;
+    enum State { CONNECTING, SENDING, READING } state;
+};
+
 class Server : public EpollInterface {
   public:
     explicit Server(const std::string &port, std::string &password);
@@ -40,6 +48,8 @@ class Server : public EpollInterface {
 
   public:
     std::string getChannelsAndUsers() noexcept;
+    int getEpollFD() const noexcept;
+    void addApiRequest(const ApiRequest &api) noexcept;
 
   private:
     bool _init() noexcept;
@@ -106,6 +116,7 @@ class Server : public EpollInterface {
     std::unordered_map<int, std::shared_ptr<Client>> _fd_to_client;
     std::unordered_map<std::string, std::shared_ptr<Client>> _nick_to_client;
     std::unordered_map<std::string, Channel> _channels;
+    std::unordered_map<int, ApiRequest> _api_requests;
 };
 
 #endif // !SERVER_HPP
