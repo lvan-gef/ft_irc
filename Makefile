@@ -3,11 +3,11 @@ NAME_DEBUG := $(NAME)_debug
 
 CXX := c++
 BASE_FLAGS := -std=c++11
-WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wpedantic -Wswitch-enum -g
+WARNING_FLAGS := -Wall -Wextra -Werror -Wshadow -Wconversion -Wdouble-promotion -Woverloaded-virtual -Wsign-conversion -Wpedantic -Wswitch-enum
 CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
-DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address
+DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer
 RELEASE_FLAGS := -DNDEBUG
 
 SRCDIR := src/

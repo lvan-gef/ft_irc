@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     try {
         std::string arg1 = argv[1];
         std::string arg2 = argv[2];
-        Server server(arg1, arg2);
+        Server server = Server(arg1, arg2);
 
         if (server.init() != true) {
             return 2;
