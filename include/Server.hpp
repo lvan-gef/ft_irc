@@ -13,7 +13,6 @@
 #include "./FileDescriptors.hpp"
 #include "./Token.hpp"
 
-
 struct ApiRequest {
     int fd;
     std::shared_ptr<Client> client;
@@ -21,7 +20,6 @@ struct ApiRequest {
     std::string request;
     enum State { CONNECTING, SENDING, READING } state;
 };
-
 
 class Server : public EpollInterface {
   public:
