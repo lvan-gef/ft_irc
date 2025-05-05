@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <unordered_map>
 
 #include <fcntl.h>
@@ -14,8 +15,8 @@
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
+#include "../include/Server.hpp"
 #include "../include/Utils.hpp"
-#include "Server.hpp"
 
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
@@ -132,81 +133,6 @@ int getApiInfo(const char *hostname, const char *port) {
     return sockfd;
 }
 
-std::string readApiResponse(int sockfd) {
-    char buffer[4096];
-    std::string response_str;
-    ssize_t bytes_received = 0;
-
-    struct timeval tv{};
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
-
-    while ((bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0)) > 0) {
-        buffer[bytes_received] = '\0';
-        response_str += buffer;
-    }
-
-    if (bytes_received == -1) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            close(sockfd);
-            return "Timed out receiving response from API.";
-        } else {
-            close(sockfd);
-            return "Failed to receive response from API.";
-        }
-    }
-    close(sockfd);
-
-    return response_str;
-}
-
-std::string getQuote() {
-    const char *hostname = "api.quotable.io";
-    const char *port = "80";
-
-    int sockfd = getApiInfo(hostname, port);
-    if (sockfd == -1) {
-        return ("Could not connect to API server.");
-    }
-
-    std::stringstream request_ss;
-    request_ss << "GET /quotes/random" << " HTTP/1.1\r\n";
-    request_ss << "Host: " << hostname << "\r\n";
-    request_ss << "User-Agent: ft_irc_direct_http/0.1\r\n";
-    request_ss << "Accept: application/json, */*\r\n";
-    request_ss << "Connection: close\r\n";
-    request_ss << "\r\n";
-
-    std::string request = request_ss.str();
-    ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
-    if (sent == -1) {
-        close(sockfd);
-        return ("Failed to send request.");
-    }
-
-    const std::string response_str = readApiResponse(sockfd);
-    size_t header_end = response_str.find("\r\n\r\n");
-    if (header_end == std::string::npos) {
-        return "Invalid HTTP response (no header end).";
-    }
-
-    std::string json_body;
-    try {
-        json_body = response_str.substr(header_end + 4);
-    } catch (const std::out_of_range &e) {
-        std::cerr << "Failed to substr: " << e.what() << '\n';
-        return "Internal server error";
-    }
-
-    std::string content = findVal(json_body, "content");
-    std::string author = findVal(json_body, "author");
-    if (content == "Key not found" || author == "Key not found") {
-        return "Error: Could not parse quote data from API response.";
-    }
-    return "\"" + content + "\" - " + author;
-}
-
 ChatBot getChatCmd(const std::string &command) {
     std::string uppercase_cmd = command;
 
@@ -226,10 +152,9 @@ ChatBot getChatCmd(const std::string &command) {
     std::transform(uppercase_cmd.begin(), uppercase_cmd.end(),
                    uppercase_cmd.begin(), ::toupper);
     static const std::unordered_map<std::string, ChatBot> commandMap = {
-        {"HELLO", ChatBot::HELLO},       {"HI", ChatBot::HELLO},
-        {"WEATHER", ChatBot::WEATHER},   {"HELP", ChatBot::HELP},
-        {"QUOTE", ChatBot::QUOTE},       {"PING", ChatBot::PING},
-        {"CHANNELS", ChatBot::CHANNELS},
+        {"HELLO", ChatBot::HELLO},     {"HI", ChatBot::HELLO},
+        {"WEATHER", ChatBot::WEATHER}, {"HELP", ChatBot::HELP},
+        {"PING", ChatBot::PING},       {"CHANNELS", ChatBot::CHANNELS},
     };
 
     auto it = commandMap.find(uppercase_cmd);
@@ -288,42 +213,11 @@ std::string getWeatherDirectly(const std::string &location,
     ev.data.fd = sockfd;
     epoll_ctl(server->getEpollFD(), EPOLL_CTL_ADD, sockfd, &ev);
 
-    // Store request context
     ApiRequest apiReq = {sockfd, client, "", request_ss.str(),
                          ApiRequest::CONNECTING};
     server->addApiRequest(apiReq);
 
-    return "Fetching weather..."; // Immediate ack
-
-    // std::string request = request_ss.str();
-    // ssize_t sent = send(sockfd, request.c_str(), request.length(), 0);
-    // if (sent == -1) {
-    //     close(sockfd);
-    //     return "Failed to send request.";
-    // }
-    //
-    // std::string response_str = readApiResponse(sockfd);
-    // size_t header_end = response_str.find("\r\n\r\n");
-    // if (header_end == std::string::npos) {
-    //     return "Invalid HTTP response (no header end).";
-    // }
-    //
-    // std::string status_line;
-    // try {
-    //     status_line = response_str.substr(0, response_str.find("\r\n"));
-    // } catch (const std::out_of_range &e) {
-    //     std::cerr << "Failed to substr: " << e.what() << '\n';
-    //     return "Internal server error";
-    // }
-    //
-    // if (status_line.find("200 OK") == std::string::npos) {
-    //     if (status_line.find(" 30") != std::string::npos) {
-    //         return "API requires HTTPS, cannot connect via HTTP.";
-    //     }
-    //     return "API request failed (Status: " + status_line + ")";
-    // }
-    //
-    // return extractWeather(response_str);
+    return "Fetching weather...";
 }
 } // namespace
 
@@ -348,9 +242,6 @@ std::string handleBot(const std::vector<std::string> &params,
             break;
         case ChatBot::WEATHER_TOO_MANY:
             response = "I can check weather only for one location at time.";
-            break;
-        case ChatBot::QUOTE:
-            response = getQuote();
             break;
         case ChatBot::HELP:
             response = "Supported commands: hello, weather <location>, joke, "
@@ -400,202 +291,165 @@ bool handleSendApi(ApiRequest &api, epoll_event event, int epoll_fd) {
             return false;
         }
 
-        send(event.data.fd, api.request.c_str(), api.request.size(), 0);
+        send(event.data.fd, api.request.c_str(), api.request.size(),
+             MSG_DONTWAIT | MSG_NOSIGNAL);
         api.state = ApiRequest::SENDING;
 
-        //epoll_event new_ev{};
-        //new_ev.events = EPOLLIN | EPOLLET;
-        //new_ev.data.fd = event.data.fd;
-        //epoll_ctl(epoll_fd, EPOLL_CTL_MOD, event.data.fd, &new_ev);
-		epoll_event new_ev{};
-        new_ev.events = EPOLLIN; // Just EPOLLIN (implies level-triggered)
+        epoll_event new_ev{};
+        new_ev.events = EPOLLIN;
         new_ev.data.fd = event.data.fd;
         if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, event.data.fd, &new_ev) == -1) {
-             perror("epoll_ctl mod failed in handleSendApi");
-             // Handle error: close socket, notify client, mark api.fd = -1
-             close(event.data.fd);
-             api.fd = -1;
-             botResponseNl(api.client, "Server error setting up API response listener.");
-             return false; // Indicate failure
+            perror("epoll_ctl mod failed in handleSendApi");
+            close(event.data.fd);
+            api.fd = -1;
+            botResponseNl(api.client,
+                          "Server error setting up API response listener.");
+            return false;
         }
-        std::cout << "handleSendApi: Request sent, modified epoll for EPOLLIN (LT) on fd " << event.data.fd << std::endl;
     }
 
     return true;
 }
 
-//void handleRecvApi(ApiRequest &api) {
-//    char buf[4096];
-
-//    ssize_t n = recv(api.fd, buf, sizeof(buf), 0);
-//    while (n > 0) {
-//        api.buffer.append(buf, static_cast<size_t>(n));
-//        n = recv(api.fd, buf, sizeof(buf), 0);
-//    }
-//	if (errno != EWOULDBLOCK)
-//	{
-//		//std::cout << "Would block" << std::endl;
-//		std::string response = extractWeather(api.buffer);
-//		std::cout << response << '\n';
-//		botResponseNl(api.client, response);
-//		close(api.fd);
-//	}
-//}
-
-
-// ...existing code...
-
-// REPLACE the existing handleRecvApi function with this one:
 void handleRecvApi(ApiRequest &api) {
-    char buf[4096];
+    char buf[4096] = {0};
     ssize_t n;
     bool connection_closed_by_peer = false;
 
-    // Loop to read all available data (works for LT and is necessary for ET)
     while (true) {
-        // Socket should be non-blocking (set in getApiInfo)
-        n = recv(api.fd, buf, sizeof(buf), 0);
+        n = recv(api.fd, buf, sizeof(buf), MSG_DONTWAIT);
         if (n > 0) {
-            // Append received data to the buffer
             api.buffer.append(buf, static_cast<size_t>(n));
         } else if (n == 0) {
-            // Connection closed by peer, finished reading
             connection_closed_by_peer = true;
-            std::cout << "handleRecvApi: Connection closed by peer (fd=" << api.fd << ")." << std::endl;
             break;
-        } else { // n == -1
+        } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                // No more data available to read *right now*
-                // For LT: epoll will notify again if more data arrives.
-                // For ET: We assume we've read everything for this event cycle.
-                std::cout << "handleRecvApi: recv returned EAGAIN/EWOULDBLOCK (fd=" << api.fd << ")." << std::endl;
-                break; // Exit the read loop
+                break;
             } else {
-                // An actual read error occurred
                 perror("recv error in handleRecvApi");
                 botResponseNl(api.client, "Error receiving data from API.");
-                if (api.fd != -1) close(api.fd);
-                api.fd = -1; // Mark as closed/error
-                // NOTE: The server loop MUST remove this api request from the map
-                return; // Exit the function
+                if (api.fd != -1) {
+                    close(api.fd);
+                }
+                api.fd = -1;
+                return;
             }
         }
     }
 
-    // Check if the socket is still valid (wasn't closed due to error)
-    // ... (read loop remains the same) ...
-
-    // Check if the socket is still valid (wasn't closed due to error in read loop)
     if (api.fd == -1) {
-        return; // Already handled error and closed socket
+        return;
     }
 
-    std::cout << "handleRecvApi: Finished reading loop (fd=" << api.fd << "). Total buffer length: " << api.buffer.length() << std::endl;
+    std::cout << "handleRecvApi: Finished reading loop (fd=" << api.fd
+              << "). Total buffer length: " << api.buffer.length() << '\n';
 
-    // --- Processing the accumulated buffer ---
-
-    // Find the end of the HTTP headers (\r\n\r\n)
     size_t header_end = api.buffer.find("\r\n\r\n");
     if (header_end == std::string::npos) {
-        // Headers not found yet.
         if (connection_closed_by_peer) {
-             // Connection closed before headers arrived. Error.
-             std::cerr << "handleRecvApi (fd=" << api.fd << "): Connection closed before finding headers. Buffer size: " << api.buffer.length() << std::endl;
-             botResponseNl(api.client, "Error: Incomplete response from API (connection closed).");
-             // Close and mark for removal
-             if (api.fd != -1) close(api.fd);
-             api.fd = -1;
-             // NOTE: Server loop MUST remove request
-             return;
+            std::cerr
+                << "handleRecvApi (fd=" << api.fd
+                << "): Connection closed before finding headers. Buffer size: "
+                << api.buffer.length() << '\n';
+            botResponseNl(
+                api.client,
+                "Error: Incomplete response from API (connection closed).");
+            if (api.fd != -1) {
+                close(api.fd);
+            }
+            api.fd = -1;
+            return;
         } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-             // Hit EAGAIN, but haven't found headers yet.
-             // Using LT: Just return and wait for more data.
-             std::cout << "handleRecvApi (fd=" << api.fd << "): Headers not found yet, waiting for more data (EAGAIN)." << std::endl;
-             return; // <<<<<<<<<<<< RETURN WITHOUT CLOSING
+            std::cout
+                << "handleRecvApi (fd=" << api.fd
+                << "): Headers not found yet, waiting for more data (EAGAIN)."
+                << '\n';
+            return;
         } else {
-             // Should not happen?
-             std::cerr << "handleRecvApi (fd=" << api.fd << "): Headers not found, unexpected state." << std::endl;
-             botResponseNl(api.client, "Error: Unexpected state receiving API response.");
-             if (api.fd != -1) close(api.fd);
-             api.fd = -1;
-             // NOTE: Server loop MUST remove request
-             return;
+            std::cerr << "handleRecvApi (fd=" << api.fd
+                      << "): Headers not found, unexpected state." << '\n';
+            botResponseNl(api.client,
+                          "Error: Unexpected state receiving API response.");
+            if (api.fd != -1) {
+                close(api.fd);
+            }
+            api.fd = -1;
+            return;
         }
     }
 
-    // Headers found, proceed to parse body
-    std::cout << "handleRecvApi (fd=" << api.fd << "): Found header end at position " << header_end << std::endl;
-    std::string json_body;
     try {
-        // Check HTTP status code
         std::string status_line = api.buffer.substr(0, api.buffer.find("\r\n"));
         if (status_line.find("200 OK") == std::string::npos) {
-             std::cerr << "handleRecvApi (fd=" << api.fd << "): API request failed. Status: " << status_line << std::endl;
-             botResponseNl(api.client, "API request failed. Status: " + status_line);
-             // Close and mark for removal as the request failed
-             if (api.fd != -1) close(api.fd);
-             api.fd = -1;
-             // NOTE: Server loop MUST remove request
-             return;
+            std::cerr << "handleRecvApi (fd=" << api.fd
+                      << "): API request failed. Status: " << status_line
+                      << '\n';
+            botResponseNl(api.client,
+                          "API request failed. Status: " + status_line);
+            if (api.fd != -1) {
+                close(api.fd);
+            }
+            api.fd = -1;
+            return;
         }
 
-        // Status is OK, try to extract body
-        json_body = api.buffer.substr(header_end + 4); // +4 for \r\n\r\n
-        std::cout << "handleRecvApi (fd=" << api.fd << "): Extracted potential JSON body length: " << json_body.length() << std::endl;
+        std::string json_body = api.buffer.substr(header_end + 4);
+        std::cout << "handleRecvApi (fd=" << api.fd
+                  << "): Extracted potential JSON body length: "
+                  << json_body.length() << '\n';
 
         if (json_body.empty()) {
-            // Body is empty.
             if (connection_closed_by_peer) {
-                 // Connection closed and body is empty. Might be valid (e.g., 204) or error.
-                 std::cerr << "handleRecvApi (fd=" << api.fd << "): API response body is empty after headers (connection closed)." << std::endl;
-                 botResponseNl(api.client, "Error: Received empty response body from API.");
-                 // Close and mark for removal
-                 if (api.fd != -1) close(api.fd);
-                 api.fd = -1;
-                 // NOTE: Server loop MUST remove request
-                 return;
+                std::cerr << "handleRecvApi (fd=" << api.fd
+                          << "): API response body is empty after headers "
+                             "(connection closed)."
+                          << '\n';
+                botResponseNl(api.client,
+                              "Error: Received empty response body from API.");
+                if (api.fd != -1) {
+                    close(api.fd);
+                }
+                api.fd = -1;
+                return;
             } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                 // Hit EAGAIN, body is empty. Headers are present.
-                 // Using LT: Just return and wait for body data.
-                 std::cout << "handleRecvApi (fd=" << api.fd << "): Body not found yet, waiting for more data (EAGAIN)." << std::endl;
-                 return; // <<<<<<<<<<<< RETURN WITHOUT CLOSING
+                return;
             } else {
-                 // Unknown reason for empty body
-                 std::cerr << "handleRecvApi (fd=" << api.fd << "): API response body is empty (unknown reason)." << std::endl;
-                 botResponseNl(api.client, "Error: Received empty response body from API.");
-                 if (api.fd != -1) close(api.fd);
-                 api.fd = -1;
-                 // NOTE: Server loop MUST remove request
-                 return;
+                std::cerr << "handleRecvApi (fd=" << api.fd
+                          << "): API response body is empty (unknown reason)."
+                          << '\n';
+                botResponseNl(api.client,
+                              "Error: Received empty response body from API.");
+                if (api.fd != -1) {
+                    close(api.fd);
+                }
+                api.fd = -1;
+                return;
             }
         } else {
-            // Body has content, parse it
-            std::string response = extractWeather(json_body); // Pass ONLY the body
-            std::cout << "Parsed API RESPONSE (fd=" << api.fd << "): " << response << '\n';
+            std::string response = extractWeather(json_body);
             botResponseNl(api.client, response);
-            // Request successful and processed, close and mark for removal
-            if (api.fd != -1) close(api.fd);
+            if (api.fd != -1) {
+                close(api.fd);
+            }
             api.fd = -1;
-            // NOTE: Server loop MUST remove request
             return;
         }
     } catch (const std::out_of_range &e) {
-         std::cerr << "handleRecvApi (fd=" << api.fd << "): Failed to extract/parse API response parts: " << e.what() << '\n';
-         botResponseNl(api.client, "Error processing API response structure.");
-    } catch (const std::exception& e) { // Catch other potential errors
-         std::cerr << "handleRecvApi (fd=" << api.fd << "): Error processing API response: " << e.what() << '\n';
-         botResponseNl(api.client, "Error processing API response.");
+        std::cerr << "handleRecvApi (fd=" << api.fd
+                  << "): Failed to extract/parse API response parts: "
+                  << e.what() << '\n';
+        botResponseNl(api.client, "Error processing API response structure.");
+    } catch (const std::exception &e) {
+        std::cerr << "handleRecvApi (fd=" << api.fd
+                  << "): Error processing API response: " << e.what() << '\n';
+        botResponseNl(api.client, "Error processing API response.");
     }
 
-    // If we reach here due to an exception or logic error before returning, ensure cleanup
     if (api.fd != -1) {
-        std::cout << "handleRecvApi: Closing API socket fd " << api.fd << " (reached end of function unexpectedly)" << std::endl;
+        std::cout << "handleRecvApi: Closing API socket fd " << api.fd
+                  << " (reached end of function unexpectedly)" << '\n';
         close(api.fd);
-        api.fd = -1; // Mark as closed
+        api.fd = -1;
     }
-    // NOTE: The server loop MUST remove this api request from the _api_requests map
-    //       because api.fd is now -1.
 }
-
-
-// ...existing code...
