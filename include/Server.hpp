@@ -49,7 +49,7 @@ class Server : public EpollInterface {
   public:
     std::string getChannelsAndUsers() noexcept;
     int getEpollFD() const noexcept;
-    void addApiRequest(const ApiRequest &api) noexcept;
+    void addApiRequest(ApiRequest &api) noexcept;
 
   private:
     bool _init() noexcept;

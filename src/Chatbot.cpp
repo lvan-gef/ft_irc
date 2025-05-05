@@ -19,6 +19,9 @@
 #include "../include/Utils.hpp"
 
 namespace {
+std::string findVal(const std::string &json, const std::string &key) {
+    std::string key_to_find = "\"" + key + "\":";
+    size_t key_pos = json.find(key_to_find);
 
     if (key_pos == std::string::npos) {
         return "Key not found";
@@ -128,45 +131,60 @@ int getApiInfo(const char *hostname, const char *port) {
     }
 
     return sockfd;
-std::string getJoke()
-{
+}
+
+std::string getJoke() {
     static const std::vector<std::string> jokes = {
-        "Why did the scarecrow win an award? Because he was outstanding in his field!",
-        "Algorithm: A word used by programmers when they don't want to explain how their code works.",
-        "Debugging is like being the detective in a crime movie where you're also the murderer at the same time.",
-        "The six stages of debugging:\n1. That can't happen.\n2. That doesn't happen on my machine.\n3." \
-        " That shouldn't happen.\n4. Why does that happen?\n5. Oh, I see.\n6. How did that ever work?",
+        "Why did the scarecrow win an award? Because he was outstanding in his "
+        "field!",
+        "Algorithm: A word used by programmers when they don't want to explain "
+        "how their code works.",
+        "Debugging is like being the detective in a crime movie where you're "
+        "also the murderer at the same time.",
+        "The six stages of debugging:\n1. That can't happen.\n2. That doesn't "
+        "happen on my machine.\n3."
+        " That shouldn't happen.\n4. Why does that happen?\n5. Oh, I see.\n6. "
+        "How did that ever work?",
         "My husband and I were happy for 20 years. And then we met.",
         "What kind of doctor is Dr. Pepper?, \nHe's a fizzician.",
         "Why did the coffee file a police report? \nIt got mugged.",
         "What do you call a fish wearing a bowtie? \nSofishticated.",
-        "I told my suitcase we're not going on vacation — now it's dealing with emotional baggage."        
-    };
-    
-    
-    int index = std::rand() % static_cast<int> (jokes.size());
+        "I told my suitcase we're not going on vacation — now it's dealing "
+        "with emotional baggage."};
+
+    int index = std::rand() % static_cast<int>(jokes.size());
     return jokes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
 std::string getQuote() {
 
-    static const std::vector<std::string> quotes ={
+    static const std::vector<std::string> quotes = {
         "\"Your friend is your needs answered.\" - Kahlil Gibran",
-        "\"How is it possible to find meaning in a finite world, given my waist and shirt size?\" - Woody Allen",
-        "\"A true friend freely, advises justly, assists readily, adventures boldly, takes all patiently," \
-        " defends courageously, and continues a friend unchangeably.\" - William C. Menninger",
+        "\"How is it possible to find meaning in a finite world, given my "
+        "waist and shirt size?\" - Woody Allen",
+        "\"A true friend freely, advises justly, assists readily, adventures "
+        "boldly, takes all patiently,"
+        " defends courageously, and continues a friend unchangeably.\" - "
+        "William C. Menninger",
         "\"Imagination is the highest kite one can fly.\" - Lauren Bacall",
-        "\"The personal life deeply lived always expands into truths beyond itself.\" - Anaïs Nin",
-        "\"Without leaps of imagination, or dreaming, we lose the excitement of possibilities. Dreaming, after all, is a form of planning.\" - Gloria Steinem",
-        "\"The greatest glory in living lies not in never falling, but in rising every time we fall.\" - Nelson Mandela",
-        "\"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
-        "\"The only limit to our realization of tomorrow will be our doubts of today.\" - Franklin D. Roosevelt",
-        "\"The best way to predict the future is to create it.\" - Peter Drucker",
-        "\"In the end, we will remember not the words of our enemies, but the silence of our friends.\" - Martin Luther King Jr.",
-        "\"Either I will find a way, or I will make one.\" - Philip Sidney"
-    };
+        "\"The personal life deeply lived always expands into truths beyond "
+        "itself.\" - Anaïs Nin",
+        "\"Without leaps of imagination, or dreaming, we lose the excitement "
+        "of possibilities. Dreaming, after all, is a form of planning.\" - "
+        "Gloria Steinem",
+        "\"The greatest glory in living lies not in never falling, but in "
+        "rising every time we fall.\" - Nelson Mandela",
+        "\"The future belongs to those who believe in the beauty of their "
+        "dreams.\" - Eleanor Roosevelt",
+        "\"The only limit to our realization of tomorrow will be our doubts of "
+        "today.\" - Franklin D. Roosevelt",
+        "\"The best way to predict the future is to create it.\" - Peter "
+        "Drucker",
+        "\"In the end, we will remember not the words of our enemies, but the "
+        "silence of our friends.\" - Martin Luther King Jr.",
+        "\"Either I will find a way, or I will make one.\" - Philip Sidney"};
 
-    int index = std::rand() % static_cast<int> (quotes.size());
+    int index = std::rand() % static_cast<int>(quotes.size());
     return quotes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
@@ -192,8 +210,7 @@ ChatBot getChatCmd(const std::string &command) {
         {"HELLO", ChatBot::HELLO},       {"HI", ChatBot::HELLO},
         {"JOKE", ChatBot::JOKE},         {"HELP", ChatBot::HELP},
         {"QUOTE", ChatBot::QUOTE},       {"PING", ChatBot::PING},
-        {"CHANNELS", ChatBot::CHANNELS},
-    };
+        {"CHANNELS", ChatBot::CHANNELS}, {"WEATHER", ChatBot::WEATHER}};
 
     auto it = commandMap.find(uppercase_cmd);
     if (it == commandMap.end()) {
@@ -209,8 +226,14 @@ ChatBot handleBotInput(const std::vector<std::string> &input) {
 
     const std::string &cmd = input[0];
     ChatBot action = getChatCmd(cmd);
+    if (action == ChatBot::WEATHER) {
+        if (input.size() == 1)
+            return ChatBot::WEATHER_TOO_FEW;
+        if (input.size() > 2)
+            return ChatBot::WEATHER_TOO_MANY;
+    }
 
-    return (action);
+    return action;
 }
 std::string getWeatherDirectly(const std::string &location,
                                const std::shared_ptr<Client> &client,
@@ -264,6 +287,7 @@ std::string handleBot(const std::vector<std::string> &params,
             break;
         case ChatBot::WEATHER:
             response = getWeatherDirectly(input[1], client, server);
+            break;
         case ChatBot::JOKE:
             response = getJoke();
             break;
@@ -275,11 +299,12 @@ std::string handleBot(const std::vector<std::string> &params,
             break;
         case ChatBot::WEATHER_TOO_MANY:
             response = "I can check weather only for one location at time.";
+            break;
         case ChatBot::QUOTE:
             response = getQuote();
             break;
         case ChatBot::HELP:
-            response = "Supported commands: hello, joke, "
+            response = "Supported commands: hello, weather, joke, "
                        "quote, ping, channels";
             break;
         case ChatBot::CHANNELS:
@@ -377,9 +402,6 @@ void handleRecvApi(ApiRequest &api) {
         return;
     }
 
-    std::cout << "handleRecvApi: Finished reading loop (fd=" << api.fd
-              << "). Total buffer length: " << api.buffer.length() << '\n';
-
     size_t header_end = api.buffer.find("\r\n\r\n");
     if (header_end == std::string::npos) {
         if (connection_closed_by_peer) {
@@ -396,10 +418,6 @@ void handleRecvApi(ApiRequest &api) {
             api.fd = -1;
             return;
         } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            std::cout
-                << "handleRecvApi (fd=" << api.fd
-                << "): Headers not found yet, waiting for more data (EAGAIN)."
-                << '\n';
             return;
         } else {
             std::cerr << "handleRecvApi (fd=" << api.fd
@@ -430,9 +448,6 @@ void handleRecvApi(ApiRequest &api) {
         }
 
         std::string json_body = api.buffer.substr(header_end + 4);
-        std::cout << "handleRecvApi (fd=" << api.fd
-                  << "): Extracted potential JSON body length: "
-                  << json_body.length() << '\n';
 
         if (json_body.empty()) {
             if (connection_closed_by_peer) {
@@ -482,7 +497,7 @@ void handleRecvApi(ApiRequest &api) {
     }
 
     if (api.fd != -1) {
-        std::cout << "handleRecvApi: Closing API socket fd " << api.fd
+        std::cerr << "handleRecvApi: Closing API socket fd " << api.fd
                   << " (reached end of function unexpectedly)" << '\n';
         close(api.fd);
         api.fd = -1;
