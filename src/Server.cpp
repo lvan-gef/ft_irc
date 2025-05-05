@@ -198,7 +198,7 @@ int Server::getEpollFD() const noexcept {
     return _epoll_fd.get();
 }
 
-void Server::addApiRequest(ApiRequest &api) {
+void Server::addApiRequest(const ApiRequest &api) {
     _api_requests[api.fd] = api;
 }
 
