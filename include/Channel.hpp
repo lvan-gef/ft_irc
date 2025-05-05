@@ -69,7 +69,6 @@ class Channel {
     bool _hasInvite() const noexcept;
     bool _hasTopic() const noexcept;
 
-
   private:
     bool _addUser(const std::shared_ptr<Client> &user);
 

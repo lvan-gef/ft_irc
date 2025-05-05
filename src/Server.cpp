@@ -535,7 +535,8 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
 
 Channel *Server::isChannel(const std::string &channelName) noexcept {
     std::string channelUpper = channelName;
-    std::transform(channelUpper.begin(), channelUpper.end(), channelUpper.begin(), ::toupper);
+    std::transform(channelUpper.begin(), channelUpper.end(),
+                   channelUpper.begin(), ::toupper);
     for (auto &it : _channels) {
         std::string uppercaseIt = it.first;
         std::transform(uppercaseIt.begin(), uppercaseIt.end(),

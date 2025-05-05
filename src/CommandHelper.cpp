@@ -99,12 +99,11 @@ void Server::_handlePriv(const IRCMessage &token,
         } else {
             if (channel->userOnChannel(client) != true) {
                 return handleMsg(IRCCode::USERNOTINCHANNEL, client,
-                                 channel->getName(),
-                                 client->getNickname());
+                                 channel->getName(), client->getNickname());
             }
 
             channel->broadcast(IRCCode::PRIVMSG, client->getFullID(),
-                                         ":" + token.params[1]);
+                               ":" + token.params[1]);
         }
     } else if (bot == "BOT") {
         std::string response = handleBot(token.params, client, this);
@@ -305,53 +304,48 @@ void Server::_handleUnkown(const IRCMessage &token,
 }
 
 void Server::_handleWhois(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) noexcept {
-	if (token.params.empty())
-		return ;
+                          const std::shared_ptr<Client> &client) noexcept {
+    if (token.params.empty())
+        return;
 
-	std::string upperCaseNick = token.params[0];
+    std::string upperCaseNick = token.params[0];
     std::stringstream msg;
     bool control = true;
     std::string requester = client->getNickname();
     std::shared_ptr<Client> targetClient = nullptr;
-	std::transform(upperCaseNick.begin(), upperCaseNick.end(),
-    upperCaseNick.begin(), ::toupper);
+    std::transform(upperCaseNick.begin(), upperCaseNick.end(),
+                   upperCaseNick.begin(), ::toupper);
 
     for (auto const &it : _nick_to_client) {
-     std::string upperCaseIt = it.first;
-     std::transform(upperCaseIt.begin(), upperCaseIt.end(), upperCaseIt.begin(),
-                ::toupper);
-     if (upperCaseIt == upperCaseNick) {
-        targetClient = it.second;
-        control = false;
-         break;
-     }
+        std::string upperCaseIt = it.first;
+        std::transform(upperCaseIt.begin(), upperCaseIt.end(),
+                       upperCaseIt.begin(), ::toupper);
+        if (upperCaseIt == upperCaseNick) {
+            targetClient = it.second;
+            control = false;
+            break;
+        }
     }
     if (control) {
         msg.str("");
         msg.clear();
         msg << requester << " " << token.params[0];
-         handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
-        return ;
+        handleMsg(IRCCode::RPL_ENDOFWHOIS, client, "", msg.str());
+        return;
     }
 
-	std::string targetNickname = targetClient->getNickname();
-	std::string targetUsername = targetClient->getUsername();
-	std::string targetIP = targetClient->getIP();
-	std::string targetRealname = targetClient->getRealname();
+    std::string targetNickname = targetClient->getNickname();
+    std::string targetUsername = targetClient->getUsername();
+    std::string targetIP = targetClient->getIP();
+    std::string targetRealname = targetClient->getRealname();
 
-	msg << " " << requester << " "
-		<< targetNickname << " "
-	 	<< targetUsername << " "
-		<< targetIP << " * :"
-		<< targetRealname;
-	handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
+    msg << " " << requester << " " << targetNickname << " " << targetUsername
+        << " " << targetIP << " * :" << targetRealname;
+    handleMsg(IRCCode::RPL_WHOISUSER, client, "", msg.str());
 
-	msg.str("");
-	msg.clear();
-	msg << " " << targetNickname << " "
-		<< serverName
-		<< " :ft_irc";
+    msg.str("");
+    msg.clear();
+    msg << " " << targetNickname << " " << serverName << " :ft_irc";
     handleMsg(IRCCode::RPL_WHOISSERVER, client, "", msg.str());
 
     msg.str("");

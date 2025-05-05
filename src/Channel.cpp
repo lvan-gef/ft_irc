@@ -332,7 +332,8 @@ bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
     return false;
 }
 
-bool Channel::userOnChannel(const std::shared_ptr<Client> &user) const noexcept {
+bool Channel::userOnChannel(
+    const std::shared_ptr<Client> &user) const noexcept {
     auto it = std::find(_users.begin(), _users.end(), user);
 
     if (it == _users.end()) {
