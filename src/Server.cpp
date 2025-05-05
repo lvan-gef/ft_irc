@@ -53,11 +53,20 @@ Server::Server(const std::string &port, std::string &password)
 
     auto now = std::chrono::system_clock::now();
     std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm *utc_time = std::gmtime(&now_time);
-    std::ostringstream oss;
+    std::tm utc_time = {};
 
-    oss << std::put_time(utc_time, "%a %b %d %Y at %H:%M:%S UTC");
-    _serverStared = oss.str();
+    std::memset(&utc_time, 0, sizeof(std::tm));
+    if (gmtime_r(&now_time, &utc_time) == nullptr) {
+        throw std::runtime_error("Failed to convert time to UTC");
+    }
+
+    char buffer[80];
+    if (strftime(buffer, sizeof(buffer), "%a %b %d %Y at %H:%M:%S UTC",
+                 &utc_time) == 0) {
+        throw std::runtime_error("Time formatting failed");
+    }
+
+    _serverStared = buffer;
 }
 
 Server::Server(Server &&rhs) noexcept
