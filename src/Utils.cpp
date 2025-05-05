@@ -53,7 +53,12 @@ std::vector<std::string> split(const std::string &s,
         prev = pos + delimiter.length();
     }
 
-    lines.push_back(s.substr(prev));
+    try {
+        lines.push_back(s.substr(prev));
+    } catch (const std::out_of_range &e) {
+        std::cerr << "Failed to split: " << e.what() << '\n';
+        return std::vector<std::string>{};
+    }
 
     return lines;
 }
