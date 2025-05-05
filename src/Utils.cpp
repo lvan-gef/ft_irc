@@ -8,34 +8,48 @@
 #include "../include/Utils.hpp"
 
 std::uint16_t toUint16(const std::string &str) {
-    char *endptr = nullptr;
-    const char *c_str = str.c_str();
-    unsigned long int value = strtoul(str.c_str(), &endptr, BASE);
+    try {
+        size_t pos = 0;
+        unsigned long value = std::stoul(str, &pos, BASE);
 
-    if (endptr == c_str || *endptr != '\0') {
-        errno = EINVAL;
-        return 0;
-    } else {
+        if (pos != str.size()) {
+            errno = EINVAL;
+            return 0;
+        }
+
         if (value > UINT16_MAX) {
             errno = ERANGE;
             return 0;
         }
-    }
 
-    return static_cast<uint16_t>(value);
+        return static_cast<uint16_t>(value);
+    } catch (const std::invalid_argument&) {
+        errno = EINVAL;
+        return 0;
+    } catch (const std::out_of_range&) {
+        errno = ERANGE;
+        return 0;
+    }
 }
 
 std::size_t toSizeT(const std::string &str) {
-    char *endptr = nullptr;
-    const char *c_str = str.c_str();
-    unsigned long int value = strtoul(str.c_str(), &endptr, BASE);
+    try {
+        size_t pos = 0;
+        unsigned long value = std::stoul(str, &pos, BASE);
 
-    if (endptr == c_str || *endptr != '\0') {
+        if (pos != str.size()) {
+            errno = EINVAL;
+            return 0;
+        }
+
+        return static_cast<size_t>(value);
+    } catch (const std::invalid_argument&) {
         errno = EINVAL;
         return 0;
+    } catch (const std::out_of_range&) {
+        errno = ERANGE;
+        return 0;
     }
-
-    return static_cast<size_t>(value);
 }
 
 std::vector<std::string> split(const std::string &s,
