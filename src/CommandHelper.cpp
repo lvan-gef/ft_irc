@@ -146,9 +146,11 @@ void Server::_handleJoin(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
     }
 
-    if (channel->hasInvite() && channel->isInvited(client) != true) {
-        handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(), "");
-        return;
+    if (channel->hasInvite()) {
+        if (channel->isInvited(client) != true) {
+            handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(), "");
+            return;
+        }
     }
 
     handleMsg(IRCCode::TOPIC, client, channel->getName(), channel->getTopic());
@@ -212,7 +214,6 @@ void Server::_handleKick(const IRCMessage &token,
 
     std::string nickname = token.params[1];
 
-
     std::transform(nickname.begin(), nickname.end(), nickname.begin(),
                    ::toupper);
 
@@ -256,7 +257,6 @@ void Server::_handleInvite(const IRCMessage &token,
             targetClient = it.second;
             break;
         }
-        
     }
     if (targetClient == nullptr) {
         return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
@@ -267,8 +267,7 @@ void Server::_handleInvite(const IRCMessage &token,
                   channel->getTopic());
         handleMsg(IRCCode::NAMREPLY, targetClient, channel->getName(),
                   channel->getUserList());
-        handleMsg(IRCCode::ENDOFNAMES, targetClient,
-                  channel->getName(), "");
+        handleMsg(IRCCode::ENDOFNAMES, targetClient, channel->getName(), "");
     }
 }
 
@@ -322,18 +321,18 @@ void Server::_handleUserhost(const IRCMessage &token,
     for (auto const &it : _nick_to_client) {
         std::string upperCaseIt = it.second->getNickname();
         std::transform(upperCaseIt.begin(), upperCaseIt.end(),
-        upperCaseIt.begin(), ::toupper);
+                       upperCaseIt.begin(), ::toupper);
         if (upperCaseIt == uppercaseName) {
             targetClient = it.second;
             break;
         }
     }
-    
+
     if (targetClient == nullptr) {
         std::cerr << "Server internal error: Could not found target "
                      "user for USERHOST"
                   << '\n';
-        return;    
+        return;
     }
 
     std::string targetNick = targetClient->getNickname();

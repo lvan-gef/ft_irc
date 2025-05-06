@@ -20,7 +20,7 @@ Channel::Channel(Channel &&rhs) noexcept
     : _name(std::move(rhs._name)), _topic(std::move(rhs._topic)),
       _password(std::move(rhs._password)), _userLimit(rhs._userLimit),
       _modes(rhs._modes), _users(std::move(rhs._users)),
-      _operators(std::move(rhs._operators)) {
+      _operators(std::move(rhs._operators)), _invites(std::move(rhs._invites)) {
 }
 
 Channel &Channel::operator=(Channel &&rhs) noexcept {
@@ -32,6 +32,7 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
         _modes = rhs._modes;
         _users = std::move(rhs._users);
         _operators = std::move(rhs._operators);
+        _invites = std::move(rhs._invites);
     }
 
     return *this;
@@ -40,9 +41,11 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
 bool Channel::addUser(const std::string &password,
                       const std::shared_ptr<Client> &user) {
 
-    if (hasInvite() == true && !isInvited(user)) {
-        handleMsg(IRCCode::INVITEONLYCHAN, user, getName(), "");
-        return false;
+    if (hasInvite() == true) {
+        if (isInvited(user) != true) {
+            handleMsg(IRCCode::INVITEONLYCHAN, user, getName(), "");
+            return false;
+        }
     }
 
     if (_hasPassword() == true) {
