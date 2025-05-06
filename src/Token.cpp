@@ -143,7 +143,6 @@ void isValidTopic(IRCMessage &msg) {
 
 void isValidMode(IRCMessage &msg) {
     std::cout << "MODE PARAM SIZE: " << msg.params.size() << '\n';
-    msg.debug();
     if (msg.params.size() == 1) {
         return;
     }
