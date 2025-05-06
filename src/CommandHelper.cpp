@@ -115,12 +115,19 @@ void Server::_handlePriv(const IRCMessage &token,
                       client->getNickname() + " :" + response);
         }
     } else {
-        auto nick_it = _nick_to_client.find(token.params[0]);
-        if (nick_it == _nick_to_client.end()) {
-            return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
+        std::string nickname = token.params[0];
+        std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                       ::toupper);
+        for (auto const &it : _nick_to_client) {
+            std::string upperCaseIt = it.second->getNickname();
+            std::transform(upperCaseIt.begin(), upperCaseIt.end(),
+                           upperCaseIt.begin(), ::toupper);
+            if (upperCaseIt == nickname) {
+                return handleMsg(IRCCode::PRIVMSG, it.second, client->getFullID(),
+                          client->getNickname() + " :" + token.params[1]);
+            }
         }
-        handleMsg(IRCCode::PRIVMSG, nick_it->second, client->getFullID(),
-                  client->getNickname() + " :" + token.params[1]);
+        return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
     }
 }
 
