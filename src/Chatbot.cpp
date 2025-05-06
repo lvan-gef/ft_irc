@@ -449,7 +449,7 @@ void handleRecvApi(ApiRequest &api) {
 
         std::string json_body = {};
         try {
-        json_body = api.buffer.substr(header_end + 4);
+            json_body = api.buffer.substr(header_end + 4);
         } catch (const std::out_of_range &e) {
             std::cerr << "Failed to substr: " << e.what() << '\n';
             close(api.fd);

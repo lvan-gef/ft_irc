@@ -23,10 +23,10 @@ std::uint16_t toUint16(const std::string &str) {
         }
 
         return static_cast<uint16_t>(value);
-    } catch (const std::invalid_argument&) {
+    } catch (const std::invalid_argument &) {
         errno = EINVAL;
         return 0;
-    } catch (const std::out_of_range&) {
+    } catch (const std::out_of_range &) {
         errno = ERANGE;
         return 0;
     }
@@ -43,10 +43,10 @@ std::size_t toSizeT(const std::string &str) {
         }
 
         return static_cast<size_t>(value);
-    } catch (const std::invalid_argument&) {
+    } catch (const std::invalid_argument &) {
         errno = EINVAL;
         return 0;
-    } catch (const std::out_of_range&) {
+    } catch (const std::out_of_range &) {
         errno = ERANGE;
         return 0;
     }
