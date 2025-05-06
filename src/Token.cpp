@@ -118,6 +118,10 @@ void isValidJoin(IRCMessage &msg) {
         msg.succes = false;
         return;
     }
+
+    std::vector<std::string> channels = split(msg.params[0], ",");
+    msg.params.clear();
+    msg.params = channels;
 }
 
 void isValidTopic(IRCMessage &msg) {
