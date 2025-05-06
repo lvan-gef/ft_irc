@@ -260,7 +260,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    std::cout << "Server is running on: " << static_cast<unsigned int>(_port) << ". Press Ctrl+C to stop."
+    std::cout << "Server is running on: " << _port << ". Press Ctrl+C to stop."
               << '\n';
     return true;
 }
