@@ -4,4 +4,4 @@ When send invited put it in the invited list, when channel is invite only check 
 when username is more then 9 char's it send the wrong message back
 USER we need to check if we have 4 parameters {USERNAME 0 *:REALNAME}  if realname is not send then then it send 'realname' otherwise send back NOTENEOUGHPARA
 everywhere we look for nickname we need to remove toupper or make function out of it
-
+check if we have func for setUsername and what the command for it is
