@@ -150,6 +150,7 @@ std::string Client::getAndClearBuffer() noexcept {
             _partial_buffer.erase(0, index + 2);
         } catch (const std::out_of_range &e) {
             std::cerr << "Failed to substr or erase: " << e.what() << '\n';
+            return "";
         }
     }
 
