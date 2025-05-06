@@ -80,7 +80,7 @@ void isValidNick(IRCMessage &msg) {
 }
 
 void isValidUsername(IRCMessage &msg) {
-    if (msg.params.size() < 1) {
+    if (msg.params.size() < 4) {
         msg.err.set_value(IRCCode::NEEDMOREPARAMS);
         msg.errMsg = msg.command;
         msg.succes = false;
