@@ -84,6 +84,7 @@ enum class IRCCode : std::int16_t {
     RPL_ENDOFWHOIS = 318,
     CHANNELMODEIS = 324,
     TOPIC = 332,
+    INVITING = 341,
     NAMREPLY = 353,
     ENDOFNAMES = 366,
     MOTD = 372,
@@ -97,7 +98,6 @@ enum class IRCCode : std::int16_t {
     NOTEXTTOSEND = 412,
     INPUTTOOLONG = 417,
     UNKNOWNCOMMAND = 421,
-    FILEERROR = 424, // only for bonus we need to impl thid
     NONICK = 431,
     ERRONUENICK = 432,
     NICKINUSE = 433,
@@ -119,13 +119,14 @@ enum class IRCCode : std::int16_t {
     UNKNOWNMODEFLAG = 501,
     USERSDONTMATCH = 502,
     INVALIDMODEPARAM = 696,
-    MODE = 993,
-    TOPICNOTICE = 994, // for my own use
-    KICK = 995,        // for my own use
-    PART = 996,        // for my own use
-    JOIN = 997,        // for my own use
-    NICKCHANGED = 998, // for my own use
-    PRIVMSG = 999,     // for my own use
+    INVITENOTICE = 992, // for my own use
+    MODE = 993,         // for my own use
+    TOPICNOTICE = 994,  // for my own use
+    KICK = 995,         // for my own use
+    PART = 996,         // for my own use
+    JOIN = 997,         // for my own use
+    NICKCHANGED = 998,  // for my own use
+    PRIVMSG = 999,      // for my own use
 };
 
 #endif // ENUMS_HPP

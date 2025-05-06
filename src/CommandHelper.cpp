@@ -146,11 +146,17 @@ void Server::_handleJoin(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
     }
 
+    if (channel->hasInvite() && channel->isInvited(client) != true) {
+        handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(), "");
+        return;
+    }
+
     handleMsg(IRCCode::TOPIC, client, channel->getName(), channel->getTopic());
     handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
               channel->getUserList());
     handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
     client->addChannel(channel->getName());
+    channel->removeFromInvited(client);
 }
 
 void Server::_handleTopic(const IRCMessage &token,
@@ -222,23 +228,13 @@ void Server::_handleInvite(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[1], "");
     }
 
-    std::string nickname = token.params[0];
-    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
-                   ::toupper);
-    auto targetUser_it = _nick_to_client.find(nickname);
+    auto targetUser_it = _nick_to_client.find(token.params[0]);
     if (targetUser_it == _nick_to_client.end()) {
         handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
         return;
     }
 
-    if (channel->inviteUser(targetUser_it->second, client)) {
-        handleMsg(IRCCode::TOPIC, targetUser_it->second, channel->getName(),
-                  channel->getTopic());
-        handleMsg(IRCCode::NAMREPLY, targetUser_it->second, channel->getName(),
-                  channel->getUserList());
-        handleMsg(IRCCode::ENDOFNAMES, targetUser_it->second,
-                  channel->getName(), "");
-    }
+    channel->inviteUser(targetUser_it->second, client);
 }
 
 void Server::_handleMode(const IRCMessage &token,

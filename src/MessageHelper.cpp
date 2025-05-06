@@ -56,6 +56,11 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                 formatMessage(":", serverName, " ", ircCode, " ",
                               client->getNickname(), " ", value, " ", msg));
             break;
+        case IRCCode::INVITING:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " ",
+                              client->getNickname() + " " + value, " " + msg));
+            break;
         case IRCCode::NAMREPLY:
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
@@ -118,9 +123,6 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(
                 formatMessage(":", serverName, " ", ircCode, " ",
                               client->getNickname(), " ", value, " :", msg));
-            break;
-        case IRCCode::FILEERROR:
-            std::cerr << "Need to impl this" << '\n';
             break;
         case IRCCode::NONICK:
             client->appendMessageToQue(formatMessage(":", serverName, " ",
@@ -271,6 +273,11 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             client->appendMessageToQue(formatMessage(":", serverName, " ",
                                                      ircCode, " ", msg,
                                                      " :End of WHOIS list"));
+            break;
+        case IRCCode::INVITENOTICE:
+            client->appendMessageToQue(
+                formatMessage(":", serverName, " ", ircCode, " :", msg));
+
             break;
     }
 }

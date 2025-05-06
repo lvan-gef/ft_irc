@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -10,7 +11,7 @@ Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
       _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0), _users{},
-      _operators{} {
+      _operators{}, _invites{} {
     addUser(_password, client);
     addOperator(client);
 }
@@ -39,7 +40,7 @@ Channel &Channel::operator=(Channel &&rhs) noexcept {
 bool Channel::addUser(const std::string &password,
                       const std::shared_ptr<Client> &user) {
 
-    if (_hasInvite() == true) {
+    if (hasInvite() == true && !isInvited(user)) {
         handleMsg(IRCCode::INVITEONLYCHAN, user, getName(), "");
         return false;
     }
@@ -68,7 +69,7 @@ void Channel::removeUser(const std::shared_ptr<Client> &user,
     _users.erase(user);
 
     if (getActiveUsers() == 0) {
-        if (_hasInvite()) {
+        if (hasInvite()) {
             _modes.reset(0);
         }
     }
@@ -103,7 +104,12 @@ bool Channel::inviteUser(const std::shared_ptr<Client> &user,
         return false;
     }
 
-    _addUser(user);
+    _invites.emplace_back(client);
+    handleMsg(IRCCode::INVITING, client, user->getNickname(), getName());
+    handleMsg(IRCCode::INVITENOTICE, user, user->getFullID(),
+              " :You have been invited to " + getName() + " by " +
+                  client->getNickname());
+
     return true;
 }
 
@@ -244,7 +250,7 @@ std::size_t Channel::getActiveUsers() const noexcept {
 std::string Channel::getChannelModes() const noexcept {
     std::string modes = "+";
 
-    if (_hasInvite() == true) {
+    if (hasInvite() == true) {
         modes += "i";
     }
 
@@ -314,8 +320,22 @@ bool Channel::_hasUserLimit() const noexcept {
     return _modes.test(4);
 }
 
-bool Channel::_hasInvite() const noexcept {
+bool Channel::hasInvite() const noexcept {
     return _modes.test(0);
+}
+
+bool Channel::isInvited(const std::shared_ptr<Client> &user) const noexcept {
+
+    if (std::find(_invites.begin(), _invites.end(), user) != _invites.end()) {
+        return true;
+    }
+    return false;
+}
+
+void Channel::removeFromInvited(const std::shared_ptr<Client> &user) noexcept {
+    std::cout << ">>>>>>>>>>>> remove from list" << '\n';
+    _invites.erase(std::remove(_invites.begin(), _invites.end(), user),
+                   _invites.end());
 }
 
 bool Channel::_hasTopic() const noexcept {

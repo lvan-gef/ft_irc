@@ -62,11 +62,15 @@ class Channel {
   public:
     bool isOperator(const std::shared_ptr<Client> &user) const noexcept;
 
+  public:
+    bool hasInvite() const noexcept;
+    bool isInvited(const std::shared_ptr<Client> &user) const noexcept;
+    void removeFromInvited(const std::shared_ptr<Client> &user) noexcept;
+
   private:
     bool _hasPassword() const noexcept;
     bool _checkPassword(const std::string &password) const noexcept;
     bool _hasUserLimit() const noexcept;
-    bool _hasInvite() const noexcept;
     bool _hasTopic() const noexcept;
 
   private:
@@ -82,6 +86,7 @@ class Channel {
   private:
     std::unordered_set<std::shared_ptr<Client>> _users;
     std::unordered_set<std::shared_ptr<Client>> _operators;
+    std::vector<std::shared_ptr<Client>> _invites;
 };
 
 #endif // CHANNEL_HPP
