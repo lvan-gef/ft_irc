@@ -3,3 +3,5 @@ Kick also separted by ','
 USER we need to check if we have 4 parameters {USERNAME 0 *:REALNAME}  if realname is not send then then it send 'realname' otherwise send back NOTENEOUGHPARA (need to check if it works correctly)
 everywhere we look for nickname we need to remove toupper or make function out of it
 check if we have func for setUsername and what the command for it is
+send error back when there is no text to send in channel or privmsg
+Channel modes: will send '+' when there is nothing set
