@@ -48,7 +48,7 @@ void isValidNick(IRCMessage &msg) {
 
     if (msg.params[0].length() > getDefaultValue(Defaults::NICKLEN) ||
         msg.params[0].empty()) {
-        msg.err.set_value(IRCCode::NICKINUSE);
+        msg.err.set_value(IRCCode::ERRONUENICK);
         msg.errMsg = msg.command;
         msg.succes = false;
         return;
