@@ -70,7 +70,7 @@ class Client {
     void addChannel(const std::string &channelName) noexcept;
     void removeChannel(const std::string &channelName) noexcept;
     void removeAllChannels() noexcept;
-    std::vector<std::string> allChannels() const noexcept;
+    const std::vector<std::string> &allChannels() const noexcept;
 
   public:
     void setOffset(size_t offset) noexcept;
