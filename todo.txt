@@ -1,4 +1,4 @@
-Channels when more then 1 they are separted by ','
+Channels when more then 1 they are separted by ','  (check if it is correctly impled)
 Kick also separted by ','
 When send invited put it in the invited list, when channel is invite only check the list and if in the list then accept it via join  (almost done)
 USER we need to check if we have 4 parameters {USERNAME 0 *:REALNAME}  if realname is not send then then it send 'realname' otherwise send back NOTENEOUGHPARA (need to check if it works correctly)
