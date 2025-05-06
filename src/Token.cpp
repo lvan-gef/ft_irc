@@ -142,6 +142,8 @@ void isValidTopic(IRCMessage &msg) {
 }
 
 void isValidMode(IRCMessage &msg) {
+    std::cout << "MODE PARAM SIZE: " << msg.params.size() << '\n';
+    msg.debug();
     if (msg.params.size() == 1) {
         return;
     }
@@ -167,6 +169,10 @@ void isValidMode(IRCMessage &msg) {
         msg.err.set_value(IRCCode::UNKNOWMODE);
         msg.errMsg = "MODE " + msg.params[1];
         msg.succes = false;
+        return;
+    }
+
+    if (msg.params[1][0] == '-' && msg.params[1][1] == 'l') {
         return;
     }
 
