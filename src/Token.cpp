@@ -9,6 +9,7 @@
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
+#include "../include/Utils.hpp"
 #include "../include/Token.hpp"
 
 namespace {

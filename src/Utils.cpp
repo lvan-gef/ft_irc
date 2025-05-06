@@ -52,15 +52,15 @@ std::size_t toSizeT(const std::string &str) {
     }
 }
 
-std::vector<std::string> split(const std::string &s,
+std::vector<std::string> split(const std::string &str,
                                const std::string &delimiter) {
     std::vector<std::string> lines;
     size_t pos = 0;
     size_t prev = 0;
 
-    while ((pos = s.find(delimiter, prev)) != std::string::npos) {
+    while ((pos = str.find(delimiter, prev)) != std::string::npos) {
         try {
-            lines.push_back(s.substr(prev, pos - prev));
+            lines.push_back(str.substr(prev, pos - prev));
         } catch (const std::out_of_range &e) {
             std::cerr << "Failed to split: " << e.what() << '\n';
             return std::vector<std::string>{};
@@ -69,7 +69,7 @@ std::vector<std::string> split(const std::string &s,
     }
 
     try {
-        lines.push_back(s.substr(prev));
+        lines.push_back(str.substr(prev));
     } catch (const std::out_of_range &e) {
         std::cerr << "Failed to split: " << e.what() << '\n';
         return std::vector<std::string>{};

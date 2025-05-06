@@ -19,7 +19,5 @@ struct IRCMessage {
 };
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg);
-std::vector<std::string> split(const std::string &str,
-                               const std::string &delim);
 
 #endif // !TOKEN_HPP
