@@ -373,7 +373,7 @@ bool handleSendApi(ApiRequest &api, epoll_event event, int epoll_fd) {
 
 void handleRecvApi(ApiRequest &api) {
     char buf[4096] = {0};
-    ssize_t n;
+    ssize_t n = -1;
     bool connection_closed_by_peer = false;
 
     while (true) {
