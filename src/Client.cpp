@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 #include <utility>
 #include <vector>
@@ -144,8 +145,12 @@ std::string Client::getAndClearBuffer() noexcept {
         tmp = _partial_buffer;
         _partial_buffer.clear();
     } else {
-        tmp = _partial_buffer.substr(0, index);
-        _partial_buffer.erase(0, index + 2);
+        try {
+            tmp = _partial_buffer.substr(0, index);
+            _partial_buffer.erase(0, index + 2);
+        } catch (const std::out_of_range &e) {
+            std::cerr << "Failed to substr or erase: " << e.what() << '\n';
+        }
     }
 
     return tmp;
