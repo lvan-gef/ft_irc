@@ -123,8 +123,9 @@ void Server::_handlePriv(const IRCMessage &token,
             std::transform(upperCaseIt.begin(), upperCaseIt.end(),
                            upperCaseIt.begin(), ::toupper);
             if (upperCaseIt == nickname) {
-                return handleMsg(IRCCode::PRIVMSG, it.second, client->getFullID(),
-                          client->getNickname() + " :" + token.params[1]);
+                return handleMsg(
+                    IRCCode::PRIVMSG, it.second, client->getFullID(),
+                    client->getNickname() + " :" + token.params[1]);
             }
         }
         return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
@@ -269,13 +270,7 @@ void Server::_handleInvite(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
     }
 
-    if (channel->inviteUser(targetClient, client)) {
-        handleMsg(IRCCode::TOPIC, targetClient, channel->getName(),
-                  channel->getTopic());
-        handleMsg(IRCCode::NAMREPLY, targetClient, channel->getName(),
-                  channel->getUserList());
-        handleMsg(IRCCode::ENDOFNAMES, targetClient, channel->getName(), "");
-    }
+    channel->inviteUser(targetClient, client);
 }
 
 void Server::_handleMode(const IRCMessage &token,

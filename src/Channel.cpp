@@ -100,20 +100,22 @@ void Channel::kickUser(const std::shared_ptr<Client> &target,
                      target->getNickname());
 }
 
-bool Channel::inviteUser(const std::shared_ptr<Client> &user,
+void Channel::inviteUser(const std::shared_ptr<Client> &user,
                          const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
-        return false;
+        return;
     }
 
-    _invites.emplace_back(client);
+    if (user == client) {
+        return;
+    }
+
+    _invites.emplace_back(user);
     handleMsg(IRCCode::INVITING, client, user->getNickname(), getName());
     handleMsg(IRCCode::INVITENOTICE, user, user->getFullID(),
               " :You have been invited to " + getName() + " by " +
                   client->getNickname());
-
-    return true;
 }
 
 void Channel::setMode(ChannelMode mode, bool state, const std::string &value,

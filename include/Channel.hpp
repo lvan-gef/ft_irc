@@ -30,7 +30,7 @@ class Channel {
     void kickUser(const std::shared_ptr<Client> &target,
                   const std::shared_ptr<Client> &client,
                   const std::string &reason);
-    bool inviteUser(const std::shared_ptr<Client> &user,
+    void inviteUser(const std::shared_ptr<Client> &user,
                     const std::shared_ptr<Client> &client);
 
   public:

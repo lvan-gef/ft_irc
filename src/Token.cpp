@@ -9,8 +9,8 @@
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
-#include "../include/Utils.hpp"
 #include "../include/Token.hpp"
+#include "../include/Utils.hpp"
 
 namespace {
 IRCCommand getCommand(const std::string &command) {
