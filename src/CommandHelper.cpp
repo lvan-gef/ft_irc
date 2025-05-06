@@ -204,37 +204,72 @@ void Server::_handleKick(const IRCMessage &token,
     const std::string &channelName = token.params[0];
 
     Channel *channel = isChannel(channelName);
+    std::shared_ptr<Client> userToKick = nullptr;
+
     if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    const std::string &nickname = token.params[1];
-    auto userToKick_it = _nick_to_client.find(nickname);
-    if (userToKick_it == _nick_to_client.end()) {
+    std::string nickname = token.params[1];
+
+
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                   ::toupper);
+
+    for (auto const &it : _nick_to_client) {
+        std::string upperCaseIt = it.second->getNickname();
+        std::transform(upperCaseIt.begin(), upperCaseIt.end(),
+                       upperCaseIt.begin(), ::toupper);
+        if (upperCaseIt == nickname) {
+            userToKick = it.second;
+            break;
+        }
+    }
+    if (userToKick == nullptr) {
         return handleMsg(IRCCode::USERNOTINCHANNEL, client,
                          channel->getName() + " " + token.params[1], "");
     }
 
     const std::string rsn = token.params.size() > 2 ? token.params[2] : "bye";
-    channel->kickUser(userToKick_it->second, client, rsn);
+    channel->kickUser(userToKick, client, rsn);
 }
 
 void Server::_handleInvite(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) noexcept {
     std::string channelName = token.params[1];
 
+    std::shared_ptr<Client> targetClient = nullptr;
     Channel *channel = isChannel(channelName);
     if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[1], "");
     }
 
-    auto targetUser_it = _nick_to_client.find(token.params[0]);
-    if (targetUser_it == _nick_to_client.end()) {
-        handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
-        return;
+    std::string nickname = token.params[0];
+    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
+                   ::toupper);
+
+    for (auto const &it : _nick_to_client) {
+        std::string upperCaseIt = it.second->getNickname();
+        std::transform(upperCaseIt.begin(), upperCaseIt.end(),
+                       upperCaseIt.begin(), ::toupper);
+        if (upperCaseIt == nickname) {
+            targetClient = it.second;
+            break;
+        }
+        
+    }
+    if (targetClient == nullptr) {
+        return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
     }
 
-    channel->inviteUser(targetUser_it->second, client);
+    if (channel->inviteUser(targetClient, client)) {
+        handleMsg(IRCCode::TOPIC, targetClient, channel->getName(),
+                  channel->getTopic());
+        handleMsg(IRCCode::NAMREPLY, targetClient, channel->getName(),
+                  channel->getUserList());
+        handleMsg(IRCCode::ENDOFNAMES, targetClient,
+                  channel->getName(), "");
+    }
 }
 
 void Server::_handleMode(const IRCMessage &token,
@@ -279,15 +314,28 @@ void Server::_handleMode(const IRCMessage &token,
 
 void Server::_handleUserhost(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
-    auto it = _nick_to_client.find(token.params[0]);
-    if (it == _nick_to_client.end()) {
+    std::shared_ptr<Client> targetClient = nullptr;
+    std::string uppercaseName = token.params[0];
+    std::transform(uppercaseName.begin(), uppercaseName.end(),
+                   uppercaseName.begin(), ::toupper);
+
+    for (auto const &it : _nick_to_client) {
+        std::string upperCaseIt = it.second->getNickname();
+        std::transform(upperCaseIt.begin(), upperCaseIt.end(),
+        upperCaseIt.begin(), ::toupper);
+        if (upperCaseIt == uppercaseName) {
+            targetClient = it.second;
+            break;
+        }
+    }
+    
+    if (targetClient == nullptr) {
         std::cerr << "Server internal error: Could not found target "
                      "user for USERHOST"
                   << '\n';
-        return;
+        return;    
     }
 
-    std::shared_ptr<Client> targetClient = it->second;
     std::string targetNick = targetClient->getNickname();
     handleMsg(IRCCode::USERHOST, client, "",
               targetNick + "=-" + client->getFullID());
