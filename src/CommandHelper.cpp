@@ -195,14 +195,14 @@ void Server::_handlePing(const IRCMessage &token,
 
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[0];
+    const std::string &channelName = token.params[0];
 
     Channel *channel = isChannel(channelName);
     if (channel == nullptr) {
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    std::string nickname = token.params[1];
+    const std::string &nickname = token.params[1];
     auto userToKick_it = _nick_to_client.find(nickname);
     if (userToKick_it == _nick_to_client.end()) {
         return handleMsg(IRCCode::USERNOTINCHANNEL, client,
@@ -311,7 +311,7 @@ void Server::_handleWhois(const IRCMessage &token,
     std::string upperCaseNick = token.params[0];
     std::stringstream msg;
     bool control = true;
-    std::string requester = client->getNickname();
+    const std::string &requester = client->getNickname();
     std::shared_ptr<Client> targetClient = nullptr;
     std::transform(upperCaseNick.begin(), upperCaseNick.end(),
                    upperCaseNick.begin(), ::toupper);
@@ -334,10 +334,10 @@ void Server::_handleWhois(const IRCMessage &token,
         return;
     }
 
-    std::string targetNickname = targetClient->getNickname();
-    std::string targetUsername = targetClient->getUsername();
-    std::string targetIP = targetClient->getIP();
-    std::string targetRealname = targetClient->getRealname();
+    const std::string &targetNickname = targetClient->getNickname();
+    const std::string &targetUsername = targetClient->getUsername();
+    const std::string &targetIP = targetClient->getIP();
+    const std::string &targetRealname = targetClient->getRealname();
 
     msg << " " << requester << " " << targetNickname << " " << targetUsername
         << " " << targetIP << " * :" << targetRealname;
