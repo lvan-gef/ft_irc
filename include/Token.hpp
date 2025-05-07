@@ -12,10 +12,13 @@ struct IRCMessage {
     std::string prefix;
     std::string command;
     std::vector<std::string> params;
+    std::vector<std::string> keys;
     bool succes;
     Optional<IRCCode> err;
     std::string errMsg;
     IRCCommand type;
+
+    void debug();
 };
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg);

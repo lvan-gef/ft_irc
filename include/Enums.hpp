@@ -19,6 +19,7 @@ enum class Defaults : std::uint16_t {
     USERLEN = 10,
     TOPICLEN = 512,
     MAXMSGLEN = 512,
+    MAXCHANNELLEN = 164,
 };
 bool operator>(std::uint16_t lhs, Defaults rhs);
 bool operator<(std::uint16_t lhs, Defaults rhs);

@@ -32,159 +32,161 @@ IRCCommand getCommand(const std::string &command) {
     return it->second;
 }
 
-void isValidNick(IRCMessage &msg) {
-    if (msg.params.size() < 1) {
-        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+void isValidNick(IRCMessage &token) {
+    if (token.params.size() < 1) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
-    if (msg.params.size() > 1) {
-        msg.err.set_value(IRCCode::ERRONUENICK);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+    if (token.params.size() > 1) {
+        token.err.set_value(IRCCode::ERRONUENICK);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
-    if (msg.params[0].length() > getDefaultValue(Defaults::NICKLEN) ||
-        msg.params[0].empty()) {
-        msg.err.set_value(IRCCode::ERRONUENICK);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+    if (token.params[0].length() > getDefaultValue(Defaults::NICKLEN) ||
+        token.params[0].empty()) {
+        token.err.set_value(IRCCode::ERRONUENICK);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
-    if (isBot(msg.params[0])) {
-        msg.succes = false;
-        msg.err.set_value(IRCCode::ERRONUENICK);
+    if (isBot(token.params[0])) {
+        token.succes = false;
+        token.err.set_value(IRCCode::ERRONUENICK);
         return;
     }
 
     const std::string firstAllowed =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[\\]^_`{|}";
-    if (firstAllowed.find(msg.params[0][0]) == std::string::npos) {
-        msg.succes = false;
-        msg.err.set_value(IRCCode::ERRONUENICK);
-        msg.errMsg = msg.params[0];
+    if (firstAllowed.find(token.params[0][0]) == std::string::npos) {
+        token.succes = false;
+        token.err.set_value(IRCCode::ERRONUENICK);
+        token.errMsg = token.params[0];
     }
 
     const std::string allowedChars = firstAllowed + "0123456789-";
-    for (size_t i = 1; i < msg.params[0].length(); ++i) {
-        if (allowedChars.find(msg.params[0][i]) == std::string::npos) {
-            msg.succes = false;
-            msg.err.set_value(IRCCode::ERRONUENICK);
-            msg.errMsg = msg.params[0];
+    for (size_t i = 1; i < token.params[0].length(); ++i) {
+        if (allowedChars.find(token.params[0][i]) == std::string::npos) {
+            token.succes = false;
+            token.err.set_value(IRCCode::ERRONUENICK);
+            token.errMsg = token.params[0];
         }
     }
 }
 
-void isValidUsername(IRCMessage &msg) {
-    if (msg.params.size() < 4) {
-        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+void isValidUsername(IRCMessage &token) {
+    if (token.params.size() < 4) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
-    if (msg.params[0].length() > getDefaultValue(Defaults::USERLEN) ||
-        msg.params[0].empty()) {
-        msg.err.set_value(IRCCode::INVALIDUSERNAME);
-        msg.succes = false;
+    if (token.params[0].length() > getDefaultValue(Defaults::USERLEN) ||
+        token.params[0].empty()) {
+        token.err.set_value(IRCCode::INVALIDUSERNAME);
+        token.succes = false;
         return;
     }
 
     const std::string allowedChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    for (char c : msg.params[0]) {
+    for (char c : token.params[0]) {
         if (allowedChars.find(c) == std::string::npos) {
-            msg.succes = false;
-            msg.err.set_value(IRCCode::INVALIDUSERNAME);
-            msg.errMsg = msg.params[0];
+            token.succes = false;
+            token.err.set_value(IRCCode::INVALIDUSERNAME);
+            token.errMsg = token.params[0];
         }
     }
 }
 
-void isValidJoin(IRCMessage &msg) {
-    if (msg.params.size() < 1) {
-        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
-        msg.errMsg = msg.command;
-        msg.succes = false;
-        return;
-    }
-
-    std::vector<std::string> channels = split(msg.params[0], ",");
-    msg.params.clear();
-
-    for (const std::string &channel : channels) {
-        std::cout << "'" << channel << "'" << '\n';
-        if (channel[0] != '#') {
-            msg.err.set_value(IRCCode::NOSUCHCHANNEL);
-            msg.succes = false;
-            return;
-        }
-    }
-}
-
-void isValidTopic(IRCMessage &msg) {
-    if (msg.params.size() > 1 && msg.params[0].length() > 0) {
-        if (std::any_of(msg.params[0].begin(), msg.params[0].end(),
+void isValidTopic(IRCMessage &token) {
+    if (token.params.size() > 1 && token.params[0].length() > 0) {
+        if (std::any_of(token.params[0].begin(), token.params[0].end(),
                         [](char c) { return c < 32 || c == 127; })) {
-            msg.err.set_value(IRCCode::TOPIC);
-            msg.succes = false;
-            msg.errMsg = "Invalid topic";
+            token.err.set_value(IRCCode::TOPIC);
+            token.succes = false;
+            token.errMsg = "Invalid topic";
         }
     }
 
-    if (msg.params.size() > getDefaultValue(Defaults::TOPICLEN)) {
-        msg.err.set_value(IRCCode::TOPIC);
-        msg.succes = false;
-        msg.errMsg = "Topic to long";
+    if (token.params.size() > getDefaultValue(Defaults::TOPICLEN)) {
+        token.err.set_value(IRCCode::TOPIC);
+        token.succes = false;
+        token.errMsg = "Topic to long";
     }
 }
 
-void isValidMode(IRCMessage &msg) {
-    std::cout << "MODE PARAM SIZE: " << msg.params.size() << '\n';
-    if (msg.params.size() == 1) {
+void isValidMode(IRCMessage &token) {
+    if (token.params.size() == 1) {
         return;
     }
 
-    if (msg.params.size() < 2) {
-        msg.err.set_value(IRCCode::NEEDMOREPARAMS);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+    if (token.params.size() < 2) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
-    if (msg.params[1].length() < 2) {
-        msg.err.set_value(IRCCode::UNKNOWNMODEFLAG);
-        msg.errMsg = msg.command;
-        msg.succes = false;
+    if (token.params[1].length() < 2) {
+        token.err.set_value(IRCCode::UNKNOWNMODEFLAG);
+        token.errMsg = token.command;
+        token.succes = false;
         return;
     }
 
     const std::string allowedModes = "itkol";
     const std::string firstAllowed = "+-";
-    if (firstAllowed.find(msg.params[1][0]) == std::string::npos ||
-        allowedModes.find(msg.params[1][1]) == std::string::npos) {
-        msg.err.set_value(IRCCode::UNKNOWMODE);
-        msg.errMsg = "MODE " + msg.params[1];
-        msg.succes = false;
+    if (firstAllowed.find(token.params[1][0]) == std::string::npos ||
+        allowedModes.find(token.params[1][1]) == std::string::npos) {
+        token.err.set_value(IRCCode::UNKNOWMODE);
+        token.errMsg = "MODE " + token.params[1];
+        token.succes = false;
         return;
     }
 
-    if (msg.params[1][0] == '-' && msg.params[1][1] == 'l') {
+    if (token.params[1][0] == '-' && token.params[1][1] == 'l') {
         return;
     }
 
-    if (msg.params[1][1] == 'l' || msg.params[1][1] == 'k' ||
-        msg.params[1][1] == 'o') {
-        if (msg.params.size() < 3) {
-            msg.err.set_value(IRCCode::NEEDMOREPARAMS);
-            msg.errMsg = "MODE " + std::string(1, msg.params[1][1]);
-            msg.succes = false;
+    if (token.params[1][1] == 'l' || token.params[1][1] == 'k' ||
+        token.params[1][1] == 'o') {
+        if (token.params.size() < 3) {
+            token.err.set_value(IRCCode::NEEDMOREPARAMS);
+            token.errMsg = "MODE " + std::string(1, token.params[1][1]);
+            token.succes = false;
             return;
         }
+    }
+}
+
+void isValidJoin(IRCMessage &token) {
+    token.debug();
+
+    std::vector<std::string> keys = split(token.params[1], ",");
+    for (const std::string &key : keys) {
+        token.keys.emplace_back(key);
+    }
+
+    std::vector<std::string> channels = split(token.params[0], ",");
+    token.params.clear();
+
+    for (const std::string &channel : channels) {
+        if (channel.size() < 2 || channel[0] != '#' ||
+            channel.size() >
+                static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
+            token.err.set_value(IRCCode::NOSUCHCHANNEL);
+            token.errMsg = token.command;
+            token.succes = false;
+            return;
+        }
+        token.params.emplace_back(channel);
     }
 }
 
@@ -206,13 +208,12 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                     token.succes = false;
                 }
                 break;
-            case IRCCommand::JOIN:
-                isValidJoin(token);
-                break;
             case IRCCommand::TOPIC:
                 isValidTopic(token);
                 break;
-            case IRCCommand::PASS:
+            case IRCCommand::JOIN:
+                isValidJoin(token);
+                break;
             case IRCCommand::PART:
             case IRCCommand::QUIT:
             case IRCCommand::PING:
@@ -231,6 +232,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                 token.errMsg = token.command;
                 token.succes = false;
                 break;
+            case IRCCommand::PASS:
             case IRCCommand::CAP:
             case IRCCommand::WHOIS:
                 break;
@@ -282,4 +284,18 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     validateMessage(tokens);
 
     return tokens;
+}
+
+void IRCMessage::debug() {
+    std::cout << "------------------" << '\n';
+    std::cout << "prefix : " << this->prefix << '\n';
+    std::cout << "command: " << this->command << '\n';
+    std::cout << "params : " << '\n';
+    for (const std::string &param : this->params) {
+        std::cout << "    " << param << '\n';
+    }
+    std::cout << "succes : " << this->succes << '\n';
+    std::cout << "err msg: " << this->errMsg << '\n';
+    // std::cout << "type   : " << this->type << '\n';
+    std::cout << "------------------" << '\n';
 }

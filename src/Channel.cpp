@@ -353,7 +353,6 @@ bool Channel::isInvited(const std::shared_ptr<Client> &user) const noexcept {
 }
 
 void Channel::removeFromInvited(const std::shared_ptr<Client> &user) noexcept {
-    std::cout << ">>>>>>>>>>>> remove from list" << '\n';
     _invites.erase(std::remove(_invites.begin(), _invites.end(), user),
                    _invites.end());
 }
