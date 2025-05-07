@@ -77,6 +77,11 @@ void Server::_handlePassword(const IRCMessage &token,
 
 void Server::_handlePriv(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
+    if (token.params[1].empty()) {
+        return handleMsg(IRCCode::NOTEXTTOSEND, client, client->getNickname(),
+                         "");
+    }
+
     std::string bot = token.params[0];
     std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
 
@@ -118,6 +123,7 @@ void Server::_handlePriv(const IRCMessage &token,
         std::string nickname = token.params[0];
         std::transform(nickname.begin(), nickname.end(), nickname.begin(),
                        ::toupper);
+
         for (auto const &it : _nick_to_client) {
             std::string upperCaseIt = it.second->getNickname();
             std::transform(upperCaseIt.begin(), upperCaseIt.end(),
@@ -132,98 +138,63 @@ void Server::_handlePriv(const IRCMessage &token,
     }
 }
 
-//void Server::_handleJoin(const IRCMessage &token,
-//                         const std::shared_ptr<Client> &client) noexcept {
-//    for (const std::string &channelName : token.params) 
-
-//        Channel *channel = isChannel(channelName);
-//        if (channel == nullptr) {
-//            std::string topic = "Default";
-//            _channels.emplace(channelName,
-//                              Channel(token.params[0], topic, client));
-//        } else {
-//            const std::string password =
-//                token.params.size() > 1 ? token.params[1] : "";
-//            if (channel->addUser(password, client) != true) {
-//                return;
-//            }
-//        }
-
-//        channel = isChannel(channelName);
-//        if (channel == nullptr) {
-//            return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
-//        }
-
-//        if (channel->hasInvite()) {
-//            if (channel->isInvited(client) != true) {
-//                handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(),
-//                          "");
-//                return;
-//            }
-//        }
-
-//        handleMsg(IRCCode::TOPIC, client, channel->getName(),
-//                  channel->getTopic());
-//        handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
-//                  channel->getUserList());
-//        handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
-//        client->addChannel(channel->getName());
-//        channel->removeFromInvited(client);
-//    }
-//}
-
 void Server::_handleJoin(const IRCMessage &token,
-	const std::shared_ptr<Client> &client) noexcept {
+                         const std::shared_ptr<Client> &client) noexcept {
 
-	std::vector<std::string> channels_to_join = split(token.params[0], ",");
-	std::vector<std::string> keys;
-	bool keys_provided = token.params.capacity() > 1;
-	if (keys_provided) {
-		keys = split(token.params[1], ",");
-	}
+    std::vector<std::string> channels_to_join = split(token.params[0], ",");
+    std::vector<std::string> keys;
+    bool keys_provided = token.params.capacity() > 1;
+    if (keys_provided) {
+        keys = split(token.params[1], ",");
+    }
 
-	for (size_t i = 0; i < channels_to_join.size(); ++i) {
-		const std::string &channelName = channels_to_join[i];
-		if (channelName.empty() || channelName[0] != '#') {
-			handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "Invalid channel name format");
-			continue;
-		}
+    for (size_t i = 0; i < channels_to_join.size(); ++i) {
+        const std::string &channelName = channels_to_join[i];
+        if (channelName.empty() || channelName[0] != '#') {
+            handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName,
+                      "Invalid channel name format");
+            continue;
+        }
 
-		std::string current_key = "";
-		if (keys_provided && i < keys.size()) {
-			current_key = keys[i];
-		}
+        std::string current_key = "";
+        if (keys_provided && i < keys.size()) {
+            current_key = keys[i];
+        }
 
-		Channel *channel = isChannel(channelName);
-		if (channel == nullptr) {
-			std::string topic = "Default topic";
-            auto emplace_result = _channels.emplace(channelName, Channel(channelName, topic, client));
+        Channel *channel = isChannel(channelName);
+        if (channel == nullptr) {
+            std::string topic = "Default topic";
+            auto emplace_result = _channels.emplace(
+                channelName, Channel(channelName, topic, client));
             if (!emplace_result.second) {
-                 handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "Failed to create channel");
+                handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName,
+                          "Failed to create channel");
                 continue;
             }
-			channel = &(emplace_result.first->second);
+            channel = &(emplace_result.first->second);
 
-		} else {
-			if (!channel->addUser(current_key, client)) {
-				continue;
-			}
-		}
-		if (channel->hasInvite()) {
-			if (!channel->isInvited(client)) {
-				handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(), "");
+        } else {
+            if (!channel->addUser(current_key, client)) {
+                continue;
+            }
+        }
+        if (channel->hasInvite()) {
+            if (!channel->isInvited(client)) {
+                handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(),
+                          "");
 
-			
-				continue;
-			}
-		}
+                continue;
+            }
+        }
 
-		handleMsg(IRCCode::TOPIC, client, channel->getName(), channel->getTopic());
-		handleMsg(IRCCode::NAMREPLY, client, channel->getName(), channel->getUserList());
-		handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
-		client->addChannel(channel->getName());
-		channel->removeFromInvited(client);
-	}
+        handleMsg(IRCCode::TOPIC, client, channel->getName(),
+                  channel->getTopic());
+        handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
+                  channel->getUserList());
+        handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
+        client->addChannel(channel->getName());
+        channel->removeFromInvited(client);
+    }
 }
 
 void Server::_handleTopic(const IRCMessage &token,
@@ -266,82 +237,55 @@ void Server::_handlePing(const IRCMessage &token,
         ":", serverName, " PONG ", serverName, " :" + token.params[0]));
 }
 
-//void Server::_handleKick(const IRCMessage &token,
-//                         const std::shared_ptr<Client> &client) noexcept {
-//    const std::string &channelName = token.params[0];
-
-//    Channel *channel = isChannel(channelName);
-//    std::shared_ptr<Client> userToKick = nullptr;
-
-//    if (channel == nullptr) {
-//        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
-//    }
-
-//    std::string nickname = token.params[1];
-
-//    std::transform(nickname.begin(), nickname.end(), nickname.begin(),
-//                   ::toupper);
-
-//    for (auto const &it : _nick_to_client) {
-//        std::string upperCaseIt = it.second->getNickname();
-//        std::transform(upperCaseIt.begin(), upperCaseIt.end(),
-//                       upperCaseIt.begin(), ::toupper);
-//        if (upperCaseIt == nickname) {
-//            userToKick = it.second;
-//            break;
-//        }
-//    }
-//    if (userToKick == nullptr) {
-//        return handleMsg(IRCCode::USERNOTINCHANNEL, client,
-//                         channel->getName() + " " + token.params[1], "");
-//    }
-
-//    const std::string rsn = token.params.size() > 2 ? token.params[2] : "bye";
-//    channel->kickUser(userToKick, client, rsn);
-//}
-
 void Server::_handleKick(const IRCMessage &token,
-	const std::shared_ptr<Client> &client) noexcept {
+                         const std::shared_ptr<Client> &client) noexcept {
 
-	std::vector<std::string> channels_list = split(token.params[0], ",");
-	std::vector<std::string> users_to_kick_nick_list = split(token.params[1], ",");
+    std::vector<std::string> channels_list = split(token.params[0], ",");
+    std::vector<std::string> users_to_kick_nick_list =
+        split(token.params[1], ",");
 
-	if (channels_list.empty() || users_to_kick_nick_list.empty() || channels_list.size() != users_to_kick_nick_list.size()) {
-		handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command, "Channel and user list counts must match and not be empty.");
-		return;
-	}
+    if (channels_list.empty() || users_to_kick_nick_list.empty() ||
+        channels_list.size() != users_to_kick_nick_list.size()) {
+        handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command,
+                  "Channel and user list counts must match and not be empty.");
+        return;
+    }
 
-	const std::string reason = token.params.size() > 2 ? token.params[2] : "Kicked"; // Default reason
+    const std::string reason =
+        token.params.size() > 2 ? token.params[2] : "Kicked";
 
-	for (size_t i = 0; i < channels_list.size(); ++i) {
-		const std::string &channelName = channels_list[i];
-		const std::string &userNickToKick = users_to_kick_nick_list[i];
+    for (size_t i = 0; i < channels_list.size(); ++i) {
+        const std::string &channelName = channels_list[i];
+        const std::string &userNickToKick = users_to_kick_nick_list[i];
 
-		Channel *channel = isChannel(channelName);
-		if (channel == nullptr) {
-			handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
-			continue;
-		}
+        Channel *channel = isChannel(channelName);
+        if (channel == nullptr) {
+            handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
+            continue;
+        }
 
-		std::shared_ptr<Client> targetClient = nullptr;
-		std::string upperUserNickToKick = userNickToKick;
-		std::transform(upperUserNickToKick.begin(), upperUserNickToKick.end(), upperUserNickToKick.begin(), ::toupper);
+        std::shared_ptr<Client> targetClient = nullptr;
+        std::string upperUserNickToKick = userNickToKick;
+        std::transform(upperUserNickToKick.begin(), upperUserNickToKick.end(),
+                       upperUserNickToKick.begin(), ::toupper);
 
-		for (const auto &pair : _nick_to_client) {
-			std::string currentNickUpper = pair.first;
-			std::transform(currentNickUpper.begin(), currentNickUpper.end(), currentNickUpper.begin(), ::toupper);
-			if (currentNickUpper == upperUserNickToKick) {
-				targetClient = pair.second;
-				break;
-			}
-		}
+        for (const auto &pair : _nick_to_client) {
+            std::string currentNickUpper = pair.first;
+            std::transform(currentNickUpper.begin(), currentNickUpper.end(),
+                           currentNickUpper.begin(), ::toupper);
+            if (currentNickUpper == upperUserNickToKick) {
+                targetClient = pair.second;
+                break;
+            }
+        }
 
-		if (targetClient == nullptr) {
-			handleMsg(IRCCode::NOSUCHNICK, client, userNickToKick, "User not found on server");
-			continue;
-		}
-		channel->kickUser(targetClient, client, reason);
-	}
+        if (targetClient == nullptr) {
+            handleMsg(IRCCode::NOSUCHNICK, client, userNickToKick,
+                      "User not found on server");
+            continue;
+        }
+        channel->kickUser(targetClient, client, reason);
+    }
 }
 
 void Server::_handleInvite(const IRCMessage &token,
@@ -367,6 +311,7 @@ void Server::_handleInvite(const IRCMessage &token,
             break;
         }
     }
+
     if (targetClient == nullptr) {
         return handleMsg(IRCCode::NOSUCHNICK, client, token.params[0], "");
     }
