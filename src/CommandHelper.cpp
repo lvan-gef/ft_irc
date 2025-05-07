@@ -86,7 +86,7 @@ void Server::_handlePriv(const IRCMessage &token,
     std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
 
     std::string channelName = token.params[0];
-    Channel *channel = isChannel(channelName);
+    const Channel *channel = isChannel(channelName);
     if (token.params[0][0] == '#') {
         if (channel == nullptr) {
             return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
