@@ -1,10 +1,3 @@
-Channels when more then 1 they are separted by ','  (check if it is correctly impled) -corrected
-Kick also separted by ','
 USER we need to check if we have 4 parameters {USERNAME 0 *:REALNAME}  if realname is not send then then it send 'realname' otherwise send back NOTENEOUGHPARA (need to check if it works correctly)
-everywhere we look for nickname we need to remove toupper or make function out of it (should be done)
 check if we have func for setUsername and what the command for it is
-send error back when there is no text to send in channel or privmsg
-Channel modes: will send '+' when there is nothing set
-JOIN impl is wrong... i think password can not have ' ' or ',' inside it (we can join now /JOIN #test1,#test2 or /JOIN #test1,#test2 pass,pass1)
-for KICK syntax is not correct. using just /KICK username isn't correct according to RFC 2812 \
-it should be (https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.8)
+send error back when there is no text to send in channel or privmsg  (impled need to check it)
