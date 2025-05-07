@@ -166,18 +166,20 @@ void Server::_handleJoin(const IRCMessage &token,
             std::string topic = "Default topic";
             auto emplace_result = _channels.emplace(
                 channelName, Channel(channelName, topic, client));
+
             if (!emplace_result.second) {
                 handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName,
                           "Failed to create channel");
                 continue;
             }
-            channel = &(emplace_result.first->second);
 
+            channel = &(emplace_result.first->second);
         } else {
             if (!channel->addUser(current_key, client)) {
                 continue;
             }
         }
+
         if (channel->hasInvite()) {
             if (!channel->isInvited(client)) {
                 handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(),
@@ -224,7 +226,7 @@ void Server::_handlePart(const IRCMessage &token,
         return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
     }
 
-    const std::string reason = token.params.size() > 1 ? token.params[1] : "";
+    const std::string reason = token.params.size() > 1 ? token.params[1] : "Bye";
     channel->removeUser(client, reason);
     if (channel->getActiveUsers() == 0) {
         _channels.erase(channel->getName());
@@ -247,7 +249,7 @@ void Server::_handleKick(const IRCMessage &token,
     if (channels_list.empty() || users_to_kick_nick_list.empty() ||
         channels_list.size() != users_to_kick_nick_list.size()) {
         handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command,
-                  "Channel and user list counts must match and not be empty.");
+                  "");
         return;
     }
 
