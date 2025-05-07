@@ -206,13 +206,7 @@ void isValidPart(IRCMessage &token) {
         return;
     }
 
-    if (token.params.size() > 1) {
-        std::vector<std::string> keys = split(token.params[1], ",");
-        for (const std::string &key : keys) {
-            token.keys.emplace_back(key);
-        }
-    }
-
+    token.reason = "Bye";
     std::vector<std::string> parts = split(token.params[0], ",");
     token.params.clear();
 
@@ -229,6 +223,33 @@ void isValidPart(IRCMessage &token) {
     }
 }
 
+void isValidKick(IRCMessage &token) {
+    token.debug();
+    if (token.params.size() < 2) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
+        return;
+    }
+
+    std::vector<std::string> keys = split(token.params[1], ",");
+    for (const std::string &key : keys) {
+        token.keys.emplace_back(key);
+    }
+
+    token.reason = "Kicked";
+    if (token.params.size() > 2) {
+        token.reason = token.params[2];
+    }
+
+    std::vector<std::string> channels = split(token.params[0], ",");
+    token.params.clear();
+
+    for (const std::string &channel : channels) {
+        token.params.emplace_back(channel);
+    }
+}
+
 void validateMessage(std::vector<IRCMessage> &tokens) {
     for (auto &&token : tokens) {
         switch (token.type) {
@@ -238,8 +259,10 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
             case IRCCommand::USER:
                 isValidUsername(token);
                 break;
-            case IRCCommand::INVITE:
             case IRCCommand::KICK:
+                isValidKick(token);
+                break;
+            case IRCCommand::INVITE:
             case IRCCommand::PRIVMSG:
                 if (token.params.size() < 2) {
                     token.err.set_value(IRCCode::NEEDMOREPARAMS);
@@ -327,7 +350,7 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     return tokens;
 }
 
-void IRCMessage::debug() {
+void IRCMessage::debug() const noexcept {
     std::cout << "------------------" << '\n';
     std::cout << "prefix : " << this->prefix << '\n';
     std::cout << "command: " << this->command << '\n';

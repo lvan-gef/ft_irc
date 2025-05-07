@@ -142,13 +142,13 @@ void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
     for (size_t index = 0; index < token.params.size(); ++index) {
         const std::string &channelName = token.params[index];
+
         Channel *channel = isChannel(channelName);
         if (channel == nullptr) {
             auto emplace_result = _channels.emplace(
                 channelName, Channel(channelName, "Default", client));
             if (!emplace_result.second) {
-                handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName,
-                          "Failed to create channel");
+                handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
                 continue;
             }
 
@@ -200,18 +200,14 @@ void Server::_handleTopic(const IRCMessage &token,
 
 void Server::_handlePart(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    for (size_t index = 0; index < token.params.size(); ++index) {
-        std::string channelName = token.params[index];
+    for (const std::string &channelName : token.params) {
         Channel *channel = isChannel(channelName);
 
         if (channel == nullptr) {
-            return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
-                             "");
+            return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
         }
 
-        const std::string reason =
-            index < token.keys.size() ? token.keys[index] : "Bye";
-        channel->removeUser(client, reason);
+        channel->removeUser(client, token.reason);
     }
 }
 
@@ -223,23 +219,7 @@ void Server::_handlePing(const IRCMessage &token,
 
 void Server::_handleKick(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-
-    std::vector<std::string> channels_list = split(token.params[0], ",");
-    std::vector<std::string> users_to_kick_nick_list =
-        split(token.params[1], ",");
-
-    if (channels_list.empty() || users_to_kick_nick_list.empty() ||
-        channels_list.size() != users_to_kick_nick_list.size()) {
-        handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command, "");
-        return;
-    }
-
-    const std::string reason =
-        token.params.size() > 2 ? token.params[2] : "Kicked";
-
-    for (size_t i = 0; i < channels_list.size(); ++i) {
-        const std::string &channelName = channels_list[i];
-        const std::string &userNickToKick = users_to_kick_nick_list[i];
+    for (const std::string &channelName : token.params) {
 
         Channel *channel = isChannel(channelName);
         if (channel == nullptr) {
@@ -248,26 +228,29 @@ void Server::_handleKick(const IRCMessage &token,
         }
 
         std::shared_ptr<Client> targetClient = nullptr;
-        std::string upperUserNickToKick = userNickToKick;
-        std::transform(upperUserNickToKick.begin(), upperUserNickToKick.end(),
-                       upperUserNickToKick.begin(), ::toupper);
+        for (const std::string &username : token.keys) {
+            std::string upperUserNickToKick = username;
+            std::transform(upperUserNickToKick.begin(), upperUserNickToKick.end(),
+                           upperUserNickToKick.begin(), ::toupper);
 
-        for (const auto &pair : _nick_to_client) {
-            std::string currentNickUpper = pair.first;
-            std::transform(currentNickUpper.begin(), currentNickUpper.end(),
-                           currentNickUpper.begin(), ::toupper);
-            if (currentNickUpper == upperUserNickToKick) {
-                targetClient = pair.second;
-                break;
+            for (const auto &pair : _nick_to_client) {
+                std::string currentNickUpper = pair.first;
+                std::transform(currentNickUpper.begin(), currentNickUpper.end(),
+                               currentNickUpper.begin(), ::toupper);
+                if (currentNickUpper == upperUserNickToKick) {
+                    targetClient = pair.second;
+                    break;
+                }
             }
-        }
 
-        if (targetClient == nullptr) {
-            handleMsg(IRCCode::NOSUCHNICK, client, userNickToKick,
-                      "User not found on server");
-            continue;
+            if (targetClient == nullptr) {
+                handleMsg(IRCCode::NOSUCHNICK, client, username,
+                          "");
+                continue;
+            }
+
+            channel->kickUser(targetClient, client, token.reason);
         }
-        channel->kickUser(targetClient, client, reason);
     }
 }
 
