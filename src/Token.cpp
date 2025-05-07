@@ -126,7 +126,6 @@ void isValidJoin(IRCMessage &msg) {
 
         msg.params.emplace_back(channel);
     }
-
 }
 
 void isValidTopic(IRCMessage &msg) {
