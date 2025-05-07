@@ -279,6 +279,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
             case IRCCommand::PART:
                 isValidPart(token);
                 break;
+            case IRCCommand::PASS:
             case IRCCommand::QUIT:
             case IRCCommand::PING:
             case IRCCommand::USERHOST:
@@ -296,7 +297,6 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                 token.errMsg = token.command;
                 token.succes = false;
                 break;
-            case IRCCommand::PASS:
             case IRCCommand::CAP:
             case IRCCommand::WHOIS:
                 break;

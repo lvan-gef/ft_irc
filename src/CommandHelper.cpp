@@ -63,12 +63,7 @@ void Server::_handleUsername(const IRCMessage &token,
 
 void Server::_handlePassword(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
-	if (token.params.empty())
-	{
-		return handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command, "");
-	}							 
     if (client->isRegistered()) {
-    
 		handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         if (token.params[0] == _password) {
@@ -160,7 +155,7 @@ void Server::_handleJoin(const IRCMessage &token,
             channel = &(emplace_result.first->second);
         } else {
             const std::string &password =
-                index < token.keys.size() ? token.params[index] : "";
+                index < token.keys.size() ? token.keys[index] : "";
             if (!channel->addUser(password, client)) {
                 continue;
             }
