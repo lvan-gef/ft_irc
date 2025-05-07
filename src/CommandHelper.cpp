@@ -63,8 +63,13 @@ void Server::_handleUsername(const IRCMessage &token,
 
 void Server::_handlePassword(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
+	if (token.params.empty())
+	{
+		return handleMsg(IRCCode::NEEDMOREPARAMS, client, token.command, "");
+	}							 
     if (client->isRegistered()) {
-        handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
+    
+		handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         if (token.params[0] == _password) {
             client->setPasswordBit();
