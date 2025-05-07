@@ -110,8 +110,9 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
                               " :No recipient given ", msg));
             break;
         case IRCCode::NOTEXTTOSEND:
-            client->appendMessageToQue(formatMessage(
-                ":", serverName, " ", ircCode, value, " :No text to send"));
+            client->appendMessageToQue(formatMessage(":", serverName, " ",
+                                                     ircCode, " ", value,
+                                                     " :No text to send"));
             break;
         case IRCCode::INPUTTOOLONG:
             client->appendMessageToQue(
