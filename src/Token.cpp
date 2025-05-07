@@ -123,8 +123,6 @@ void isValidJoin(IRCMessage &msg) {
             msg.succes = false;
             return;
         }
-
-        msg.params.emplace_back(channel);
     }
 }
 
