@@ -90,7 +90,8 @@ std::string extractWeather(const std::string &json) {
 }
 
 int getApiInfo(const char *hostname, const char *port) {
-    struct addrinfo hints{}, *res = nullptr, *p = nullptr;
+    struct addrinfo hints {
+    }, *res = nullptr, *p = nullptr;
     int sockfd = -1;
 
     memset(&hints, 0, sizeof hints);
