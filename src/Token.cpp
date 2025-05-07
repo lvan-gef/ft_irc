@@ -167,8 +167,6 @@ void isValidMode(IRCMessage &token) {
 }
 
 void isValidJoin(IRCMessage &token) {
-    token.debug();
-
     std::vector<std::string> keys = split(token.params[1], ",");
     for (const std::string &key : keys) {
         token.keys.emplace_back(key);
@@ -187,6 +185,30 @@ void isValidJoin(IRCMessage &token) {
             return;
         }
         token.params.emplace_back(channel);
+    }
+}
+
+void isValidPart(IRCMessage &token) {
+    token.debug();
+
+    std::vector<std::string> keys = split(token.params[1], ",");
+    for (const std::string &key : keys) {
+        token.keys.emplace_back(key);
+    }
+
+    std::vector<std::string> parts = split(token.params[0], ",");
+    token.params.clear();
+
+    for (const std::string &part : parts) {
+        if (part.size() < 2 || part[0] != '#' ||
+            part.size() >
+                static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
+            token.err.set_value(IRCCode::NOSUCHCHANNEL);
+            token.errMsg = token.command;
+            token.succes = false;
+            return;
+        }
+        token.params.emplace_back(part);
     }
 }
 
@@ -215,6 +237,8 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
                 isValidJoin(token);
                 break;
             case IRCCommand::PART:
+                isValidPart(token);
+                break;
             case IRCCommand::QUIT:
             case IRCCommand::PING:
             case IRCCommand::USERHOST:

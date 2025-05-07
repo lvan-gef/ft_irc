@@ -200,18 +200,18 @@ void Server::_handleTopic(const IRCMessage &token,
 
 void Server::_handlePart(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[0];
-    Channel *channel = isChannel(channelName);
+    for (size_t index = 0; index < token.params.size(); ++index) {
+        std::string channelName = token.params[index];
+        Channel *channel = isChannel(channelName);
 
-    if (channel == nullptr) {
-        return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0], "");
-    }
+        if (channel == nullptr) {
+            return handleMsg(IRCCode::NOSUCHCHANNEL, client, token.params[0],
+                             "");
+        }
 
-    const std::string reason =
-        token.params.size() > 1 ? token.params[1] : "Bye";
-    channel->removeUser(client, reason);
-    if (channel->getActiveUsers() == 0) {
-        _channels.erase(channel->getName());
+        const std::string reason =
+            index < token.keys.size() ? token.keys[index] : "Bye";
+        channel->removeUser(client, reason);
     }
 }
 
