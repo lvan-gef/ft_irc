@@ -1,4 +1,4 @@
-USER we need to check if we have 4 parameters {USERNAME 0 *:REALNAME}  if realname is not send then then it send 'realname' otherwise send back NOTENEOUGHPARA (need to check if it works correctly)
 check if we have func for setUsername and what the command for it is
 Kick checken
 user already in channel msg is not correctly formated
+When part the channel we get 2 messages for removing and add operator for the client that leaves
