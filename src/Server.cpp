@@ -526,7 +526,7 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
             _nick_to_client.erase(nick_it);
         }
 
-        std::vector<std::string> channels = client->allChannels();
+        const std::vector<std::string> &channels = client->allChannels();
         for (const std::string &channel : channels) {
             auto it = _channels.find(channel);
             if (it != _channels.end()) {
