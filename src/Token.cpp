@@ -113,15 +113,20 @@ void isValidJoin(IRCMessage &msg) {
         return;
     }
 
-    if (msg.params[0][0] != '#') {
-        msg.err.set_value(IRCCode::NOSUCHCHANNEL);
-        msg.succes = false;
-        return;
-    }
-
     std::vector<std::string> channels = split(msg.params[0], ",");
     msg.params.clear();
-    msg.params = channels;
+
+    for (const std::string &channel : channels) {
+        std::cout << "'" << channel << "'" << '\n';
+        if (channel[0] != '#') {
+            msg.err.set_value(IRCCode::NOSUCHCHANNEL);
+            msg.succes = false;
+            return;
+        }
+
+        msg.params.emplace_back(channel);
+    }
+
 }
 
 void isValidTopic(IRCMessage &msg) {

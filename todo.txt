@@ -5,3 +5,4 @@ everywhere we look for nickname we need to remove toupper or make function out o
 check if we have func for setUsername and what the command for it is
 send error back when there is no text to send in channel or privmsg
 Channel modes: will send '+' when there is nothing set
+JOIN impl is wrong... i think password can not have ' ' or ',' inside it

@@ -134,39 +134,42 @@ void Server::_handlePriv(const IRCMessage &token,
 
 void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[0];
+    for (const std::string &channelName : token.params) {
 
-    Channel *channel = isChannel(channelName);
-    if (channel == nullptr) {
-        std::string topic =
-            token.params.size() > 1 ? token.params[1] : "Default";
-        _channels.emplace(channelName, Channel(token.params[0], topic, client));
-    } else {
-        const std::string password =
-            token.params.size() > 1 ? token.params[1] : "";
-        if (channel->addUser(password, client) != true) {
-            return;
+        Channel *channel = isChannel(channelName);
+        if (channel == nullptr) {
+            std::string topic = "Default";
+            _channels.emplace(channelName,
+                              Channel(token.params[0], topic, client));
+        } else {
+            const std::string password =
+                token.params.size() > 1 ? token.params[1] : "";
+            if (channel->addUser(password, client) != true) {
+                return;
+            }
         }
-    }
 
-    channel = isChannel(channelName);
-    if (channel == nullptr) {
-        return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
-    }
-
-    if (channel->hasInvite()) {
-        if (channel->isInvited(client) != true) {
-            handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(), "");
-            return;
+        channel = isChannel(channelName);
+        if (channel == nullptr) {
+            return handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
         }
-    }
 
-    handleMsg(IRCCode::TOPIC, client, channel->getName(), channel->getTopic());
-    handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
-              channel->getUserList());
-    handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
-    client->addChannel(channel->getName());
-    channel->removeFromInvited(client);
+        if (channel->hasInvite()) {
+            if (channel->isInvited(client) != true) {
+                handleMsg(IRCCode::INVITEONLYCHAN, client, channel->getName(),
+                          "");
+                return;
+            }
+        }
+
+        handleMsg(IRCCode::TOPIC, client, channel->getName(),
+                  channel->getTopic());
+        handleMsg(IRCCode::NAMREPLY, client, channel->getName(),
+                  channel->getUserList());
+        handleMsg(IRCCode::ENDOFNAMES, client, channel->getName(), "");
+        client->addChannel(channel->getName());
+        channel->removeFromInvited(client);
+    }
 }
 
 void Server::_handleTopic(const IRCMessage &token,
