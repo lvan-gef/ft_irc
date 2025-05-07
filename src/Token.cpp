@@ -167,9 +167,18 @@ void isValidMode(IRCMessage &token) {
 }
 
 void isValidJoin(IRCMessage &token) {
-    std::vector<std::string> keys = split(token.params[1], ",");
-    for (const std::string &key : keys) {
-        token.keys.emplace_back(key);
+    if (token.params.size() < 1) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
+        return;
+    }
+
+    if (token.params.size() > 1) {
+        std::vector<std::string> keys = split(token.params[1], ",");
+        for (const std::string &key : keys) {
+            token.keys.emplace_back(key);
+        }
     }
 
     std::vector<std::string> channels = split(token.params[0], ",");
@@ -184,16 +193,24 @@ void isValidJoin(IRCMessage &token) {
             token.succes = false;
             return;
         }
+
         token.params.emplace_back(channel);
     }
 }
 
 void isValidPart(IRCMessage &token) {
-    token.debug();
+    if (token.params.size() < 1) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
+        return;
+    }
 
-    std::vector<std::string> keys = split(token.params[1], ",");
-    for (const std::string &key : keys) {
-        token.keys.emplace_back(key);
+    if (token.params.size() > 1) {
+        std::vector<std::string> keys = split(token.params[1], ",");
+        for (const std::string &key : keys) {
+            token.keys.emplace_back(key);
+        }
     }
 
     std::vector<std::string> parts = split(token.params[0], ",");
@@ -201,13 +218,13 @@ void isValidPart(IRCMessage &token) {
 
     for (const std::string &part : parts) {
         if (part.size() < 2 || part[0] != '#' ||
-            part.size() >
-                static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
+            part.size() > static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
             token.err.set_value(IRCCode::NOSUCHCHANNEL);
             token.errMsg = token.command;
             token.succes = false;
             return;
         }
+
         token.params.emplace_back(part);
     }
 }
