@@ -189,7 +189,7 @@ void isValidJoin(IRCMessage &token) {
             channel.size() >
                 static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
             token.err.set_value(IRCCode::NOSUCHCHANNEL);
-            token.errMsg = token.command;
+            token.errMsg = token.command + " " + channel;
             token.succes = false;
             return;
         }
@@ -214,7 +214,7 @@ void isValidPart(IRCMessage &token) {
         if (part.size() < 2 || part[0] != '#' ||
             part.size() > static_cast<std::size_t>(Defaults::MAXCHANNELLEN)) {
             token.err.set_value(IRCCode::NOSUCHCHANNEL);
-            token.errMsg = token.command;
+            token.errMsg = token.command + " " + part;
             token.succes = false;
             return;
         }
