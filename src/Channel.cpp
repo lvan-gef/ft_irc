@@ -68,8 +68,8 @@ void Channel::removeUser(const std::shared_ptr<Client> &user,
     }
 
     broadcast(IRCCode::PART, user->getFullID(), reason);
-    removeOperator(user);
     _users.erase(user);
+    removeOperator(user);
 
     if (getActiveUsers() == 0) {
         if (hasInvite()) {
