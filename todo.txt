@@ -1,4 +1,2 @@
 check if we have func for setUsername and what the command for it is
-user already in channel and when invalid channel msg is not correctly formated
-When part the channel we get 2 messages for removing and add operator for the client that leaves
-kick multi people dont work correctly
+kick multi people dont work correctly in hexchat
