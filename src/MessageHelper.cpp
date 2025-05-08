@@ -196,7 +196,7 @@ void handleMsg(IRCCode code, const std::shared_ptr<Client> &client,
             break;
         case IRCCode::UNKNOWMODE:
             client->appendMessageToQue(
-                formatMessage(":", serverName, " ", ircCode, value,
+                formatMessage(":", serverName, " ", ircCode, " ", value,
                               " :is unknown mode char to me"));
             break;
         case IRCCode::INVITEONLYCHAN:
