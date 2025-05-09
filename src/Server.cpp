@@ -370,6 +370,9 @@ void Server::_shutdown() noexcept {
 
     _fd_to_client.clear();
     _nick_to_client.clear();
+    _channels.clear();
+    _api_requests.clear();
+
 }
 
 int Server::_setNonBlocking(const int fd) noexcept {
