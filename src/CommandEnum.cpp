@@ -1,4 +1,3 @@
-#include <cstring>
 #include <memory>
 
 #include "../include/Enums.hpp"
