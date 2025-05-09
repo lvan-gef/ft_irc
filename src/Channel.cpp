@@ -140,7 +140,7 @@ void Channel::setMode(const ChannelMode mode, const bool state,
         case ChannelMode::TOPIC_PROTECTED:
             if (state) {
                 broadcast(IRCCode::MODE, serverName, "+t");
-                _modes.set(0);
+                _modes.set(1);
             } else {
                 broadcast(IRCCode::MODE, serverName, "-t");
                 _modes.reset(0);
