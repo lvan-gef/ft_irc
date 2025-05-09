@@ -307,7 +307,7 @@ void validateMessage(std::vector<IRCMessage> &tokens) {
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     std::vector<IRCMessage> tokens;
     std::string word;
-    std::vector<std::string> lines = split(msg, "\r\n");
+    const std::vector<std::string> lines = split(msg, "\r\n");
 
     for (const std::string &line : lines) {
         IRCMessage parsed = {};

@@ -570,7 +570,7 @@ Channel *Server::isChannel(const std::string &channelName) noexcept {
 void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
     while (client->hasCompleteMessage()) {
 
-        std::string msg = client->getAndClearBuffer();
+        const std::string msg = client->getAndClearBuffer();
 
         if (msg == "") {
             return;
@@ -581,7 +581,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         }
 
         std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
-        std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
+        const std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
         for (const IRCMessage &token : clientsToken) {
             if (!token.succes) {
                 try {
