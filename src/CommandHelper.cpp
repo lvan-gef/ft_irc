@@ -111,7 +111,7 @@ void Server::_handlePriv(const IRCMessage &token,
                                ":" + token.params[1]);
         }
     } else if (bot == "BOT") {
-        std::string response = handleBot(token.params, client, this);
+        const std::string response = handleBot(token.params, client, this);
         const size_t find = response.find('\n');
         if (std::string::npos != find) {
             botResponseNl(client, response);
