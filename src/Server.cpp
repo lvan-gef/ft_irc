@@ -36,8 +36,8 @@ void signalHandler(const int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _serverStared(""),
-      _server_fd(-1), _epoll_fd(-1), _fd_to_client{}, _nick_to_client{},
-      _channels{} {
+      _server_fd(-1), _epoll_fd(-1)
+      {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }

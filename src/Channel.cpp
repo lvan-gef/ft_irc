@@ -10,8 +10,8 @@
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
-      _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0), _users{},
-      _operators{}, _invites{} {
+      _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0)
+      {
     addUser(_password, client);
     addOperator(client);
 }

@@ -9,7 +9,7 @@
 
 Client::Client(const int fd)
     : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"), _realname(""),
-      _partial_buffer(""), _messages{}, _event{}, _channels{} {
+      _partial_buffer(""), _event{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
     _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
