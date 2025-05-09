@@ -9,7 +9,7 @@
 
 std::uint16_t toUint16(const std::string &str) {
     try {
-        size_t pos = 0;
+        std::size_t pos = 0;
         const unsigned long value = std::stoul(str, &pos, BASE);
 
         if (pos != str.size()) {
@@ -34,7 +34,7 @@ std::uint16_t toUint16(const std::string &str) {
 
 std::size_t toSizeT(const std::string &str) {
     try {
-        size_t pos = 0;
+        std::size_t pos = 0;
         const unsigned long value = std::stoul(str, &pos, BASE);
 
         if (pos != str.size()) {
@@ -42,7 +42,7 @@ std::size_t toSizeT(const std::string &str) {
             return 0;
         }
 
-        return static_cast<size_t>(value);
+        return static_cast<std::size_t>(value);
     } catch (const std::invalid_argument &) {
         errno = EINVAL;
         return 0;
@@ -55,8 +55,8 @@ std::size_t toSizeT(const std::string &str) {
 std::vector<std::string> split(const std::string &str,
                                const std::string &delim) {
     std::vector<std::string> lines;
-    size_t pos = 0;
-    size_t prev = 0;
+    std::size_t pos = 0;
+    std::size_t prev = 0;
 
     while ((pos = str.find(delim, prev)) != std::string::npos) {
         try {

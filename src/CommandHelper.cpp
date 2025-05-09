@@ -112,7 +112,7 @@ void Server::_handlePriv(const IRCMessage &token,
         }
     } else if (bot == "BOT") {
         const std::string response = handleBot(token.params, client, this);
-        const size_t find = response.find('\n');
+        const std::size_t find = response.find('\n');
         if (std::string::npos != find) {
             botResponseNl(client, response);
         } else {
@@ -140,7 +140,7 @@ void Server::_handlePriv(const IRCMessage &token,
 
 void Server::_handleJoin(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    for (size_t index = 0; index < token.params.size(); ++index) {
+    for (std::size_t index = 0; index < token.params.size(); ++index) {
         const std::string &channelName = token.params[index];
 
         Channel *channel = isChannel(channelName);

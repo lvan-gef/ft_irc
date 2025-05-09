@@ -70,7 +70,7 @@ void isValidNick(IRCMessage &token) {
     }
 
     const std::string allowedChars = firstAllowed + "0123456789-";
-    for (size_t i = 1; i < token.params[0].length(); ++i) {
+    for (std::size_t i = 1; i < token.params[0].length(); ++i) {
         if (allowedChars.find(token.params[0][i]) == std::string::npos) {
             token.succes = false;
             token.err.set_value(IRCCode::ERRONUENICK);

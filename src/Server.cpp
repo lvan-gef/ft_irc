@@ -191,7 +191,7 @@ std::string Server::getChannelsAndUsers() noexcept {
                            [](const std::string &s) { return s.empty(); }),
             sortedUsers.end());
 
-        for (size_t i = 0; i < sortedUsers.size(); ++i) {
+        for (std::size_t i = 0; i < sortedUsers.size(); ++i) {
             ss << sortedUsers[i];
             if (i == sortedUsers.size() - 1)
                 ss << ".";
@@ -283,7 +283,7 @@ void Server::_run() {
         }
 
         for (int index = 0; index < nfds; ++index) {
-            const auto &event = events[static_cast<size_t>(index)];
+            const auto &event = events[static_cast<std::size_t>(index)];
 
             if (event.data.fd == _server_fd.get()) {
                 _newConnection();
@@ -454,7 +454,7 @@ void Server::_clientRecv(const int fd) noexcept {
         return;
     }
 
-    client->appendToBuffer(std::string(buffer, (size_t)bytes_read));
+    client->appendToBuffer(std::string(buffer, (std::size_t)bytes_read));
     _processMessage(client);
 }
 
@@ -464,7 +464,7 @@ void Server::_clientSend(const int fd) noexcept {
     while (client->haveMessagesToSend()) {
         const std::string msg = client->getMessage();
 
-        const size_t offset = client->getOffset();
+        const std::size_t offset = client->getOffset();
         std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
                   << '\n';
         const ssize_t bytes =
@@ -481,7 +481,7 @@ void Server::_clientSend(const int fd) noexcept {
             break;
         }
 
-        client->setOffset(static_cast<size_t>(bytes));
+        client->setOffset(static_cast<std::size_t>(bytes));
         if (client->getOffset() >= msg.length()) {
             client->removeMessage();
         } else {

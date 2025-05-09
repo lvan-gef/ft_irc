@@ -72,8 +72,8 @@ class Client {
     const std::vector<std::string> &allChannels() const noexcept;
 
   public:
-    void setOffset(size_t offset) noexcept;
-    size_t getOffset() const noexcept;
+    void setOffset(std::size_t offset) noexcept;
+    std::size_t getOffset() const noexcept;
 
   private:
     EpollInterface *_epollNotifier{};
@@ -88,7 +88,7 @@ class Client {
   private:
     std::string _partial_buffer;
     std::queue<std::string> _messages;
-    size_t _offset{0};
+    std::size_t _offset{0};
 
   private:
     epoll_event _event;

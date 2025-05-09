@@ -12,7 +12,7 @@ Client::Client(const int fd)
       _partial_buffer(""), _event{} {
     _event.data.fd = _fd.get();
     _event.events = EPOLLIN | EPOLLOUT;
-    _channels.reserve(static_cast<size_t>(Defaults::EVENT_SIZE));
+    _channels.reserve(static_cast<std::size_t>(Defaults::EVENT_SIZE));
 }
 
 Client::Client(Client &&rhs) noexcept
@@ -132,7 +132,7 @@ void Client::appendToBuffer(const std::string &data) noexcept {
 }
 
 std::string Client::getAndClearBuffer() noexcept {
-    const size_t index = _partial_buffer.find("\r\n");
+    const std::size_t index = _partial_buffer.find("\r\n");
     if (index == std::string::npos) {
         std::cerr << "Find \\r\\n failed when getting the buffer" << '\n';
         return "";
@@ -218,10 +218,10 @@ const std::vector<std::string> &Client::allChannels() const noexcept {
     return _channels;
 }
 
-void Client::setOffset(const size_t offset) noexcept {
+void Client::setOffset(const std::size_t offset) noexcept {
     _offset += offset;
 }
 
-size_t Client::getOffset() const noexcept {
+std::size_t Client::getOffset() const noexcept {
     return _offset;
 }

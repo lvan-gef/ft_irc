@@ -38,7 +38,7 @@ class Channel {
                  const std::shared_ptr<Client> &client);
     void setPassword(const std::string &password,
                      const std::shared_ptr<Client> &client);
-    void setUserLimit(size_t limit, const std::shared_ptr<Client> &client);
+    void setUserLimit(std::size_t limit, const std::shared_ptr<Client> &client);
     void setTopic(const std::string &topic,
                   const std::shared_ptr<Client> &client);
 
@@ -80,7 +80,7 @@ class Channel {
     std::string _name;
     std::string _topic;
     std::string _password;
-    size_t _userLimit;
+    std::size_t _userLimit;
     std::bitset<5> _modes; // invite, topic, password, operator, userlimit
 
   private:

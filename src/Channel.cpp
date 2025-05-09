@@ -197,7 +197,7 @@ void Channel::setMode(const ChannelMode mode, const bool state, const std::strin
             }
             _modes.reset(4);
             broadcast(IRCCode::MODE, serverName, "-l");
-            return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
+            return setUserLimit(static_cast<std::size_t>(Defaults::USERLIMIT),
                                 client);
     }
 }
@@ -211,7 +211,7 @@ void Channel::setPassword(const std::string &password,
     _password = password;
 }
 
-void Channel::setUserLimit(const size_t limit,
+void Channel::setUserLimit(const std::size_t limit,
                            const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");

@@ -29,13 +29,13 @@
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
     const std::string key_to_find = "\"" + key + "\":";
-    const size_t key_pos = json.find(key_to_find);
+    const std::size_t key_pos = json.find(key_to_find);
 
     if (key_pos == std::string::npos) {
         return "Key not found";
     }
 
-    size_t value_start = key_pos + key_to_find.length();
+    std::size_t value_start = key_pos + key_to_find.length();
 
     while (value_start < json.length() && isspace(json[value_start])) {
         value_start++;
@@ -46,7 +46,7 @@ std::string findVal(const std::string &json, const std::string &key) {
     }
 
     if (json[value_start] == '"') {
-        const size_t value_end = json.find('"', value_start + 1);
+        const std::size_t value_end = json.find('"', value_start + 1);
         if (value_end != std::string::npos) {
             try {
                 return json.substr(value_start + 1,
@@ -57,7 +57,7 @@ std::string findVal(const std::string &json, const std::string &key) {
             }
         }
     } else if (isdigit(json[value_start]) || json[value_start] == '-') {
-        size_t value_end = value_start;
+        std::size_t value_end = value_start;
         while (value_end < json.length() &&
                (isdigit(json[value_end]) || json[value_end] == '.' ||
                 json[value_end] == '-')) {
@@ -200,11 +200,11 @@ std::string getQuote() {
 ChatBot getChatCmd(const std::string &command) {
     std::string uppercase_cmd = command;
 
-    const size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
+    const std::size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
     if (std::string::npos == first) {
         uppercase_cmd = "";
     } else {
-        const size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
+        const std::size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
         try {
             uppercase_cmd = uppercase_cmd.substr(first, (last - first + 1));
         } catch (const std::out_of_range &e) {
@@ -388,7 +388,7 @@ void handleRecvApi(ApiRequest &api) {
     while (true) {
         n = recv(api.fd, buf, sizeof(buf), MSG_DONTWAIT);
         if (n > 0) {
-            api.buffer.append(buf, static_cast<size_t>(n));
+            api.buffer.append(buf, static_cast<std::size_t>(n));
         } else if (n == 0) {
             connection_closed_by_peer = true;
             break;
@@ -410,7 +410,7 @@ void handleRecvApi(ApiRequest &api) {
         return;
     }
 
-    const size_t header_end = api.buffer.find("\r\n\r\n");
+    const std::size_t header_end = api.buffer.find("\r\n\r\n");
     if (header_end == std::string::npos) {
         if (connection_closed_by_peer) {
             std::cerr
