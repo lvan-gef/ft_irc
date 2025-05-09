@@ -1,20 +1,19 @@
 #include <algorithm>
+#include <cerrno>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
-#include <cerrno>
-#include <cstddef>
 
 #include "../include/Channel.hpp"
+#include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Utils.hpp"
-#include "../include/Client.hpp"
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
     : _name(std::move(name)), _topic(std::move(topic)), _password(""),
-      _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0)
-      {
+      _userLimit(getDefaultValue(Defaults::USERLIMIT)), _modes(0) {
     addUser(_password, client);
     addOperator(client);
 }
@@ -121,7 +120,8 @@ void Channel::inviteUser(const std::shared_ptr<Client> &user,
                   client->getNickname());
 }
 
-void Channel::setMode(const ChannelMode mode, const bool state, const std::string &value,
+void Channel::setMode(const ChannelMode mode, const bool state,
+                      const std::string &value,
                       const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");

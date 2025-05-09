@@ -1,38 +1,38 @@
 #include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <exception>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-#include <ctime>
-#include <sstream>
-#include <functional>
-#include <cstdlib>
-#include <exception>
-#include <cctype>
 
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <unistd.h>
-#include <signal.h>
 #include <sys/types.h>
+#include <unistd.h>
 
+#include "../include/Channel.hpp"
 #include "../include/Chatbot.hpp"
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
-#include "../include/Channel.hpp"
 
 namespace {
 bool g_running{true};
@@ -45,8 +45,7 @@ void signalHandler(const int signum) {
 
 Server::Server(const std::string &port, std::string &password)
     : _port(toUint16(port)), _password(std::move(password)), _serverStared(""),
-      _server_fd(-1), _epoll_fd(-1)
-      {
+      _server_fd(-1), _epoll_fd(-1) {
     if (errno != 0) {
         throw std::invalid_argument("Invalid port");
     }
@@ -136,7 +135,7 @@ bool Server::run() noexcept {
         return false;
     }
 
-    struct sigaction sa {};
+    struct sigaction sa{};
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -240,12 +239,11 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    sockaddr_in address {};
+    sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
-    if (0 >
-        bind(_server_fd.get(), (sockaddr *)&address, sizeof(address))) {
+    if (0 > bind(_server_fd.get(), (sockaddr *)&address, sizeof(address))) {
         std::cerr << "Bind failed: " << strerror(errno) << '\n';
         return false;
     }
@@ -261,7 +259,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    epoll_event ev {};
+    epoll_event ev{};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {

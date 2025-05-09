@@ -1,10 +1,10 @@
 #include <memory>
 
+#include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
-#include "../include/Client.hpp"
 
 void Server::_handleCommand(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) noexcept {

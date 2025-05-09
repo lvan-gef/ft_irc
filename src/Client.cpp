@@ -1,9 +1,9 @@
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
-#include <cstdlib>
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"

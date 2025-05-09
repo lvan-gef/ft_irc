@@ -1,6 +1,6 @@
+#include <exception>
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "../include/Server.hpp"
 

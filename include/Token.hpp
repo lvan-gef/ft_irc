@@ -18,7 +18,7 @@ struct IRCMessage {
     std::string errMsg;
     IRCCommand type;
 
-     void debug() const noexcept;
+    void debug() const noexcept;
 };
 
 std::vector<IRCMessage> parseIRCMessage(const std::string &msg);

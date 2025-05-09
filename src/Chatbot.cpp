@@ -1,30 +1,30 @@
 #include <algorithm>
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include <cctype>
-#include <cerrno>
 #include <vector>
-#include <cstdlib>
-#include <exception>
-#include <cstdio>
 
 #include <fcntl.h>
 #include <netdb.h>
-#include <unistd.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "../include/Chatbot.hpp"
+#include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Utils.hpp"
-#include "../include/Client.hpp"
 
 // TODO: use fd class to handle fd;
 
@@ -100,7 +100,7 @@ std::string extractWeather(const std::string &json) {
 }
 
 int getApiInfo(const char *hostname, const char *port) {
-    addrinfo hints {};
+    addrinfo hints{};
     addrinfo *res = nullptr;
     const addrinfo *p = nullptr;
     int sockfd = -1;
@@ -257,8 +257,9 @@ std::string getWeatherDirectly(const std::string &location,
         return "Error: API Key not configured.";
     }
 
-    const std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
-                            "&q=" + location + "&aqi=no";
+    const std::string full_path =
+        "/v1/current.json?key=" + std::string(api_key) + "&q=" + location +
+        "&aqi=no";
 
     std::stringstream request_ss;
     request_ss << "GET " << full_path << " HTTP/1.1\r\n";
@@ -279,7 +280,7 @@ std::string getWeatherDirectly(const std::string &location,
     epoll_ctl(server->getEpollFD(), EPOLL_CTL_ADD, sockfd, &ev);
 
     const ApiRequest apiReq = {sockfd, client, "", request_ss.str(),
-                         ApiRequest::CONNECTING};
+                               ApiRequest::CONNECTING};
     server->addApiRequest(apiReq);
 
     return "Fetching weather...";
@@ -351,7 +352,8 @@ void botResponseNl(const std::shared_ptr<Client> &client,
     }
 }
 
-bool handleSendApi(ApiRequest &api, const epoll_event event, const int epoll_fd) {
+bool handleSendApi(ApiRequest &api, const epoll_event event,
+                   const int epoll_fd) {
     if (api.state == api.State::CONNECTING) {
         int error = 0;
         socklen_t len = sizeof(error);
@@ -440,7 +442,8 @@ void handleRecvApi(ApiRequest &api) {
     }
 
     try {
-        const std::string status_line = api.buffer.substr(0, api.buffer.find("\r\n"));
+        const std::string status_line =
+            api.buffer.substr(0, api.buffer.find("\r\n"));
         if (status_line.find("200 OK") == std::string::npos) {
             std::cerr << "handleRecvApi (fd=" << api.fd
                       << "): API request failed. Status: " << status_line
@@ -505,8 +508,8 @@ void handleRecvApi(ApiRequest &api) {
         botResponseNl(api.client, "Error processing API response.");
     }
 
-        std::cerr << "handleRecvApi: Closing API socket fd " << api.fd
-                  << " (reached end of function unexpectedly)" << '\n';
-        close(api.fd);
-        api.fd = -1;
+    std::cerr << "handleRecvApi: Closing API socket fd " << api.fd
+              << " (reached end of function unexpectedly)" << '\n';
+    close(api.fd);
+    api.fd = -1;
 }

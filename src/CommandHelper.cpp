@@ -1,18 +1,18 @@
 #include <algorithm>
-#include <iostream>
-#include <memory>
-#include <string>
 #include <cctype>
 #include <cstddef>
+#include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
 
 #include "../include/Channel.hpp"
 #include "../include/Chatbot.hpp"
+#include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
-#include "../include/Client.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {
@@ -66,10 +66,11 @@ void Server::_handleUsername(const IRCMessage &token,
     }
 }
 
-void Server::_handlePassword(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) const noexcept {
+void Server::_handlePassword(
+    const IRCMessage &token,
+    const std::shared_ptr<Client> &client) const noexcept {
     if (client->isRegistered()) {
-		handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
+        handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
         if (token.params[0] == _password) {
             client->setPasswordBit();
@@ -235,7 +236,8 @@ void Server::_handleKick(const IRCMessage &token,
         std::shared_ptr<Client> targetClient = nullptr;
         for (const std::string &username : token.keys) {
             std::string upperUserNickToKick = username;
-            std::transform(upperUserNickToKick.begin(), upperUserNickToKick.end(),
+            std::transform(upperUserNickToKick.begin(),
+                           upperUserNickToKick.end(),
                            upperUserNickToKick.begin(), ::toupper);
 
             for (const auto &pair : _nick_to_client) {
@@ -249,8 +251,7 @@ void Server::_handleKick(const IRCMessage &token,
             }
 
             if (targetClient == nullptr) {
-                handleMsg(IRCCode::NOSUCHNICK, client, username,
-                          "");
+                handleMsg(IRCCode::NOSUCHNICK, client, username, "");
                 continue;
             }
 
@@ -330,8 +331,9 @@ void Server::_handleMode(const IRCMessage &token,
     }
 }
 
-void Server::_handleUserhost(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) const noexcept {
+void Server::_handleUserhost(
+    const IRCMessage &token,
+    const std::shared_ptr<Client> &client) const noexcept {
     std::shared_ptr<Client> targetClient = nullptr;
     std::string uppercaseName = token.params[0];
     std::transform(uppercaseName.begin(), uppercaseName.end(),
@@ -365,8 +367,9 @@ void Server::_handleUnkown(const IRCMessage &token,
                      "Unknown command");
 }
 
-void Server::_handleWhois(const IRCMessage &token,
-                          const std::shared_ptr<Client> &client) const noexcept {
+void Server::_handleWhois(
+    const IRCMessage &token,
+    const std::shared_ptr<Client> &client) const noexcept {
     if (token.params.empty())
         return;
 
