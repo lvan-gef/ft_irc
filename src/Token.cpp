@@ -331,9 +331,9 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
                         return std::vector<IRCMessage>{};
                     }
                     break;
-                } else {
-                    parsed.params.emplace_back(word);
                 }
+
+                parsed.params.emplace_back(word);
             }
         }
 

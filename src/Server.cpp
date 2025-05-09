@@ -442,11 +442,11 @@ void Server::_clientRecv(const int fd) noexcept {
     if (0 > bytes_read) {
         if (errno == EAGAIN) {
             return;
-        } else {
-            _removeClient(client);
-            std::cerr << "Error while recv: " << strerror(errno) << '\n';
-            return;
         }
+
+        _removeClient(client);
+        std::cerr << "Error while recv: " << strerror(errno) << '\n';
+        return;
     }
 
     if (bytes_read == 0) {
@@ -474,11 +474,11 @@ void Server::_clientSend(const int fd) noexcept {
         if (0 > bytes) {
             if (errno == EAGAIN) {
                 break;
-            } else {
-                std::cerr << "Error while sending: " << strerror(errno) << '\n';
-                _removeClient(client);
-                break;
             }
+
+            std::cerr << "Error while sending: " << strerror(errno) << '\n';
+            _removeClient(client);
+            break;
         }
 
         client->setOffset(static_cast<size_t>(bytes));
