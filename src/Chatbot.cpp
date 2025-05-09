@@ -5,18 +5,24 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sys/epoll.h>
-#include <sys/socket.h>
 #include <unordered_map>
+#include <cctype>
+#include <cerrno>
+#include <vector>
+#include <cstdlib>
+#include <exception>
 
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Server.hpp"
 #include "../include/Utils.hpp"
+#include "../include/Client.hpp"
 
 // TODO: use fd class to handle fd;
 

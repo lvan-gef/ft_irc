@@ -1,11 +1,14 @@
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <cerrno>
+#include <cstddef>
 
 #include "../include/Channel.hpp"
 #include "../include/Enums.hpp"
 #include "../include/Utils.hpp"
+#include "../include/Client.hpp"
 
 Channel::Channel(std::string name, std::string topic,
                  const std::shared_ptr<Client> &client)
@@ -176,7 +179,7 @@ void Channel::setMode(const ChannelMode mode, const bool state, const std::strin
                                      "Limit can not be negative");
                 }
 
-                const size_t nbr = toSizeT(value);
+                const std::size_t nbr = toSizeT(value);
                 if (nbr == 0) {
                     return handleMsg(IRCCode::INVALIDMODEPARAM, client,
                                      " MODE +l " + value, "Limit can not be 0");
