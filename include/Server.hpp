@@ -87,8 +87,8 @@ class Server final : public EpollInterface {
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleQuit(const IRCMessage &token,
                      const std::shared_ptr<Client> &client) noexcept;
-    void _handlePing(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client) noexcept;
+    static void _handlePing(const IRCMessage &token,
+                            const std::shared_ptr<Client> &client) noexcept;
     void _handleKick(const IRCMessage &token,
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleInvite(const IRCMessage &token,
@@ -97,8 +97,8 @@ class Server final : public EpollInterface {
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleUserhost(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) const noexcept;
-    void _handleUnkown(const IRCMessage &token,
-                       const std::shared_ptr<Client> &client) noexcept;
+    static void _handleUnkown(const IRCMessage &token,
+                              const std::shared_ptr<Client> &client) noexcept;
     void _handleWhois(const IRCMessage &token,
                       const std::shared_ptr<Client> &client) const noexcept;
 
