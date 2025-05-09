@@ -2,7 +2,6 @@
 #define TOKEN_HPP
 
 #include <string>
-#include <sys/types.h>
 #include <vector>
 
 #include "./Enums.hpp"
