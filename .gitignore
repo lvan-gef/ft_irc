@@ -31,14 +31,15 @@
 *.out
 *.app
 
-# mac stuff
+# mac
 .DS_Store
 
 # dirs
 .cache/
 infer-out/
+.idea/
+.cpp_check/
 
 compile_commands.json
 ircserv
 ircserv_debug
-.cpp_check
