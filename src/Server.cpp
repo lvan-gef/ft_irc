@@ -231,12 +231,12 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct sockaddr_in address {};
+    sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(_port);
     if (0 >
-        bind(_server_fd.get(), (struct sockaddr *)&address, sizeof(address))) {
+        bind(_server_fd.get(), (sockaddr *)&address, sizeof(address))) {
         std::cerr << "Bind failed: " << strerror(errno) << '\n';
         return false;
     }
@@ -252,7 +252,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    struct epoll_event ev {};
+    epoll_event ev {};
     ev.events = EPOLLIN;
     ev.data.fd = _server_fd.get();
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, _server_fd.get(), &ev)) {
