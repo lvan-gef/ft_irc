@@ -8,7 +8,7 @@ CXXFLAGS := $(BASE_FLAGS) $(WARNING_FLAGS)
 DEP_FLAGS := -MMD -MP
 
 DEBUG_FLAGS := -g3 -DDEBUG -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer
-RELEASE_FLAGS := -DNDEBUG
+RELEASE_FLAGS := -DNDEBUG -g3
 
 SRCDIR := src/
 OBJDIR := obj/
@@ -16,7 +16,7 @@ OBJDIR := obj/
 OBJDIR_RELEASE := $(OBJDIR)release/
 OBJDIR_DEBUG := $(OBJDIR)debug/
 
-SRCFILES := Channel.cpp Chatbot.cpp Client.cpp CommandEnum.cpp CommandHelper.cpp Enum.cpp FileDescriptors.cpp MessageHelper.cpp Server.cpp Token.cpp Utils.cpp main.cpp
+SRCFILES := Channel.cpp Chatbot.cpp Client.cpp CommandEnum.cpp CommandHelper.cpp Enum.cpp FileDescriptor.cpp MessageHelper.cpp Server.cpp Token.cpp Utils.cpp main.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRCFILES))
 
 OBJS := $(SRCFILES:%.cpp=$(OBJDIR_RELEASE)%.o)

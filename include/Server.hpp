@@ -8,7 +8,7 @@
 #include "./Channel.hpp"
 #include "./Client.hpp"
 #include "./EpollInterface.hpp"
-#include "./FileDescriptors.hpp"
+#include "./FileDescriptor.hpp"
 #include "./Token.hpp"
 
 struct ApiRequest {
@@ -104,8 +104,8 @@ class Server final : public EpollInterface {
     std::string _serverStared;
 
   private:
-    FileDescriptors _server_fd;
-    FileDescriptors _epoll_fd;
+    FileDescriptor _server_fd;
+    FileDescriptor _epoll_fd;
     std::size_t _connections{0};
 
   private:

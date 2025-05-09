@@ -9,7 +9,7 @@
 #include <sys/epoll.h>
 
 #include "./EpollInterface.hpp"
-#include "./FileDescriptors.hpp"
+#include "./FileDescriptor.hpp"
 
 class Client {
   public:
@@ -79,7 +79,7 @@ class Client {
     EpollInterface *_epollNotifier{};
 
   private:
-    FileDescriptors _fd;
+    FileDescriptor _fd;
     std::string _username;
     std::string _nickname;
     std::string _ip;
