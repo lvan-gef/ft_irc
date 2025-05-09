@@ -2,7 +2,6 @@
 #define CLIENT_HPP
 
 #include <bitset>
-#include <ctime>
 #include <queue>
 #include <string>
 #include <vector>
