@@ -61,7 +61,7 @@ class Client {
   public:
     std::string getMessage() noexcept;
     void removeMessage() noexcept;
-    bool haveMessagesToSend() noexcept;
+    bool haveMessagesToSend() const noexcept;
     void appendMessageToQue(const std::string &msg) noexcept;
     void setDisconnect() noexcept;
     bool isDisconnect() const noexcept;

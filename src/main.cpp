@@ -3,7 +3,7 @@
 
 #include "../include/Server.hpp"
 
-int main(int argc, char **argv) {
+int main(const int argc, char **argv) {
     if (argc != 3) {
         std::cerr << "Expect 2 arguments: port and password, got: " << argc - 1
                   << '\n';
@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     }
 
     try {
-        std::string arg1 = argv[1];
+        const std::string arg1 = argv[1];
         std::string arg2 = argv[2];
         Server server = Server(arg1, arg2);
 

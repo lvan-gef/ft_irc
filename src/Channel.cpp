@@ -60,7 +60,7 @@ bool Channel::addUser(const std::string &password,
 
 void Channel::removeUser(const std::shared_ptr<Client> &user,
                          const std::string &reason) {
-    auto it = std::find(_users.begin(), _users.end(), user);
+    const auto it = std::find(_users.begin(), _users.end(), user);
 
     if (it == _users.end()) {
         return handleMsg(IRCCode::USERNOTINCHANNEL, user, getName(),
@@ -118,7 +118,7 @@ void Channel::inviteUser(const std::shared_ptr<Client> &user,
                   client->getNickname());
 }
 
-void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
+void Channel::setMode(const ChannelMode mode, const cbool state, const std::string &value,
                       const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
@@ -178,7 +178,7 @@ void Channel::setMode(ChannelMode mode, bool state, const std::string &value,
                                      "Limit can not be negative");
                 }
 
-                size_t nbr = toSizeT(value);
+                const size_t nbr = toSizeT(value);
                 if (nbr == 0) {
                     return handleMsg(IRCCode::INVALIDMODEPARAM, client,
                                      " MODE +l " + value, "Limit can not be 0");
@@ -211,7 +211,7 @@ void Channel::setPassword(const std::string &password,
     _password = password;
 }
 
-void Channel::setUserLimit(size_t limit,
+void Channel::setUserLimit(const size_t limit,
                            const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
@@ -232,7 +232,7 @@ void Channel::setTopic(const std::string &topic,
 }
 
 void Channel::addOperator(const std::shared_ptr<Client> &user) {
-    auto it = std::find(_operators.begin(), _operators.end(), user);
+    const auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it == _operators.end()) {
         _operators.emplace(user);
@@ -243,7 +243,7 @@ void Channel::addOperator(const std::shared_ptr<Client> &user) {
 }
 
 void Channel::removeOperator(const std::shared_ptr<Client> &user) {
-    auto it = std::find(_operators.begin(), _operators.end(), user);
+    const auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it != _operators.end()) {
         _operators.erase(user);
@@ -303,7 +303,7 @@ std::string Channel::getChannelModesValues() const noexcept {
     return values;
 }
 
-void Channel::broadcast(IRCCode code, const std::string &senderPrefix,
+void Channel::broadcast(const IRCCode code, const std::string &senderPrefix,
                         const std::string &message) const {
     for (const std::shared_ptr<Client> &user : _users) {
         if (code == IRCCode::PRIVMSG &&
@@ -362,7 +362,7 @@ bool Channel::_hasTopic() const noexcept {
 }
 
 bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
-    auto it = std::find(_operators.begin(), _operators.end(), user);
+    const auto it = std::find(_operators.begin(), _operators.end(), user);
 
     if (it != _operators.end()) {
         return true;
@@ -373,7 +373,7 @@ bool Channel::isOperator(const std::shared_ptr<Client> &user) const noexcept {
 
 bool Channel::userOnChannel(
     const std::shared_ptr<Client> &user) const noexcept {
-    auto it = std::find(_users.begin(), _users.end(), user);
+    const auto it = std::find(_users.begin(), _users.end(), user);
 
     if (it == _users.end()) {
         return false;

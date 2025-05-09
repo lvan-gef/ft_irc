@@ -10,7 +10,7 @@
 std::uint16_t toUint16(const std::string &str) {
     try {
         size_t pos = 0;
-        unsigned long value = std::stoul(str, &pos, BASE);
+        const unsigned long value = std::stoul(str, &pos, BASE);
 
         if (pos != str.size()) {
             errno = EINVAL;
@@ -35,7 +35,7 @@ std::uint16_t toUint16(const std::string &str) {
 std::size_t toSizeT(const std::string &str) {
     try {
         size_t pos = 0;
-        unsigned long value = std::stoul(str, &pos, BASE);
+        const unsigned long value = std::stoul(str, &pos, BASE);
 
         if (pos != str.size()) {
             errno = EINVAL;

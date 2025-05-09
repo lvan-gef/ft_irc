@@ -9,7 +9,7 @@
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
 
-Client::Client(int fd)
+Client::Client(const int fd)
     : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"), _realname(""),
       _partial_buffer(""), _messages{}, _event{}, _channels{} {
     _event.data.fd = _fd.get();
@@ -134,7 +134,7 @@ void Client::appendToBuffer(const std::string &data) noexcept {
 }
 
 std::string Client::getAndClearBuffer() noexcept {
-    size_t index = _partial_buffer.find("\r\n");
+    const size_t index = _partial_buffer.find("\r\n");
     if (index == std::string::npos) {
         std::cerr << "Find \\r\\n failed when getting the buffer" << '\n';
         return "";
@@ -170,7 +170,7 @@ void Client::removeMessage() noexcept {
     _offset = 0;
 }
 
-bool Client::haveMessagesToSend() noexcept {
+bool Client::haveMessagesToSend() const noexcept {
     if (_messages.empty() != true) {
         return true;
     }
@@ -194,14 +194,14 @@ bool Client::isDisconnect() const noexcept {
 }
 
 void Client::addChannel(const std::string &channelName) noexcept {
-    auto it = std::find(_channels.begin(), _channels.end(), channelName);
+    const auto it = std::find(_channels.begin(), _channels.end(), channelName);
 
     if (it == _channels.end()) {
         _channels.emplace_back(channelName);
     }
 }
 void Client::removeChannel(const std::string &channelName) noexcept {
-    auto it = std::find(_channels.begin(), _channels.end(), channelName);
+    const auto it = std::find(_channels.begin(), _channels.end(), channelName);
 
     if (it != _channels.end()) {
         _channels.erase(it);
@@ -209,7 +209,7 @@ void Client::removeChannel(const std::string &channelName) noexcept {
 }
 
 void Client::removeAllChannels() noexcept {
-    std::vector<std::string> channels = allChannels();
+    const std::vector<std::string> channels = allChannels();
 
     for (const std::string &channel : channels) {
         removeChannel(channel);
@@ -220,7 +220,7 @@ const std::vector<std::string> &Client::allChannels() const noexcept {
     return _channels;
 }
 
-void Client::setOffset(size_t offset) noexcept {
+void Client::setOffset(const size_t offset) noexcept {
     _offset += offset;
 }
 

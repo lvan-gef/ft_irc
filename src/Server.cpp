@@ -27,7 +27,7 @@
 
 namespace {
 bool g_running{true};
-void signalHandler(int signum) {
+void signalHandler(const int signum) {
     if (signum == SIGINT || signum == SIGTERM) {
         g_running = false;
     }
@@ -50,8 +50,8 @@ Server::Server(const std::string &port, std::string &password)
         throw std::invalid_argument("password can not be empty");
     }
 
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t now_time = std::chrono::system_clock::to_time_t(now);
     std::tm utc_time = {};
 
     std::memset(&utc_time, 0, sizeof(std::tm));
@@ -98,8 +98,8 @@ Server::~Server() {
     _shutdown();
 }
 
-void Server::notifyEpollUpdate(int fd) {
-    auto it = _fd_to_client.find(fd);
+void Server::notifyEpollUpdate(const int fd) {
+    const auto it = _fd_to_client.find(fd);
     if (it == _fd_to_client.end()) {
         return;
     }
@@ -183,7 +183,7 @@ std::string Server::getChannelsAndUsers() noexcept {
             continue;
         }
         ss << channelName << ": ";
-        std::vector<std::string> users = split(userListStr, " ");
+        const std::vector<std::string> users = split(userListStr, " ");
         std::vector<std::string> sortedUsers = users;
         std::sort(sortedUsers.begin(), sortedUsers.end());
         sortedUsers.erase(
@@ -220,7 +220,7 @@ bool Server::_init() noexcept {
         return false;
     }
 
-    int opt = 1;
+    constexpr int opt = 1;
     if (0 > setsockopt(_server_fd.get(), SOL_SOCKET, SO_REUSEADDR, &opt,
                        sizeof(opt))) {
         std::cerr << "setsockopt failed: " << strerror(errno) << '\n';
@@ -269,7 +269,7 @@ void Server::_run() {
     std::vector<epoll_event> events(static_cast<int>(Defaults::EVENT_SIZE));
 
     while (g_running) {
-        int nfds = epoll_wait(
+        const int nfds = epoll_wait(
             _epoll_fd.get(), static_cast<epoll_event *>(events.data()),
             (int)events.size(), static_cast<int>(Defaults::INTERVAL));
 
@@ -365,8 +365,8 @@ void Server::_shutdown() noexcept {
     _nick_to_client.clear();
 }
 
-int Server::_setNonBlocking(int fd) noexcept {
-    int returnCode = fcntl(fd, F_SETFL, O_NONBLOCK);
+int Server::_setNonBlocking(const int fd) noexcept {
+    const int returnCode = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (0 > returnCode) {
         std::cerr << "Failed to set to non-blocking mode: " << strerror(errno)
                   << '\n';
@@ -393,7 +393,7 @@ void Server::_newConnection() noexcept {
         return;
     }
 
-    std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
+    const std::shared_ptr<Client> client = std::make_shared<Client>(clientFD);
     client->setEpollNotifier(this);
     if (0 > epoll_ctl(_epoll_fd.get(), EPOLL_CTL_ADD, clientFD,
                       &client->getEvent())) {
@@ -413,8 +413,8 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
         return;
     }
 
-    int clientFD = client->getFD();
-    std::string nick = client->getNickname();
+    const int clientFD = client->getFD();
+    const std::string nick = client->getNickname();
     handleMsg(IRCCode::WELCOME, client, "", "");
     handleMsg(IRCCode::YOURHOST, client, "", "");
     handleMsg(IRCCode::CREATED, client, "", _serverStared);
@@ -430,14 +430,14 @@ void Server::_clientAccepted(const std::shared_ptr<Client> &client) noexcept {
     std::cerr << "Client on fd: " << clientFD << " is accepted" << '\n';
 }
 
-void Server::_clientRecv(int fd) noexcept {
-    std::shared_ptr<Client> client = _fd_to_client[fd];
+void Server::_clientRecv(const int fd) noexcept {
+    const std::shared_ptr<Client> client = _fd_to_client[fd];
     if (!client) {
         return;
     }
 
     char buffer[static_cast<int>(Defaults::READ_SIZE) + 1] = {0};
-    ssize_t bytes_read =
+    const ssize_t bytes_read =
         recv(fd, buffer, static_cast<int>(Defaults::READ_SIZE), MSG_DONTWAIT);
     if (0 > bytes_read) {
         if (errno == EAGAIN) {
@@ -458,16 +458,16 @@ void Server::_clientRecv(int fd) noexcept {
     _processMessage(client);
 }
 
-void Server::_clientSend(int fd) noexcept {
-    std::shared_ptr<Client> client = _fd_to_client[fd];
+void Server::_clientSend(const int fd) noexcept {
+    const std::shared_ptr<Client> client = _fd_to_client[fd];
 
     while (client->haveMessagesToSend()) {
-        std::string msg = client->getMessage();
+        const std::string msg = client->getMessage();
 
-        size_t offset = client->getOffset();
+        const size_t offset = client->getOffset();
         std::cout << "send to fd: " << client->getFD() << ": " << msg.c_str()
                   << '\n';
-        ssize_t bytes =
+        const ssize_t bytes =
             send(client->getFD(), msg.c_str() + offset, msg.length() - offset,
                  MSG_DONTWAIT | MSG_NOSIGNAL);
 
@@ -509,12 +509,12 @@ void Server::_removeClient(const std::shared_ptr<Client> &client) noexcept {
         return;
     }
 
-    int fd = client->getFD();
+    const int fd = client->getFD();
     const std::string &nickname = client->getNickname();
 
     try {
-        auto fd_it = _fd_to_client.find(fd);
-        auto nick_it = _nick_to_client.find(nickname);
+        const auto fd_it = _fd_to_client.find(fd);
+        const auto nick_it = _nick_to_client.find(nickname);
 
         if (fd_it != _fd_to_client.end() && fd_it->second == client) {
             _fd_to_client.erase(fd_it);

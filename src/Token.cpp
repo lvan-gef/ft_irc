@@ -24,7 +24,7 @@ IRCCommand getCommand(const std::string &command) {
         {"MODE", IRCCommand::MODE},       {"USERHOST", IRCCommand::USERHOST},
         {"UNKNOW", IRCCommand::UNKNOW},   {"WHOIS", IRCCommand::WHOIS}};
 
-    auto it = commandMap.find(command);
+    const auto it = commandMap.find(command);
     if (it == commandMap.end()) {
         return IRCCommand::UNKNOW;
     }
@@ -96,7 +96,7 @@ void isValidUsername(IRCMessage &token) {
 
     const std::string allowedChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    for (char c : token.params[0]) {
+    for (const char c : token.params[0]) {
         if (allowedChars.find(c) == std::string::npos) {
             token.succes = false;
             token.err.set_value(IRCCode::INVALIDUSERNAME);
@@ -108,7 +108,7 @@ void isValidUsername(IRCMessage &token) {
 void isValidTopic(IRCMessage &token) {
     if (token.params.size() > 1 && token.params[0].length() > 0) {
         if (std::any_of(token.params[0].begin(), token.params[0].end(),
-                        [](char c) { return c < 32 || c == 127; })) {
+                        [](const char c) { return c < 32 || c == 127; })) {
             token.err.set_value(IRCCode::TOPIC);
             token.succes = false;
             token.errMsg = "Invalid topic";
@@ -175,13 +175,13 @@ void isValidJoin(IRCMessage &token) {
     }
 
     if (token.params.size() > 1) {
-        std::vector<std::string> keys = split(token.params[1], ",");
+        const std::vector<std::string> keys = split(token.params[1], ",");
         for (const std::string &key : keys) {
             token.keys.emplace_back(key);
         }
     }
 
-    std::vector<std::string> channels = split(token.params[0], ",");
+    const std::vector<std::string> channels = split(token.params[0], ",");
     token.params.clear();
 
     for (const std::string &channel : channels) {
@@ -207,7 +207,7 @@ void isValidPart(IRCMessage &token) {
     }
 
     token.reason = "Bye";
-    std::vector<std::string> parts = split(token.params[0], ",");
+    const std::vector<std::string> parts = split(token.params[0], ",");
     token.params.clear();
 
     for (const std::string &part : parts) {
@@ -232,7 +232,7 @@ void isValidKick(IRCMessage &token) {
         return;
     }
 
-    std::vector<std::string> keys = split(token.params[1], ",");
+    const std::vector<std::string> keys = split(token.params[1], ",");
     for (const std::string &key : keys) {
         token.keys.emplace_back(key);
     }
@@ -242,7 +242,7 @@ void isValidKick(IRCMessage &token) {
         token.reason = token.params[2];
     }
 
-    std::vector<std::string> channels = split(token.params[0], ",");
+    const std::vector<std::string> channels = split(token.params[0], ",");
     token.params.clear();
 
     for (const std::string &channel : channels) {

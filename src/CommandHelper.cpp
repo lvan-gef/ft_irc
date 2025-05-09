@@ -24,9 +24,9 @@ void Server::_handleNickname(const IRCMessage &token,
         }
     }
 
-    bool wasRegistered = client->isRegistered();
-    std::string old_id = client->getFullID();
-    std::string old_nickname = client->getNickname();
+    const bool wasRegistered = client->isRegistered();
+    const std::string old_id = client->getFullID();
+    const std::string old_nickname = client->getNickname();
     client->setNickname(token.params[0]);
 
     if (!wasRegistered && client->isRegistered()) {
@@ -62,7 +62,7 @@ void Server::_handleUsername(const IRCMessage &token,
 }
 
 void Server::_handlePassword(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) noexcept {
+                             const std::shared_ptr<Client> &client) const noexcept {
     if (client->isRegistered()) {
 		handleMsg(IRCCode::ALREADYREGISTERED, client, "", "");
     } else {
@@ -85,7 +85,7 @@ void Server::_handlePriv(const IRCMessage &token,
     std::string bot = token.params[0];
     std::transform(bot.begin(), bot.end(), bot.begin(), ::toupper);
 
-    std::string channelName = token.params[0];
+    const std::string channelName = token.params[0];
     const Channel *channel = isChannel(channelName);
     if (token.params[0][0] == '#') {
         if (channel == nullptr) {
@@ -112,7 +112,7 @@ void Server::_handlePriv(const IRCMessage &token,
         }
     } else if (bot == "BOT") {
         std::string response = handleBot(token.params, client, this);
-        size_t find = response.find('\n');
+        const size_t find = response.find('\n');
         if (std::string::npos != find) {
             botResponseNl(client, response);
         } else {
@@ -145,7 +145,7 @@ void Server::_handleJoin(const IRCMessage &token,
 
         Channel *channel = isChannel(channelName);
         if (channel == nullptr) {
-            auto emplace_result = _channels.emplace(
+            const auto emplace_result = _channels.emplace(
                 channelName, Channel(channelName, "Default", client));
             if (!emplace_result.second) {
                 handleMsg(IRCCode::NOSUCHCHANNEL, client, channelName, "");
@@ -182,7 +182,7 @@ void Server::_handleJoin(const IRCMessage &token,
 
 void Server::_handleTopic(const IRCMessage &token,
                           const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[0];
+    const std::string channelName = token.params[0];
 
     Channel *channel = isChannel(channelName);
     if (channel == nullptr) {
@@ -256,7 +256,7 @@ void Server::_handleKick(const IRCMessage &token,
 
 void Server::_handleInvite(const IRCMessage &token,
                            const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[1];
+    const std::string channelName = token.params[1];
 
     std::shared_ptr<Client> targetClient = nullptr;
     Channel *channel = isChannel(channelName);
@@ -287,7 +287,7 @@ void Server::_handleInvite(const IRCMessage &token,
 
 void Server::_handleMode(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept {
-    std::string channelName = token.params[0];
+    const std::string channelName = token.params[0];
 
     Channel *channel = isChannel(channelName);
     if (channel == nullptr) {
@@ -326,7 +326,7 @@ void Server::_handleMode(const IRCMessage &token,
 }
 
 void Server::_handleUserhost(const IRCMessage &token,
-                             const std::shared_ptr<Client> &client) noexcept {
+                             const std::shared_ptr<Client> &client) const noexcept {
     std::shared_ptr<Client> targetClient = nullptr;
     std::string uppercaseName = token.params[0];
     std::transform(uppercaseName.begin(), uppercaseName.end(),
@@ -349,7 +349,7 @@ void Server::_handleUserhost(const IRCMessage &token,
         return;
     }
 
-    std::string targetNick = targetClient->getNickname();
+    const std::string targetNick = targetClient->getNickname();
     handleMsg(IRCCode::USERHOST, client, "",
               targetNick + "=-" + client->getFullID());
 }
@@ -361,7 +361,7 @@ void Server::_handleUnkown(const IRCMessage &token,
 }
 
 void Server::_handleWhois(const IRCMessage &token,
-                          const std::shared_ptr<Client> &client) noexcept {
+                          const std::shared_ptr<Client> &client) const noexcept {
     if (token.params.empty())
         return;
 

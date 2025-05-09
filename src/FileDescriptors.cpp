@@ -2,7 +2,7 @@
 
 #include "../include/FileDescriptors.hpp"
 
-FileDescriptors::FileDescriptors(int fd) : _fd(fd) {
+FileDescriptors::FileDescriptors(const int fd) : _fd(fd) {
 }
 
 FileDescriptors::FileDescriptors(FileDescriptors &&rhs) noexcept
@@ -33,7 +33,7 @@ int FileDescriptors::get() const noexcept {
     return _fd;
 }
 
-FileDescriptors &FileDescriptors::operator=(int fd) {
+FileDescriptors &FileDescriptors::operator=(const int fd) {
     if (_fd >= 0) {
         close(_fd);
     }

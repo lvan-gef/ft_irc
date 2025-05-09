@@ -20,8 +20,8 @@
 
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
-    std::string key_to_find = "\"" + key + "\":";
-    size_t key_pos = json.find(key_to_find);
+    const std::string key_to_find = "\"" + key + "\":";
+    const size_t key_pos = json.find(key_to_find);
 
     if (key_pos == std::string::npos) {
         return "Key not found";
@@ -38,7 +38,7 @@ std::string findVal(const std::string &json, const std::string &key) {
     }
 
     if (json[value_start] == '"') {
-        size_t value_end = json.find('"', value_start + 1);
+        const size_t value_end = json.find('"', value_start + 1);
         if (value_end != std::string::npos) {
             try {
                 return json.substr(value_start + 1,
@@ -71,10 +71,10 @@ std::string extractWeather(const std::string &json) {
         return "Json empty or error";
     }
 
-    std::string temp_c = findVal(json, "temp_c");
-    std::string description = findVal(json, "text");
-    std::string location = findVal(json, "name");
-    std::string country = findVal(json, "country");
+    const std::string temp_c = findVal(json, "temp_c");
+    const std::string description = findVal(json, "text");
+    const std::string location = findVal(json, "name");
+    const std::string country = findVal(json, "country");
 
     if (temp_c.empty() || description.empty() || location.empty()) {
         return "Error: Could not parse weather data from API response.";
@@ -90,15 +90,16 @@ std::string extractWeather(const std::string &json) {
 }
 
 int getApiInfo(const char *hostname, const char *port) {
-    struct addrinfo hints {
-    }, *res = nullptr, *p = nullptr;
+    addrinfo hints {};
+    addrinfo *res = nullptr;
+    const addrinfo *p = nullptr;
     int sockfd = -1;
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    int addr = getaddrinfo(hostname, port, &hints, &res);
+    const int addr = getaddrinfo(hostname, port, &hints, &res);
     if (addr != 0) {
         std::cerr << "Could not resolve API hostname" << '\n';
         return -1;
@@ -115,7 +116,7 @@ int getApiInfo(const char *hostname, const char *port) {
             continue;
         }
 
-        int status = connect(sockfd, p->ai_addr, p->ai_addrlen);
+        const int status = connect(sockfd, p->ai_addr, p->ai_addrlen);
         if (status == 0 || (status == -1 && errno == EINPROGRESS)) {
             break;
         } else {
@@ -153,7 +154,7 @@ std::string getJoke() {
         "I told my suitcase we're not going on vacation — now it's dealing "
         "with emotional baggage."};
 
-    int index = std::rand() % static_cast<int>(jokes.size());
+    const int index = std::rand() % static_cast<int>(jokes.size());
     return jokes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
@@ -185,18 +186,18 @@ std::string getQuote() {
         "silence of our friends.\" - Martin Luther King Jr.",
         "\"Either I will find a way, or I will make one.\" - Philip Sidney"};
 
-    int index = std::rand() % static_cast<int>(quotes.size());
+    const int index = std::rand() % static_cast<int>(quotes.size());
     return quotes[static_cast<std::vector<std::string>::size_type>(index)];
 }
 
 ChatBot getChatCmd(const std::string &command) {
     std::string uppercase_cmd = command;
 
-    size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
+    const size_t first = uppercase_cmd.find_first_not_of(" \t\r\n\x01");
     if (std::string::npos == first) {
         uppercase_cmd = "";
     } else {
-        size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
+        const size_t last = uppercase_cmd.find_last_not_of(" \t\r\n\x01");
         try {
             uppercase_cmd = uppercase_cmd.substr(first, (last - first + 1));
         } catch (const std::out_of_range &e) {
@@ -213,7 +214,7 @@ ChatBot getChatCmd(const std::string &command) {
         {"QUOTE", ChatBot::QUOTE},       {"PING", ChatBot::PING},
         {"CHANNELS", ChatBot::CHANNELS}, {"WEATHER", ChatBot::WEATHER}};
 
-    auto it = commandMap.find(uppercase_cmd);
+    const auto it = commandMap.find(uppercase_cmd);
     if (it == commandMap.end()) {
         return ChatBot::UNKNOWN;
     }
@@ -226,7 +227,7 @@ ChatBot handleBotInput(const std::vector<std::string> &input) {
     }
 
     const std::string &cmd = input[0];
-    ChatBot action = getChatCmd(cmd);
+    const ChatBot action = getChatCmd(cmd);
     if (action == ChatBot::WEATHER) {
         if (input.size() == 1)
             return ChatBot::WEATHER_TOO_FEW;
@@ -247,7 +248,7 @@ std::string getWeatherDirectly(const std::string &location,
         return "Error: API Key not configured.";
     }
 
-    std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
+    const std::string full_path = "/v1/current.json?key=" + std::string(api_key) +
                             "&q=" + location + "&aqi=no";
 
     std::stringstream request_ss;
@@ -258,7 +259,7 @@ std::string getWeatherDirectly(const std::string &location,
     request_ss << "Connection: close\r\n";
     request_ss << "\r\n";
 
-    int sockfd = getApiInfo(hostname, port);
+    const int sockfd = getApiInfo(hostname, port);
     if (0 > sockfd) {
         return "Could not connect to API server.";
     }
@@ -268,7 +269,7 @@ std::string getWeatherDirectly(const std::string &location,
     ev.data.fd = sockfd;
     epoll_ctl(server->getEpollFD(), EPOLL_CTL_ADD, sockfd, &ev);
 
-    ApiRequest apiReq = {sockfd, client, "", request_ss.str(),
+    const ApiRequest apiReq = {sockfd, client, "", request_ss.str(),
                          ApiRequest::CONNECTING};
     server->addApiRequest(apiReq);
 
@@ -280,7 +281,7 @@ std::string handleBot(const std::vector<std::string> &params,
                       const std::shared_ptr<Client> &client, Server *server) {
     std::string response;
 
-    std::vector<std::string> input = split(params[1], " ");
+    const std::vector<std::string> input = split(params[1], " ");
     const ChatBot action = handleBotInput(input);
     switch (action) {
         case ChatBot::HELLO:
@@ -341,7 +342,7 @@ void botResponseNl(const std::shared_ptr<Client> &client,
     }
 }
 
-bool handleSendApi(ApiRequest &api, epoll_event event, int epoll_fd) {
+bool handleSendApi(ApiRequest &api, const epoll_event event, const int epoll_fd) {
     if (api.state == api.State::CONNECTING) {
         int error = 0;
         socklen_t len = sizeof(error);
@@ -403,7 +404,7 @@ void handleRecvApi(ApiRequest &api) {
         return;
     }
 
-    size_t header_end = api.buffer.find("\r\n\r\n");
+    const size_t header_end = api.buffer.find("\r\n\r\n");
     if (header_end == std::string::npos) {
         if (connection_closed_by_peer) {
             std::cerr
@@ -434,7 +435,7 @@ void handleRecvApi(ApiRequest &api) {
     }
 
     try {
-        std::string status_line = api.buffer.substr(0, api.buffer.find("\r\n"));
+        const std::string status_line = api.buffer.substr(0, api.buffer.find("\r\n"));
         if (status_line.find("200 OK") == std::string::npos) {
             std::cerr << "handleRecvApi (fd=" << api.fd
                       << "): API request failed. Status: " << status_line
@@ -486,7 +487,7 @@ void handleRecvApi(ApiRequest &api) {
                 return;
             }
         } else {
-            std::string response = extractWeather(json_body);
+            const std::string response = extractWeather(json_body);
             botResponseNl(api.client, response);
             if (api.fd != -1) {
                 close(api.fd);

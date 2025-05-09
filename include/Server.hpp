@@ -76,7 +76,7 @@ class Server final : public EpollInterface {
     void _handleUsername(const IRCMessage &token,
                          const std::shared_ptr<Client> &client) noexcept;
     void _handlePassword(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) noexcept;
+                         const std::shared_ptr<Client> &client) const noexcept;
     void _handlePriv(const IRCMessage &token,
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleJoin(const IRCMessage &token,
@@ -96,11 +96,11 @@ class Server final : public EpollInterface {
     void _handleMode(const IRCMessage &token,
                      const std::shared_ptr<Client> &client) noexcept;
     void _handleUserhost(const IRCMessage &token,
-                         const std::shared_ptr<Client> &client) noexcept;
+                         const std::shared_ptr<Client> &client) const noexcept;
     void _handleUnkown(const IRCMessage &token,
                        const std::shared_ptr<Client> &client) noexcept;
     void _handleWhois(const IRCMessage &token,
-                      const std::shared_ptr<Client> &client) noexcept;
+                      const std::shared_ptr<Client> &client) const noexcept;
 
   private:
     std::uint16_t _port;
