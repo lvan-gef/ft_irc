@@ -26,8 +26,6 @@
 #include "../include/Server.hpp"
 #include "../include/Utils.hpp"
 
-// TODO: use fd class to handle fd;
-
 namespace {
 std::string findVal(const std::string &json, const std::string &key) {
     const std::string key_to_find = "\"" + key + "\":";
