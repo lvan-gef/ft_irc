@@ -375,7 +375,7 @@ bool handleSendApi(ApiRequest &api, const epoll_event event, const int epoll_fd)
 }
 
 void handleRecvApi(ApiRequest &api) {
-    char buf[4096] = {0};
+    char buf[4096] = {};
     ssize_t n = -1;
     bool connection_closed_by_peer = false;
 

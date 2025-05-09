@@ -436,7 +436,7 @@ void Server::_clientRecv(const int fd) noexcept {
         return;
     }
 
-    char buffer[static_cast<int>(Defaults::READ_SIZE) + 1] = {0};
+    char buffer[static_cast<int>(Defaults::READ_SIZE) + 1] = {};
     const ssize_t bytes_read =
         recv(fd, buffer, static_cast<int>(Defaults::READ_SIZE), MSG_DONTWAIT);
     if (0 > bytes_read) {
