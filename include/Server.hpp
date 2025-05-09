@@ -5,8 +5,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include <sys/socket.h>
-
 #include "./Channel.hpp"
 #include "./Client.hpp"
 #include "./EpollInterface.hpp"
