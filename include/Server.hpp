@@ -55,7 +55,7 @@ class Server final : public EpollInterface {
     bool _init() noexcept;
     void _run();
     void _shutdown() noexcept;
-    int _setNonBlocking(int fd) noexcept;
+    static int _setNonBlocking(int fd) noexcept;
 
   private:
     void _newConnection() noexcept;
