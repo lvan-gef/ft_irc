@@ -154,19 +154,17 @@ void Channel::setMode(const ChannelMode mode, const bool state, const std::strin
                 broadcast(IRCCode::MODE, serverName, "+k " + value);
                 _modes.set(2);
                 return setPassword(value, client);
-            } else {
-                broadcast(IRCCode::MODE, serverName, "-k");
-                _modes.reset(2);
-                return setPassword("", client);
             }
+            broadcast(IRCCode::MODE, serverName, "-k");
+            _modes.reset(2);
+            return setPassword("", client);
         case ChannelMode::OPERATOR:
             for (const std::shared_ptr<Client> &user : _users) {
                 if (user->getNickname() == value) {
                     if (state) {
                         return addOperator(user);
-                    } else {
-                        return removeOperator(user);
                     }
+                    return removeOperator(user);
                 }
             }
             break;
@@ -193,12 +191,11 @@ void Channel::setMode(const ChannelMode mode, const bool state, const std::strin
                 _modes.set(4);
                 broadcast(IRCCode::MODE, serverName, "+l " + value);
                 return setUserLimit(nbr, client);
-            } else {
-                _modes.reset(4);
-                broadcast(IRCCode::MODE, serverName, "-l");
-                return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
-                                    client);
             }
+            _modes.reset(4);
+            broadcast(IRCCode::MODE, serverName, "-l");
+            return setUserLimit(static_cast<size_t>(Defaults::USERLIMIT),
+                                client);
     }
 }
 

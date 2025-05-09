@@ -121,10 +121,9 @@ int getApiInfo(const char *hostname, const char *port) {
         const int status = connect(sockfd, p->ai_addr, p->ai_addrlen);
         if (status == 0 || (status == -1 && errno == EINPROGRESS)) {
             break;
-        } else {
-            close(sockfd);
-            sockfd = -1;
         }
+        close(sockfd);
+        sockfd = -1;
     }
 
     freeaddrinfo(res);
@@ -390,15 +389,14 @@ void handleRecvApi(ApiRequest &api) {
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 break;
-            } else {
-                perror("recv error in handleRecvApi");
-                botResponseNl(api.client, "Error receiving data from API.");
-                if (api.fd != -1) {
-                    close(api.fd);
-                }
-                api.fd = -1;
-                return;
             }
+            perror("recv error in handleRecvApi");
+            botResponseNl(api.client, "Error receiving data from API.");
+            if (api.fd != -1) {
+                close(api.fd);
+            }
+            api.fd = -1;
+            return;
         }
     }
 
@@ -419,17 +417,18 @@ void handleRecvApi(ApiRequest &api) {
             close(api.fd);
             api.fd = -1;
             return;
-        } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            return;
-        } else {
-            std::cerr << "handleRecvApi (fd=" << api.fd
-                      << "): Headers not found, unexpected state." << '\n';
-            botResponseNl(api.client,
-                          "Error: Unexpected state receiving API response.");
-            close(api.fd);
-            api.fd = -1;
+        }
+
+        if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             return;
         }
+        std::cerr << "handleRecvApi (fd=" << api.fd
+                  << "): Headers not found, unexpected state." << '\n';
+        botResponseNl(api.client,
+                      "Error: Unexpected state receiving API response.");
+        close(api.fd);
+        api.fd = -1;
+        return;
     }
 
     try {
@@ -466,25 +465,27 @@ void handleRecvApi(ApiRequest &api) {
                 close(api.fd);
                 api.fd = -1;
                 return;
-            } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                return;
-            } else {
-                std::cerr << "handleRecvApi (fd=" << api.fd
-                          << "): API response body is empty (unknown reason)."
-                          << '\n';
-                botResponseNl(api.client,
-                              "Error: Received empty response body from API.");
-                close(api.fd);
-                api.fd = -1;
+            }
+
+            if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
                 return;
             }
-        } else {
-            const std::string response = extractWeather(json_body);
-            botResponseNl(api.client, response);
+
+            std::cerr << "handleRecvApi (fd=" << api.fd
+                      << "): API response body is empty (unknown reason)."
+                      << '\n';
+            botResponseNl(api.client,
+                          "Error: Received empty response body from API.");
             close(api.fd);
             api.fd = -1;
             return;
         }
+
+        const std::string response = extractWeather(json_body);
+        botResponseNl(api.client, response);
+        close(api.fd);
+        api.fd = -1;
+        return;
     } catch (const std::out_of_range &e) {
         std::cerr << "handleRecvApi (fd=" << api.fd
                   << "): Failed to extract/parse API response parts: "
