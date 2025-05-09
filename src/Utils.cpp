@@ -1,9 +1,10 @@
 #include <cerrno>
-#include <climits>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <cstdint>
+#include <string>
 
 #include "../include/Utils.hpp"
 
@@ -22,7 +23,7 @@ std::uint16_t toUint16(const std::string &str) {
             return 0;
         }
 
-        return static_cast<uint16_t>(value);
+        return static_cast<std::uint16_t>(value);
     } catch (const std::invalid_argument &) {
         errno = EINVAL;
         return 0;

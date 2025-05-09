@@ -3,9 +3,11 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <cstdlib>
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"
+#include "../include/EpollInterface.hpp"
 
 Client::Client(const int fd)
     : _fd(fd), _username(""), _nickname(""), _ip("0.0.0.0"), _realname(""),

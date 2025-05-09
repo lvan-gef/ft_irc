@@ -1,4 +1,6 @@
 #include <memory>
+#include <string>
+#include <cstdint>
 
 #include "../include/Client.hpp"
 #include "../include/Enums.hpp"

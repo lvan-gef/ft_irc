@@ -1,6 +1,10 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <string>
+#include <cctype>
+#include <cstddef>
+#include <sstream>
 
 #include "../include/Channel.hpp"
 #include "../include/Chatbot.hpp"
@@ -8,6 +12,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
+#include "../include/Client.hpp"
 
 void Server::_handleNickname(const IRCMessage &token,
                              const std::shared_ptr<Client> &client) noexcept {

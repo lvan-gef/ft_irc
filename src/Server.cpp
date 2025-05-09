@@ -10,6 +10,12 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <ctime>
+#include <sstream>
+#include <functional>
+#include <cstdlib>
+#include <exception>
+#include <cctype>
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -17,6 +23,8 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
 
 #include "../include/Chatbot.hpp"
 #include "../include/Client.hpp"
@@ -24,6 +32,7 @@
 #include "../include/Server.hpp"
 #include "../include/Token.hpp"
 #include "../include/Utils.hpp"
+#include "../include/Channel.hpp"
 
 namespace {
 bool g_running{true};

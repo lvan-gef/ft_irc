@@ -368,7 +368,7 @@ bool handleSendApi(ApiRequest &api, const epoll_event event, const int epoll_fd)
         new_ev.events = EPOLLIN;
         new_ev.data.fd = event.data.fd;
         if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, event.data.fd, &new_ev) == -1) {
-            perror("epoll_ctl mod failed in handleSendApi");
+            std::perror("epoll_ctl mod failed in handleSendApi");
             close(event.data.fd);
             api.fd = -1;
             botResponseNl(api.client,
