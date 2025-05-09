@@ -235,8 +235,6 @@ void Channel::addOperator(const std::shared_ptr<Client> &user) {
         _operators.emplace(user);
         broadcast(IRCCode::MODE, serverName, "+o " + user->getNickname());
     }
-
-    return;
 }
 
 void Channel::removeOperator(const std::shared_ptr<Client> &user) {

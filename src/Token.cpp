@@ -161,7 +161,6 @@ void isValidMode(IRCMessage &token) {
             token.err.set_value(IRCCode::NEEDMOREPARAMS);
             token.errMsg = "MODE " + std::string(1, token.params[1][1]);
             token.succes = false;
-            return;
         }
     }
 }
