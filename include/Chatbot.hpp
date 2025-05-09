@@ -1,8 +1,8 @@
 #ifndef CHATBOT_HPP
 #define CHATBOT_HPP
 
-#include <cstring>
 #include <string>
+#include <vector>
 
 #include <sys/epoll.h>
 
