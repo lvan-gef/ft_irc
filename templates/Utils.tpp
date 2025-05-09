@@ -13,11 +13,8 @@
 #ifndef UTILS_TPP
 #define UTILS_TPP
 
-#include <cstring>
 #include <sstream>
 #include <string>
-
-#include <sys/socket.h>
 
 template <typename... Args>
 std::string formatMessage(const Args &...args) noexcept {
