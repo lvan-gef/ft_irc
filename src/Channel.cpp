@@ -118,7 +118,7 @@ void Channel::inviteUser(const std::shared_ptr<Client> &user,
                   client->getNickname());
 }
 
-void Channel::setMode(const ChannelMode mode, const cbool state, const std::string &value,
+void Channel::setMode(const ChannelMode mode, const bool state, const std::string &value,
                       const std::shared_ptr<Client> &client) {
     if (isOperator(client) != true) {
         return handleMsg(IRCCode::CHANOPRIVSNEEDED, client, getName(), "");
