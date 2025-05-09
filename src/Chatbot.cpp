@@ -414,9 +414,7 @@ void handleRecvApi(ApiRequest &api) {
             botResponseNl(
                 api.client,
                 "Error: Incomplete response from API (connection closed).");
-            if (api.fd != -1) {
-                close(api.fd);
-            }
+            close(api.fd);
             api.fd = -1;
             return;
         } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
@@ -426,9 +424,7 @@ void handleRecvApi(ApiRequest &api) {
                       << "): Headers not found, unexpected state." << '\n';
             botResponseNl(api.client,
                           "Error: Unexpected state receiving API response.");
-            if (api.fd != -1) {
-                close(api.fd);
-            }
+            close(api.fd);
             api.fd = -1;
             return;
         }
@@ -442,9 +438,7 @@ void handleRecvApi(ApiRequest &api) {
                       << '\n';
             botResponseNl(api.client,
                           "API request failed. Status: " + status_line);
-            if (api.fd != -1) {
-                close(api.fd);
-            }
+            close(api.fd);
             api.fd = -1;
             return;
         }
@@ -467,9 +461,7 @@ void handleRecvApi(ApiRequest &api) {
                           << '\n';
                 botResponseNl(api.client,
                               "Error: Received empty response body from API.");
-                if (api.fd != -1) {
-                    close(api.fd);
-                }
+                close(api.fd);
                 api.fd = -1;
                 return;
             } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
@@ -480,18 +472,14 @@ void handleRecvApi(ApiRequest &api) {
                           << '\n';
                 botResponseNl(api.client,
                               "Error: Received empty response body from API.");
-                if (api.fd != -1) {
-                    close(api.fd);
-                }
+                close(api.fd);
                 api.fd = -1;
                 return;
             }
         } else {
             const std::string response = extractWeather(json_body);
             botResponseNl(api.client, response);
-            if (api.fd != -1) {
-                close(api.fd);
-            }
+            close(api.fd);
             api.fd = -1;
             return;
         }
@@ -506,10 +494,8 @@ void handleRecvApi(ApiRequest &api) {
         botResponseNl(api.client, "Error processing API response.");
     }
 
-    if (api.fd != -1) {
         std::cerr << "handleRecvApi: Closing API socket fd " << api.fd
                   << " (reached end of function unexpectedly)" << '\n';
         close(api.fd);
         api.fd = -1;
-    }
 }
