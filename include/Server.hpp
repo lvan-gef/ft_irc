@@ -21,7 +21,7 @@ struct ApiRequest {
     enum State { CONNECTING, SENDING, READING } state;
 };
 
-class Server : public EpollInterface {
+class Server final : public EpollInterface {
   public:
     explicit Server(const std::string &port, std::string &password);
 
@@ -34,7 +34,7 @@ class Server : public EpollInterface {
     ~Server() override;
 
   public:
-    class ServerException : public std::exception {
+    class ServerException final : public std::exception {
       public:
         const char *what() const noexcept override;
     };
