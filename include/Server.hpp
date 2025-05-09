@@ -85,8 +85,6 @@ class Server final : public EpollInterface {
                       const std::shared_ptr<Client> &client) noexcept;
     void _handlePart(const IRCMessage &token,
                      const std::shared_ptr<Client> &client) noexcept;
-    void _handleQuit(const IRCMessage &token,
-                     const std::shared_ptr<Client> &client) noexcept;
     static void _handlePing(const IRCMessage &token,
                             const std::shared_ptr<Client> &client) noexcept;
     void _handleKick(const IRCMessage &token,
