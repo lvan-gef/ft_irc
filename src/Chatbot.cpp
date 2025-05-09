@@ -11,12 +11,14 @@
 #include <vector>
 #include <cstdlib>
 #include <exception>
+#include <cstdio>
 
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 
 #include "../include/Chatbot.hpp"
 #include "../include/Enums.hpp"
@@ -396,7 +398,7 @@ void handleRecvApi(ApiRequest &api) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 break;
             }
-            perror("recv error in handleRecvApi");
+            std::perror("recv error in handleRecvApi");
             botResponseNl(api.client, "Error receiving data from API.");
             if (api.fd != -1) {
                 close(api.fd);
