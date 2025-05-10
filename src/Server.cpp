@@ -463,6 +463,7 @@ void Server::_clientRecv(const int fd) noexcept {
         return;
     }
 
+    std::cout << "recv from fd: " << client->getFD() << ": " << buffer << '\n';
     client->appendToBuffer(std::string(buffer, (std::size_t)bytes_read));
     _processMessage(client);
 }
@@ -581,7 +582,7 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
             continue;
         }
 
-        std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
+        std::cout << "message from fd: " << client->getFD() << ": " << msg << '\n';
         const std::vector<IRCMessage> clientsToken = parseIRCMessage(msg);
         for (const IRCMessage &token : clientsToken) {
             if (!token.succes) {
