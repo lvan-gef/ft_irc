@@ -136,7 +136,6 @@ void Client::appendToBuffer(const std::string &data) noexcept {
 std::string Client::getAndClearBuffer() noexcept {
     const std::size_t index = _partial_buffer.find("\r\n");
     if (index == std::string::npos) {
-        std::cerr << "Find \\r\\n failed when getting the buffer" << '\n';
         return "";
     }
 
