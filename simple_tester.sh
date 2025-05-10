@@ -106,4 +106,20 @@ CHANNEL="#nc"
     echo "KICK";
     sleep 0.5;
 
+    echo "PRIVMSG"
+    sleep 0.5;
+
+    echo "INVITE";
+    sleep 0.5;
+
+    echo "USERHOST";
+    sleep 0.5;
+
+    echo "WHOIS";
+    sleep 0.5;
+
+    # close connection
+    echo "QUIT";
+    sleep 0.5;
+
 } | tee /dev/tty | nc -C $IRC_SERVER $PORT
