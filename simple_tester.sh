@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # run it: ./simple_tester.sh <port> <password>
-# a simple tester to make sure we dont segfault any more of we dont have everything we expect...
+# a simple tester to make sure we dont segfault, i hope so
 
 if [ "$(uname)" = "Darwin" ]; then
     IRC_SERVER=$(ifconfig | grep "inet " | grep 127.0.0.1 | awk '{print $2}')
