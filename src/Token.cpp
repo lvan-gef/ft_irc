@@ -56,25 +56,25 @@ void isValidNick(IRCMessage &token) {
     }
 
     if (isBot(token.params[0])) {
-        token.succes = false;
         token.err.set_value(IRCCode::ERRONUENICK);
+        token.succes = false;
         return;
     }
 
     const std::string firstAllowed =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[\\]^_`{|}";
     if (firstAllowed.find(token.params[0][0]) == std::string::npos) {
-        token.succes = false;
         token.err.set_value(IRCCode::ERRONUENICK);
         token.errMsg = token.params[0];
+        token.succes = false;
     }
 
     const std::string allowedChars = firstAllowed + "0123456789-";
     for (std::size_t i = 1; i < token.params[0].length(); ++i) {
         if (allowedChars.find(token.params[0][i]) == std::string::npos) {
-            token.succes = false;
             token.err.set_value(IRCCode::ERRONUENICK);
             token.errMsg = token.params[0];
+            token.succes = false;
         }
     }
 }
@@ -116,15 +116,15 @@ void isValidTopic(IRCMessage &token) {
         if (std::any_of(token.params[0].begin(), token.params[0].end(),
                         [](const char c) { return c < 32 || c == 127; })) {
             token.err.set_value(IRCCode::TOPIC);
-            token.succes = false;
             token.errMsg = "Invalid topic";
+            token.succes = false;
         }
     }
 
     if (token.params.size() > getDefaultValue(Defaults::TOPICLEN)) {
         token.err.set_value(IRCCode::TOPIC);
-        token.succes = false;
         token.errMsg = "Topic to long";
+        token.succes = false;
     }
 }
 
