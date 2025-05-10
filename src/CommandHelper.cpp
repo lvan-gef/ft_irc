@@ -329,6 +329,10 @@ void Server::_handleMode(const IRCMessage &token,
             channel->setMode(ChannelMode::USER_LIMIT, state, value, client);
             break;
     }
+
+    return channel->broadcast(IRCCode::CHANNELMODEIS, "",
+                     channel->getChannelModes() +
+                         channel->getChannelModesValues());
 }
 
 void Server::_handleUserhost(
