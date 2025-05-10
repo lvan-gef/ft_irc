@@ -9,6 +9,8 @@
 #include "../include/Utils.hpp"
 
 std::uint16_t toUint16(const std::string &str) {
+    errno = 0;
+
     try {
         std::size_t pos = 0;
         const unsigned long value = std::stoul(str, &pos, BASE);
@@ -34,6 +36,8 @@ std::uint16_t toUint16(const std::string &str) {
 }
 
 std::size_t toSizeT(const std::string &str) {
+    errno = 0;
+
     try {
         std::size_t pos = 0;
         const unsigned long value = std::stoul(str, &pos, BASE);
