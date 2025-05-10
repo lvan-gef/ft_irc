@@ -143,7 +143,7 @@ void Channel::setMode(const ChannelMode mode, const bool state,
                 _modes.set(1);
             } else {
                 broadcast(IRCCode::MODE, serverName, "-t");
-                _modes.reset(0);
+                _modes.reset(1);
             }
             break;
         case ChannelMode::PASSWORD_PROTECTED:
