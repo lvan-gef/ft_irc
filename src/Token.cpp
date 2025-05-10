@@ -223,7 +223,6 @@ void isValidPart(IRCMessage &token) {
 }
 
 void isValidKick(IRCMessage &token) {
-    token.debug();
     if (token.params.size() < 2) {
         token.err.set_value(IRCCode::NEEDMOREPARAMS);
         token.errMsg = token.command;
@@ -347,18 +346,4 @@ std::vector<IRCMessage> parseIRCMessage(const std::string &msg) {
     validateMessage(tokens);
 
     return tokens;
-}
-
-void IRCMessage::debug() const noexcept {
-    std::cout << "------------------" << '\n';
-    std::cout << "prefix : " << this->prefix << '\n';
-    std::cout << "command: " << this->command << '\n';
-    std::cout << "params : " << '\n';
-    for (const std::string &param : this->params) {
-        std::cout << "    " << param << '\n';
-    }
-    std::cout << "succes : " << this->succes << '\n';
-    std::cout << "err msg: " << this->errMsg << '\n';
-    // std::cout << "type   : " << this->type << '\n';
-    std::cout << "------------------" << '\n';
 }
