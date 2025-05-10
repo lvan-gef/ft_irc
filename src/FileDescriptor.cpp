@@ -5,8 +5,7 @@
 FileDescriptor::FileDescriptor(const int fd) : _fd(fd) {
 }
 
-FileDescriptor::FileDescriptor(FileDescriptor &&rhs) noexcept
-    : _fd(rhs._fd) {
+FileDescriptor::FileDescriptor(FileDescriptor &&rhs) noexcept : _fd(rhs._fd) {
     rhs._fd = -1;
 }
 
@@ -41,10 +40,9 @@ void FileDescriptor::clos() noexcept {
     _fd = -1;
 }
 
-bool  FileDescriptor::isClosed() const noexcept {
+bool FileDescriptor::isClosed() const noexcept {
     return _fd < 0;
 }
-
 
 FileDescriptor &FileDescriptor::operator=(const int fd) {
     if (_fd >= 0) {

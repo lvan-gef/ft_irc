@@ -331,8 +331,8 @@ void Server::_handleMode(const IRCMessage &token,
     }
 
     return channel->broadcast(IRCCode::CHANNELMODEIS, "",
-                     channel->getChannelModes() +
-                         channel->getChannelModesValues());
+                              channel->getChannelModes() +
+                                  channel->getChannelModesValues());
 }
 
 void Server::_handleUserhost(
