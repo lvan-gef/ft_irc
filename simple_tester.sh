@@ -1,5 +1,6 @@
 #! /bin/bash
 
+# run it: ./simple_tester.sh <port> <password>
 # a simple tester to make sure we dont segfault any more of we dont have everything we expect...
 
 if [ "$(uname)" = "Darwin" ]; then
