@@ -578,7 +578,8 @@ void Server::_processMessage(const std::shared_ptr<Client> &client) noexcept {
         }
 
         if (msg.length() > getDefaultValue(Defaults::MAXMSGLEN)) {
-            return handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+            handleMsg(IRCCode::INPUTTOOLONG, client, "", "");
+            continue;
         }
 
         std::cout << "recv from fd: " << client->getFD() << ": " << msg << '\n';
