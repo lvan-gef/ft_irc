@@ -106,6 +106,12 @@ void isValidUsername(IRCMessage &token) {
 }
 
 void isValidTopic(IRCMessage &token) {
+    if (token.params.size() < 1) {
+        token.err.set_value(IRCCode::NEEDMOREPARAMS);
+        token.errMsg = token.command;
+        token.succes = false;
+    }
+
     if (token.params.size() > 1 && token.params[0].length() > 0) {
         if (std::any_of(token.params[0].begin(), token.params[0].end(),
                         [](const char c) { return c < 32 || c == 127; })) {
