@@ -130,19 +130,15 @@ void Channel::setMode(const ChannelMode mode, const bool state,
     switch (mode) {
         case ChannelMode::INVITE_ONLY:
             if (state) {
-                // broadcast(IRCCode::MODE, serverName, "+i");
                 _modes.set(0);
             } else {
-                // broadcast(IRCCode::MODE, serverName, "-i");
                 _modes.reset(0);
             }
             break;
         case ChannelMode::TOPIC_PROTECTED:
             if (state) {
-                // broadcast(IRCCode::MODE, serverName, "+t");
                 _modes.set(1);
             } else {
-                // broadcast(IRCCode::MODE, serverName, "-t");
                 _modes.reset(1);
             }
             break;
@@ -154,11 +150,9 @@ void Channel::setMode(const ChannelMode mode, const bool state,
                                      "Password for channel can not be empty");
                 }
 
-                // broadcast(IRCCode::MODE, serverName, "+k " + value);
                 _modes.set(2);
                 return setPassword(value, client);
             }
-            // broadcast(IRCCode::MODE, serverName, "-k");
             _modes.reset(2);
             return setPassword("", client);
         case ChannelMode::OPERATOR:
@@ -194,10 +188,8 @@ void Channel::setMode(const ChannelMode mode, const bool state,
                 _modes.set(4);
                 setUserLimit(nbr, client);
                 return;
-                // broadcast(IRCCode::MODE, serverName, "+l " + value);
             }
             _modes.reset(4);
-            // broadcast(IRCCode::MODE, serverName, "-l");
             return setUserLimit(static_cast<std::size_t>(Defaults::USERLIMIT),
                                 client);
     }
