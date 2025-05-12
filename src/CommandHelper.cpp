@@ -39,15 +39,9 @@ void Server::_handleNickname(const IRCMessage &token,
     } else if (client->isRegistered()) {
         handleMsg(IRCCode::NICKCHANGED, client, old_id, client->getNickname());
 
-        for (const std::string &channelName : client->allChannels()) {
-            std::string cn = channelName;
-            std::transform(cn.begin(), cn.end(), cn.begin(), ::toupper);
-            auto it = _channels.find(cn);
-            if (it != _channels.end()) {
-                it->second.broadcast(IRCCode::NICKCHANGED, old_id,
+        for (const auto &it : _channels) {
+                it.second.broadcast(IRCCode::NICKCHANGED, old_id,
                                      client->getNickname());
-                break;
-            }
         }
     }
 
