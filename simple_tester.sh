@@ -1,7 +1,7 @@
-#! /bin/bash
+#!/bin/bash
 
-# run it: ./simple_tester.sh <port> <password>
-# a simple tester to make sure we dont segfault, i hope so
+# Usage: ./simple_tester.sh <port> <password>
+# Simple tester that reconnects after every failed registration or command
 
 if [ "$(uname)" = "Darwin" ]; then
     IRC_SERVER=$(ifconfig | grep "inet " | grep 127.0.0.1 | awk '{print $2}')
@@ -14,112 +14,70 @@ PASSWORD="$2"
 NICK="luuk"
 USER1="hello"
 CHANNEL="#nc"
-{
+
+register() {
+    echo "PASS $PASSWORD"
+    echo "NICK $NICK"
+    echo "USER $NICK * $IRC_SERVER :$USER1"
     sleep 0.5
+}
 
-    echo > /dev/tty;
-    echo "PASS";
-    echo "NICK $NICK";
-    echo "USER $NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
+run_test() {
+    {
+        register
+        for cmd in "$@"; do
+            echo "$cmd"
+            sleep 0.5
+        done
+        echo "QUIT :Leaving"
+    } | tee /dev/tty | nc -C "$IRC_SERVER" "$PORT"
+    sleep 1
+}
 
-    echo "PASS $PASSWORD";
-    echo "NICK";
-    echo "USER $NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
+run_raw_test() {
+    {
+        for cmd in "$@"; do
+            echo "$cmd"
+            sleep 0.5
+        done
+        echo "QUIT :Leaving"
+    } | tee /dev/tty | nc -C "$IRC_SERVER" "$PORT"
+    sleep 1
+}
 
-    echo "PASS $PASSWORD";
-    echo "NICK 1$NICK";
-    echo "USER $NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
+### Start tests
 
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK 1";
-    echo "USER $NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
+# Bad registration (invalid PASS), expect disconnect
+run_raw_test \
+    "PASS" \
+    "NICK $NICK" \
+    "USER $NICK * $IRC_SERVER :$USER1"
 
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER";
-    sleep 0.5;
+# Various malformed/invalid registration sequences (each reconnects)
+run_raw_test "PASS $PASSWORD" "NICK" "USER $NICK * $IRC_SERVER :$USER1"
+run_raw_test "PASS $PASSWORD" "NICK 1$NICK" "USER $NICK * $IRC_SERVER :$USER1"
+run_raw_test "PASS $PASSWORD" "NICK $NICK 1" "USER $NICK * $IRC_SERVER :$USER1"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER $NICK"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER $NICK *"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER $NICK * $IRC_SERVER"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER $NICK * $IRC_SERVER :"
+run_raw_test "PASS $PASSWORD" "NICK $NICK" "USER [$NICK * $IRC_SERVER :$USER1"
 
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER $NICK";
-    sleep 0.5;
-
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER $NICK * ";
-    sleep 0.5;
-
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER $NICK * $IRC_SERVER";
-    sleep 0.5;
-
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER $NICK * $IRC_SERVER :";
-    sleep 0.5;
-
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER [$NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
-
-    echo "PASS $PASSWORD";
-    echo "NICK $NICK";
-    echo "USER $NICK * $IRC_SERVER :$USER1";
-    sleep 0.5;
-
-    echo "JOIN";
-    sleep 0.5;
-
-    echo "JOIN #";
-    sleep 0.5;
-
-    echo "JOIN #test";
-    sleep 0.5;
-
-    echo "TOPIC";
-    sleep 0.5;
-
-    echo "TOPIC $CHANNEL new topic";
-    sleep 0.5;
-
-    echo "TOPIC $CHANNEL nt";
-    sleep 0.5;
-
-    echo "TOPIC $CHANNEL";
-    sleep 0.5;
-
-    echo "MODE";
-    sleep 0.5;
-
-    echo "MODE +l -1";
-    sleep 0.5;
-
-    echo "PART";
-    sleep 0.5;
-
-    echo "KICK";
-    sleep 0.5;
-
-    echo "PRIVMSG"
-    sleep 0.5;
-
-    echo "INVITE";
-    sleep 0.5;
-
-    echo "USERHOST";
-    sleep 0.5;
-
-    echo "WHOIS";
-    sleep 0.5;
-
-    # close connection
-    echo "QUIT";
-    sleep 0.5;
-
-} | tee /dev/tty | nc -C $IRC_SERVER $PORT
+# Now do valid login followed by real commands
+run_test
+run_test "JOIN"
+run_test "JOIN #"
+run_test "JOIN #test"
+run_test "TOPIC"
+run_test "TOPIC $CHANNEL new topic"
+run_test "TOPIC $CHANNEL nt"
+run_test "TOPIC $CHANNEL"
+run_test "MODE"
+run_test "MODE +l -1"
+run_test "PART"
+run_test "KICK"
+run_test "PRIVMSG"
+run_test "INVITE"
+run_test "USERHOST"
+run_test "WHOIS"
